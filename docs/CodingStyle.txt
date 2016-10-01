@@ -1,0 +1,49 @@
+
+No tabs, 2 space indentation
+
+always_comb begin
+  if (foo) begin
+    a = 3;
+  end else begin
+    b = 2;
+end
+  
+Module inputs indented at 36 Character pos. E.g:
+module foobar(
+   input                           clk
+  ,input                           reset
+  ,output                          l1tol2_req_valid
+  ,input                           l1tol2_req_retry
+  ,output I_l1tol2_req_type        l1tol2_req
+
+
+Module inputs always start with clk and reset.
+
+Fluid ports have always the same name root XXX_valid XXX_retry, and XXX for the data itself.
+
+The only non-fluid port allowed are stats, and they have to finish with the _stats keyword. E.g:
+
+  ,output PF_cache_stats_type      pf_dl1_stats
+
+All the structs are packetd with typedef and the name finishes with _type. E.g:
+
+typedef struct packed {
+  logic   w;
+  logic   r;
+  logic   x;
+  SC_pagesize_type pagesize;
+} SC_dctlbe_type;
+
+
+Do not use the wire/reg keyword. Just logic.
+
+Do not use always keyword. Just always_comb or instantiate the flop/ fluid flop used.
+
+----------
+Main Files:
+
+scmemc: Commands
+scmemi: Fluid Interfaces
+scmemt: Types or structs that are not fluid interfaces
+scmemp: Configuration Parameters
+

@@ -1,0 +1,21 @@
+
+Naming:
+
+DC: data cache
+IC: instruction cache
+L2: 2nd level cache (last)
+L1: refers to either icache or dcache
+PF: prefetch
+DR: Directory (address mapped)
+
+------
+
+Hierarchy:
+
+ IC (icache) -> Instrction L2 (l2cache_pipe)
+
+ DC pipe -> L2 (l2cache_pipe)
+
+ l2cache_pipe -> network -> DR 
+
+
