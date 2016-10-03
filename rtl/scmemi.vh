@@ -28,6 +28,7 @@ typedef struct packed {
 // {{{1 l1tol2_disp 
 typedef struct packed {
   L1_reqid_type     l1id;
+  L2_reqid_type     l2id; // !=0 means disp as a result of SNOOP (E.g: WB as a result of SCMD_WI)
 
   SC_disp_mask_type mask;
   SC_dcmd_type      dcmd;
@@ -74,7 +75,8 @@ typedef struct packed {
 // {{{1 l2todr_disp 
 typedef struct packed {
   SC_nodeid_type    nid; 
-  L1_reqid_type     l2id;
+  L1_reqid_type     l2id; // != means L2 initiated disp (drid==0)
+  DR_reqid_type     drid; // !=0 snoop ack. (E.g: SMCD_WI resulting in a disp)
 
   SC_disp_mask_type mask;
   SC_dcmd_type      dcmd;

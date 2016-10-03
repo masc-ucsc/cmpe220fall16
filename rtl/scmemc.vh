@@ -94,8 +94,8 @@
 
 `define SC_SCMD_PUSH_E      5'b10000 // Push line (no req response) with E state. Must cache it
 `define SC_SCMD_PUSH_S      5'b10001 // Push line (no req response) with S state. Must cache it
-`define SC_SCMD_WI          5'b10100 // Write back invalidate
-`define SC_SCMD_WS          5'b11000 // Write back (even clean) but can keep as shared
+`define SC_SCMD_WI          5'b10100 // Write back invalidate (ack either snoop_ack or disp with data)
+`define SC_SCMD_WS          5'b11000 // Write back (even clean) but can keep as shared (ack either snoop_ack or disp with data)
 `define SC_SCMD_TS          5'b11001 // toggle to share, but not writeback unless dirty
 `define SC_SCMD_PE          5'b11010 // prefetch triggered cache line push with E state
 `define SC_SCMD_PS          5'b11011 // prefetch triggered cache line push with S state
