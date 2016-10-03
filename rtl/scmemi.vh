@@ -61,7 +61,7 @@ typedef struct packed {
 
 // {{{1 drtol2_snack
 typedef struct packed {
-  SC_nodeid_type    nid;  // nodeid + checkpoint -> version
+  SC_nodeid_type    nid; 
   L2_reqid_type     l2id; // !=0 ACK
   DR_reqid_type     drid; // !=0 snoop
 
