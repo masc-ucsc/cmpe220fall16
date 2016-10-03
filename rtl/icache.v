@@ -14,6 +14,9 @@
 // 4 or 16 instruction fetch (4 or 8 way core)
 //
 
+
+//test comment
+
 module icache(
   /* verilator lint_off UNUSED */
    input                           clk
