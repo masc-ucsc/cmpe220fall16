@@ -76,8 +76,8 @@
 
 // DC -> L2 and L2 -> DR request
 `define SC_CMD_REQBITS       3
-`define SC_CMD_REQ_S         3'b000  // Get line Shared State
-`define SC_CMD_REQ_E         3'b001  // get line Exclusive state
+`define SC_CMD_REQ_S         3'b000  // Get line Shared/Exclusive State
+`define SC_CMD_REQ_M         3'b001  // get line Modified state
 `define SC_CMD_REQ_NC        3'b010  // non-cacheable read
 `define SC_CMD_DRAINI        3'b110  // writeback invalidate the whole L2/DR. 
 
@@ -87,9 +87,10 @@
 `define SC_SCMDBITS         5
 `define SC_SCMD_ACK_S       5'b00000 // ack with line in Shared State
 `define SC_SCMD_ACK_E       5'b00001 // ack with line in Excluse state
-`define SC_SCMD_ACK_PS      5'b00010 // ack with line in Shared State (ACK triggered by a prefetch)
-`define SC_SCMD_ACK_PE      5'b00011 // ack with line in Excluse state (ACK triggered by a prefetch)
-`define SC_SCMD_ACK_OTHERI  5'b00100 // ack for NC and DRAINI
+`define SC_SCMD_ACK_M       5'b00011 // ack with line in Modified state
+`define SC_SCMD_ACK_PS      5'b00100 // ack with line in Shared State (ACK triggered by a prefetch)
+`define SC_SCMD_ACK_PE      5'b00101 // ack with line in Excluse state (ACK triggered by a prefetch)
+`define SC_SCMD_ACK_OTHERI  5'b01000 // ack for NC and DRAINI
 
 `define SC_SCMD_PUSH_E      5'b10000 // Push line (no req response) with E state. Must cache it
 `define SC_SCMD_PUSH_S      5'b10001 // Push line (no req response) with S state. Must cache it
