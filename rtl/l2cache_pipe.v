@@ -57,6 +57,12 @@
 //
 // Hawkeye:https://www.cs.utexas.edu/users/lin/papers/isca16.pdf 
 //
+// if the L2 gets a snoop from directory. It has to respond with a snoop_ack
+// or a disp. The disp is done when there was data in the L2.
+//
+// A snoop share request (SCMD_WS or SCMD_TS) is received to the L2, and the
+// cache is not in the L1. The L2 should invalidate the entry with a disp
+// message of DCMD_WI or DMCD_I.
 
 module l2cache_pipe(
   /* verilator lint_off UNUSED */
