@@ -1,78 +1,78 @@
 
 // MQ to DC request (LD/STs)
-`define MQ_LOPBITS        5
-`define MQ_LOP_L08S       5'b00001
-`define MQ_LOP_L08U       5'b00000
-`define MQ_LOP_L16S       5'b00011
-`define MQ_LOP_L16U       5'b00010
-`define MQ_LOP_L32S       5'b00101
-`define MQ_LOP_L32U       5'b00100
-`define MQ_LOP_L64U       5'b00110
-`define MQ_LOP_L128U      5'b01000
-`define MQ_LOP_L256U      5'b01010
-`define MQ_LOP_L512U      5'b01100
+`define CORE_LOPBITS        5
+`define CORE_LOP_L08S       5'b00001
+`define CORE_LOP_L08U       5'b00000
+`define CORE_LOP_L16S       5'b00011
+`define CORE_LOP_L16U       5'b00010
+`define CORE_LOP_L32S       5'b00101
+`define CORE_LOP_L32U       5'b00100
+`define CORE_LOP_L64U       5'b00110
+`define CORE_LOP_L128U      5'b01000
+`define CORE_LOP_L256U      5'b01010
+`define CORE_LOP_L512U      5'b01100
 
 // Load with line pindown/lock. LOP_XL can be speculative wrong, an
-// MQ_MOP_XS00 (no store) must be sent to release the lock for the same
+// CORE_MOP_XS00 (no store) must be sent to release the lock for the same
 // address. Multiple XL can go to the same line. A abort_retry can be
 // generated which will generate the load again later in time (random delay
 // but at least 8 cycles)
-`define MQ_LOP_XL08S      5'b10001
-`define MQ_LOP_XL08U      5'b10000
-`define MQ_LOP_XL16S      5'b10011
-`define MQ_LOP_XL16U      5'b10010
-`define MQ_LOP_XL32S      5'b10101
-`define MQ_LOP_XL32U      5'b10100
-`define MQ_LOP_XL64U      5'b10110
-`define MQ_LOP_XL128U     5'b11000
-`define MQ_LOP_XL256U     5'b11010
-`define MQ_LOP_XL512U     5'b11100
+`define CORE_LOP_XL08S      5'b10001
+`define CORE_LOP_XL08U      5'b10000
+`define CORE_LOP_XL16S      5'b10011
+`define CORE_LOP_XL16U      5'b10010
+`define CORE_LOP_XL32S      5'b10101
+`define CORE_LOP_XL32U      5'b10100
+`define CORE_LOP_XL64U      5'b10110
+`define CORE_LOP_XL128U     5'b11000
+`define CORE_LOP_XL256U     5'b11010
+`define CORE_LOP_XL512U     5'b11100
 
-`define MQ_MOPBITS        7
+`define CORE_MOPBITS        7
 
-`define MQ_MOP_S08        7'b0000000
-`define MQ_MOP_S16        7'b0000010
-`define MQ_MOP_S32        7'b0000100
-`define MQ_MOP_S64        7'b0000110
-`define MQ_MOP_S128       7'b0001000
-`define MQ_MOP_S256       7'b0001010
-`define MQ_MOP_S512       7'b0001100
+`define CORE_MOP_S08        7'b0000000
+`define CORE_MOP_S16        7'b0000010
+`define CORE_MOP_S32        7'b0000100
+`define CORE_MOP_S64        7'b0000110
+`define CORE_MOP_S128       7'b0001000
+`define CORE_MOP_S256       7'b0001010
+`define CORE_MOP_S512       7'b0001100
 
 // Store with line unclock
-`define MQ_MOP_XS00       7'b1111111
-`define MQ_MOP_XS08       7'b1000000
-`define MQ_MOP_XS16       7'b1000010
-`define MQ_MOP_XS32       7'b1000100
-`define MQ_MOP_XS64       7'b1000110
-`define MQ_MOP_XS128      7'b1001000
-`define MQ_MOP_XS256      7'b1001010
-`define MQ_MOP_XS512      7'b1001100
+`define CORE_MOP_XS00       7'b1111111
+`define CORE_MOP_XS08       7'b1000000
+`define CORE_MOP_XS16       7'b1000010
+`define CORE_MOP_XS32       7'b1000100
+`define CORE_MOP_XS64       7'b1000110
+`define CORE_MOP_XS128      7'b1001000
+`define CORE_MOP_XS256      7'b1001010
+`define CORE_MOP_XS512      7'b1001100
 
 // atomic ops also perform a MOP_BEGIN before executed (must have a new
 // ckpid)
 
-`define MQ_MOP_BEGIN      6'b100000  // Called at decode
-`define MQ_MOP_BEGIN_S    6'b100010  // Called at decode
-`define MQ_MOP_BEGIN_OLS  6'b100011  // Called at decode
-`define MQ_MOP_BEGIN_ULS  6'b100111  // Called at decode
-`define MQ_MOP_COMMIT     6'b100100  // Just Commit. Called at retirement. May be implicit from a new BEGIN*
-`define MQ_MOP_CSYNC      6'b101000  // Commit & Sync/memfence. Called at retirement
-`define MQ_MOP_KILL       6'b101100  // Called at retirement or when there was a reflow/misspredict
-`define MQ_MOP_RESTART    6'b101101  // Called at retirement
+`define CORE_MOP_BEGIN      6'b100000  // Called at decode
+`define CORE_MOP_BEGIN_S    6'b100010  // Called at decode
+`define CORE_MOP_BEGIN_OLS  6'b100011  // Called at decode
+`define CORE_MOP_BEGIN_ULS  6'b100111  // Called at decode
+`define CORE_MOP_COMMIT     6'b100100  // Just Commit. Called at retirement. May be implicit from a new BEGIN*
+`define CORE_MOP_CSYNC      6'b101000  // Commit & Sync/memfence. Called at retirement
+`define CORE_MOP_KILL       6'b101100  // Called at retirement or when there was a reflow/misspredict
+`define CORE_MOP_RESTART    6'b101101  // Called at retirement
 
 // All the WB and TLB commands also force a commit for the current checkpoint,
 // and starts a MOP_BEGIN. TLB commands must be called with pnr flag set to
 // proceed.
-`define MQ_MOP_DWBA       6'b110100 // Writeback DC only specific address (no dctlb or L2)
-`define MQ_MOP_DWBIA      6'b110101 // Writeback/invalidate DC only specific address (no dctlb or L2)
-`define MQ_MOP_WBA        6'b110110 // Writeback specific address DC & L2
-`define MQ_MOP_WBIA       6'b110111 // Writeback/Invalidate specific address DC & L2 
-`define MQ_MOP_DWBC       6'b111000 // Writeback            DC only (no dctlb or L2 or maintlb)
-`define MQ_MOP_DWBIC      6'b111001 // Writeback/invalidate DC only (no dctlb or L2 or maintlb)
-`define MQ_MOP_WBC        6'b111010 // Writeback            DC & L2
-`define MQ_MOP_WBIC       6'b111011 // Writeback/Invalidate DC & dctlb & L2 & maintlb
-`define MQ_MOP_UTLBIC     6'b111100 // invalidate           dctlb (no maintlb)
-`define MQ_MOP_TLBI       6'b111101 // Invalidate whole TLB (dctlb and maintlb)
+`define CORE_MOP_DWBA       6'b110100 // Writeback DC only specific address (no dctlb or L2)
+`define CORE_MOP_DWBIA      6'b110101 // Writeback/invalidate DC only specific address (no dctlb or L2)
+`define CORE_MOP_WBA        6'b110110 // Writeback specific address DC & L2
+`define CORE_MOP_WBIA       6'b110111 // Writeback/Invalidate specific address DC & L2 
+`define CORE_MOP_DWBC       6'b111000 // Writeback            DC only (no dctlb or L2 or maintlb)
+`define CORE_MOP_DWBIC      6'b111001 // Writeback/invalidate DC only (no dctlb or L2 or maintlb)
+`define CORE_MOP_WBC        6'b111010 // Writeback            DC & L2
+`define CORE_MOP_WBIC       6'b111011 // Writeback/Invalidate DC & dctlb & L2 & maintlb
+`define CORE_MOP_UTLBIC     6'b111100 // invalidate           dctlb (no maintlb)
+`define CORE_MOP_TLBI       6'b111101 // Invalidate whole TLB (dctlb and maintlb)
 
 // DC -> L2 and L2 -> DR request
 `define SC_CMD_REQBITS       3

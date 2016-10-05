@@ -2,16 +2,16 @@
 `include "scmem.vh"
 
 //check
-// Gets a mptopf and triggers the prefetches over the caches
+// Gets a pfgtopfe and triggers the prefetches over the caches
 
 module pfengine(
   /* verilator lint_off UNUSED */
    input  clk
   ,input  reset
 
-  ,input  logic                    mptopf_op_valid
-  ,output logic                    mptopf_op_retry
-  ,input  I_mqtopf_op_type         mptopf_op
+  ,input  logic                    pfgtopfe_op_valid
+  ,output logic                    pfgtopfe_op_retry
+  ,input  I_pfgtopfe_op_type       pfgtopfe_op
 
   ,output logic                    pftodc_req0_valid
   ,input  logic                    pftodc_req0_retry

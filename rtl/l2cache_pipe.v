@@ -91,11 +91,16 @@ module l2cache_pipe(
   ,input                           l2tol1_dack_retry
   ,output I_l2tol1_dack_type       l2tol1_dack
 
+  ,input                           l1tol2_pfreq_valid
+  ,output                          l1tol2_pfreq_retry // always false
+  ,input  I_pftocache_req_type     l1tol2_pfreq
+
   //---------------------------
-  // Prefetch interface
-  ,output logic                    pftocache_req_valid
-  ,input  logic                    pftocache_req_retry
-  ,output I_pftocache_req_type     pftocache_req
+  // core Prefetch interface
+
+  ,input                           pftol2_pfreq_valid
+  ,output                          pftol2_pfreq_retry // always false
+  ,input  I_pftocache_req_type     pftol2_pfreq 
 
   ,output PF_cache_stats_type      cachetopf_stats
 
@@ -121,9 +126,9 @@ module l2cache_pipe(
   ,output                          drtol2_dack_retry
   ,input  I_drtol2_dack_type       drtol2_dack
 
-  ,input                           pftol2_pfreq_valid
-  ,output                          pftol2_pfreq_retry
-  ,input  I_pftocache_req_type     pftol2_pfreq       // NOTE: pfreq does not have ack if dropped
+  ,output logic                    l2todr_pfreq_valid
+  ,input  logic                    l2todr_pfreq_retry
+  ,output I_pftocache_req_type     l2todr_pfreq
 
   /* verilator lint_on UNUSED */
 );

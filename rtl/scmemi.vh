@@ -99,27 +99,27 @@ typedef struct packed {
 } I_drsnoop_ack_type;
 // 1}}}
 
-// {{{1 mqtodc_ld (just loads)
+// {{{1 coretodc_ld (just loads)
 typedef struct packed {
   DC_ckpid_type     ckpid;
 
-  MQ_reqid_type     mqid;
-  MQ_lop_type       lop;
-  logic             pnr; // MQ knows it is non-cacheable, perform anyway
+  CORE_reqid_type   coreid;
+  CORE_lop_type     lop;
+  logic             pnr; // core knows it is non-cacheable, perform anyway
 
   SC_pcsign_type    pcsign;
   SC_laddr_type     laddr;
   SC_sptbr_type     sptbr;
-} I_mqtodc_ld_type;
+} I_coretodc_ld_type;
 // 1}}}
 
-// {{{1 dctomq_ld
+// {{{1 dctocore_ld
 typedef struct packed {
-  MQ_reqid_type     mqid;
+  CORE_reqid_type   coreid;
   SC_abort_type     aborted; // load not performed due to XXX
 
   SC_line_type      data; // 1byte to 64bytes for vector
-} I_dctomq_ld_type;
+} I_dctocore_ld_type;
 // 1}}}
 
 // {{{1 I_ictocore_type
@@ -130,31 +130,63 @@ typedef struct packed {
 } I_ictocore_type;
 // 1}}}
 
-// {{{1 mqtodc_std (stores, checkpoint, and atomic ops)
+// {{{1 coretodc_std (stores, checkpoint, and atomic ops)
 typedef struct packed {
   DC_ckpid_type     ckpid;
 
-  MQ_reqid_type     mqid;
-  MQ_mop_type       mop;
-  logic             pnr; // MQ allows to be non-cacheable/device, perform anyway
+  CORE_reqid_type   coreid;
+  CORE_mop_type     mop;
+  logic             pnr; // core allows to be non-cacheable/device, perform anyway
 
   SC_pcsign_type    pcsign;
   SC_laddr_type     laddr;
   SC_sptbr_type     sptbr;
   SC_line_type      data; // 1byte to 64bytes for vector
-} I_mqtodc_std_type;
+} I_coretodc_std_type;
 // 1}}}
 
-// {{{1 dctomq_std_ack
+// {{{1 dctocore_std_ack
 typedef struct packed {
   SC_abort_type     aborted; // load not performed due to XXX
 
-  MQ_reqid_type     mqid;
-} I_dctomq_std_ack_type;
+  CORE_reqid_type   coreid;
+} I_dctocore_std_ack_type;
 // 1}}}
 
-// {{{1 mqtopf_op
+// {{{1 pfgtopfe_op
 typedef struct packed {
+  // MEGA: 1K subpage prefetch
+  // d1:64
+  // w1:16
+  // d2:0
+  // w2:0
+  // laddr: 1kpage
+  // prefetches: 1kpage,1kpage+64,1kpage+128...
+  //
+  // Single address prefetch
+  // d1:0
+  // W1:1
+  // d2:0
+  // w2:0
+  // ladder: addr
+  // prefeches: addr
+  //
+  // Single stride:
+  // d1:123 # or whatever stride
+  // w1:3   # num prefs
+  // d2:0
+  // w2:0
+  // laddr: addr
+  // prefetches: addr+123,addr+2*123,addr+3*123
+  //
+  // Complex stride:
+  // d1:7
+  // w2:3
+  // d2:100
+  // w2:3
+  // laddr:0
+  // prefetches: 7,107,114,214,221,321
+  //
   PF_delta_type     d1; // Delta from the DVTAGE or delta predictor
   PF_weigth_type    w1; // delta confidence (higher better)
 
@@ -164,7 +196,7 @@ typedef struct packed {
   SC_pcsign_type    pcsign;
   SC_laddr_type     laddr; // Base Address
   SC_sptbr_type     sptbr;
-} I_mqtopf_op_type;
+} I_pfgtopfe_op_type;
 // 1}}}
 
 // {{{1 pftocache_req
@@ -187,7 +219,40 @@ typedef struct packed {
 } I_l2todr_pfreq_type;
 // 1}}}
 
+`ifdef NOT_CLEAN_ENOUGH
+// {{{1 core_decode
+typedef struct packed {
+  SC_pcsing_type   pcsign;
+  SC_robid_type    rid;
+  SC_robid_type    rid_end;
+} I_core_decode_type;
+// 1}}}
+`endif
 
+// {{{1 drtomem_req
+typedef struct packed {
+  DR_reqid_type     drid;
 
+  SC_cmd_type       cmd;
+  SC_paddr_type     paddr;
+} I_drtomem_req_type;
+// 1}}}
 
+// {{{1 memtodr_ack
+typedef struct packed {
+  DR_reqid_type     drid;
+
+  SC_snack_type     ack; // only ACK for mem
+  SC_line_type      line;
+} I_memtodr_ack_type;
+// 1}}}
+
+// {{{1 drtomem_wb 
+typedef struct packed {
+  // No ReqID, no disp needed, no command, just writeback
+
+  SC_line_type      line;
+  SC_paddr_type     paddr;
+} I_drtomem_wb_type;
+// 1}}}
 `endif 

@@ -22,7 +22,7 @@ module icache(
    input                           clk
   ,input                           reset
 
-  // l2cache_pipe interface
+  // l2cache_pipe interface (same as DC, but no disp/dack)
   ,output                          l1tol2_req_valid
   ,input                           l1tol2_req_retry
   ,output I_l1tol2_req_type        l1tol2_req
@@ -34,6 +34,10 @@ module icache(
   ,output                          l2tol1_snoop_ack_valid
   ,input                           l2tol1_snoop_ack_retry
   ,output I_l2snoop_ack_type       l2tol1_snoop_ack
+
+  ,output                          l1tol2pf_req_valid
+  ,input                           l1tol2pf_req_retry
+  ,output I_pftocache_req_type     l1tol2pf_req
 
   // core interface
   ,input                           coretoic_valid

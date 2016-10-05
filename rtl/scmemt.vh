@@ -19,6 +19,8 @@ typedef logic [`SC_ABORTBITS-1:0]    SC_abort_type;
 
 typedef logic [`DR_REQIDBITS-1:0]    DR_reqid_type;
 
+typedef logic [`SC_ROBIDBITS-1:0]    SC_robid_type;
+
 
 // RISCV sv39 supported (not sv48 for the moment)
 
@@ -50,9 +52,9 @@ typedef logic [`IC_BITWIDTH-1:0]     IC_fwidth_type;
 typedef logic [`L1_REQIDBITS-1:0]    L1_reqid_type;
 typedef logic [`DC_CKPBITS-1:0]      DC_ckpid_type;
 
-typedef logic [`MQ_REQIDBITS-1:0]    MQ_reqid_type;
-typedef logic [`MQ_MOPBITS-1:0]      MQ_mop_type;
-typedef logic [`MQ_LOPBITS-1:0]      MQ_lop_type;
+typedef logic [`CORE_REQIDBITS-1:0]  CORE_reqid_type;
+typedef logic [`CORE_MOPBITS-1:0]    CORE_mop_type;
+typedef logic [`CORE_LOPBITS-1:0]    CORE_lop_type;
 
 typedef logic [`PF_DELTABITS-1:0]    PF_delta_type;
 typedef logic [`PF_WEIGTHBITS-1:0]   PF_weigth_type;

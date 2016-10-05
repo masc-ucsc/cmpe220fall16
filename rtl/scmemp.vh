@@ -9,9 +9,9 @@
 `define L1_REQIDBITS  5
 `define L1_REQIDS    (1<<`L1_REQIDBITS)
 
-// MQ ID
-`define MQ_REQIDBITS  6
-`define MQ_REQIDS     (1<<`MQ_REQIDBITS)
+// CORE ID
+`define CORE_REQIDBITS  6
+`define CORE_REQIDS     (1<<`CORE_REQIDBITS)
 
 // L2 ID
 `define L2_REQIDBITS  6
@@ -32,6 +32,9 @@
 // max number of checkpoints
 `define DC_CKPBITS     4
 `define DC_CKPS        (1<<`DC_CKPS)
+
+// ROBID
+`define SC_ROBIDBITS   9
 
 // Physical address bits (less than 64)
 // paddr: Physical address

@@ -61,8 +61,8 @@
 //
 // The dcache supports two types of transactions:
 //
-// MQ_CKP_BEGIN_S (store-only checkpoints)
-// MQ_CKP_BEGIN_LS (load and store checkpoints)
+// core_CKP_BEGIN_S (store-only checkpoints)
+// core_CKP_BEGIN_LS (load and store checkpoints)
 //
 // The cache is has operating modes Either Store-only transaction, load-store
 // transaction, or no transaction 
@@ -72,8 +72,6 @@
 //
 //  +Similar to MESI coherence, but the lines can be also in U state. The
 //  allowed states are M, UM, S, US, E, I
-//
-//  +No operation can be atomic.
 //
 //  +The task never aborts, the KILL/RESTART perform a COMMIT which is the
 //  same as new MOP_BEGIN executed at retirement.
@@ -91,7 +89,9 @@
 //  +A load reads hitting multiple lines with same address but different
 //  versions performs a read to the line with the newest version.
 //
-//  +Loads do not lock the cache.
+//  +Loads do not lock the cache. As a result no atomics can be done.
+//
+//  +No atomic operations are allowed.
 //
 //  +Stores can not be visible outside the cache until the task commits.
 //
@@ -109,7 +109,6 @@
 //  +Similar to MESI coherence, but the lines can be also in U state. The
 //  stores MUST go to UM (no M allowed). The allowed states are I,UM,S,US,E
 //
-//  +No atomic operations are allowed.
 //
 //  +A cacheline has 8bits (one per version) to indicate the the line is
 //  locked. When a store is performed, if there is no other pindown line
@@ -240,45 +239,31 @@ module dcache_pipe(
   ,input reset
 
   //---------------------------
-  // l2_pipe interface
-  ,output                          l1tol2_req_valid
-  ,input                           l1tol2_req_retry
-  ,output I_l1tol2_req_type        l1tol2_req
+  // core interface LD
+  ,input                           coretodc_ld_valid
+  ,output                          coretodc_ld_retry
+  ,input  I_coretodc_ld_type       coretodc_ld
 
-  ,input                           l2tol1_snack_valid
-  ,output                          l2tol1_snack_retry
-  ,input  I_l2tol1_snack_type      l2tol1_snack
-
-  ,output                          l2tol1_snoop_ack_valid
-  ,input                           l2tol1_snoop_ack_retry
-  ,output I_l2snoop_ack_type       l2tol1_snoop_ack
+  ,output                          dctocore_ld_valid
+  ,input                           dctocore_ld_retry
+  ,output I_coretodc_ld_type       dctocore_ld
 
   //---------------------------
-  // mq interface LD
-  ,input                           mqtodc_ld_valid
-  ,output                          mqtodc_ld_retry
-  ,input  I_mqtodc_ld_type         mqtodc_ld
-
-  ,output                          dctomq_ld_valid
-  ,input                           dctomq_ld_retry
-  ,output I_mqtodc_ld_type         dctomq_ld
+  // core interface STD
+  ,input                           coretodc_std_valid
+  ,output                          coretodc_std_retry
+  ,input  I_coretodc_std_type      coretodc_std
 
   //---------------------------
-  // mq interface STD
-  ,input                           mqtodc_std_valid
-  ,output                          mqtodc_std_retry
-  ,input  I_mqtodc_std_type        mqtodc_std
-
-  //---------------------------
-  // Prefetch interface
-  ,output                          pftocache_req_valid
-  ,input                           pftocache_req_retry
-  ,output I_pftocache_req_type     pftocache_req
+  // core Prefetch interface
+  ,input                           pftocache_req_valid
+  ,output                          pftocache_req_retry
+  ,input  I_pftocache_req_type     pftocache_req
 
   ,output PF_cache_stats_type      cachetopf_stats
 
   //---------------------------
-  // L1 interface (same for IC and DC)
+  // L2 interface (same for IC and DC)
   ,output                          l1tol2_req_valid
   ,input                           l1tol2_req_retry
   ,output I_l1tol2_req_type        l1tol2_req
@@ -298,6 +283,10 @@ module dcache_pipe(
   ,input                           l2tol1_dack_valid
   ,output                          l2tol1_dack_retry
   ,input  I_l2tol1_dack_type       l2tol1_dack
+
+  ,output                          l1tol2_pfreq_valid
+  ,input                           l1tol2_pfreq_retry
+  ,output I_pftocache_req_type     l1tol2_pfreq
 
   /* verilator lint_on UNUSED */
 );
