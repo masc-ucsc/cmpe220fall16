@@ -53,8 +53,6 @@
 
 `define CORE_MOP_BEGIN      6'b100000  // Called at decode
 `define CORE_MOP_BEGIN_S    6'b100010  // Called at decode
-`define CORE_MOP_BEGIN_OLS  6'b100011  // Called at decode
-`define CORE_MOP_BEGIN_ULS  6'b100111  // Called at decode
 `define CORE_MOP_COMMIT     6'b100100  // Just Commit. Called at retirement. May be implicit from a new BEGIN*
 `define CORE_MOP_CSYNC      6'b101000  // Commit & Sync/memfence. Called at retirement
 `define CORE_MOP_KILL       6'b101100  // Called at retirement or when there was a reflow/misspredict
