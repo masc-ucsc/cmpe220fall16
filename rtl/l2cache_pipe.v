@@ -133,6 +133,19 @@ module l2cache_pipe(
   /* verilator lint_on UNUSED */
 );
 
+    I_l2tol1_snack_type   l2tol1_snack_next;
+fflop #(.Size($bits(I_l2tol1_snack_type))) f1 (
+    .clk      (clk),
+    .reset    (reset),
+
+    .din      (l2tol1_snack_next),
+    .dinValid (),
+    .dinRetry (),
+
+    .q        (l2tol1_snack),
+    .qValid   (l2tol1_snack_valid),
+    .qRetry   (l2tol1_snack_retry)
+  );
 
 endmodule
 
