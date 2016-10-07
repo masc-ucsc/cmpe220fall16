@@ -26,8 +26,23 @@ typedef logic [`SC_ROBIDBITS-1:0]    SC_robid_type;
 
 typedef struct packed {
   logic   global;    // RISCV page shared accross tid
-  logic   referenced;
-  logic   dirty;
+  logic   a; // access
+  logic   d; // dirty
+  logic   sw; // Supervisor Write
+  logic   sr;
+  logic   sx;
+  logic   uw; // User write permission
+  logic   ur;
+  logic   ux;
+  logic   cacheable;
+  logic   dev; // IO/dev must be non-cacheable and strongly ordered
+  SC_pagesize_type pagesize;
+} SC_l2tlbe_type;
+
+typedef struct packed {
+  logic   global;    // RISCV page shared accross tid
+  logic   a; // access
+  logic   d; // dirty
   logic   sw;  // Supervisor Write
   logic   sr;
   logic   sx;
@@ -35,13 +50,7 @@ typedef struct packed {
   logic   ur;
   logic   ux;
   logic   cacheable;
-  SC_pagesize_type pagesize;
-} SC_l2tlbe_type;
-
-typedef struct packed {
-  logic   w;
-  logic   r;
-  logic   x;
+  logic   dev; // IO/dev must be non-cacheable and strongly ordered
   SC_pagesize_type pagesize;
 } SC_dctlbe_type;
 

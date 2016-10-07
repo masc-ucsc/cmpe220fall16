@@ -47,8 +47,10 @@
 
 `define SC_PCSIGNBITS  13
 
-// RISC CSR register for address base translation (also threadid)
-`define SC_SBPTRBITS     (`SC_PADDRBITS-12)
+// RISC CSR register for address base translation (also threadid). Hart in
+// RISCV (
+`define SC_ASID          0
+`define SC_SBPTRBITS     38
 
 `define SC_LINEBITS   512
 `define SC_LINEBYTES (`SC_LINEBITS/8)
@@ -84,4 +86,20 @@
 `define PF_PE_L1_MAXDEGREE  4
 `define PF_PE_L2_MAXDEGREE 16
 
+`define TB_PMA_IO0_START 49'h0_2000_0000_0000
+`define TB_PMA_IO0_END   49'h0_3000_0000_0000
+`define TB_PMA_IO1_START 49'h0_2000_0000_0000
+`define TB_PMA_IO1_END   49'h0_3000_0000_0000
+
+// cacheable regions
+`define TB_PMA_C0_START  49'h0_0000_0000_0000
+`define TB_PMA_C0_END    49'h0_1000_0000_0000
+`define TB_PMA_C1_START  49'h0_4000_0000_0000
+`define TB_PMA_C1_END    49'h0_5000_0000_0000
+`define TB_PMA_C2_START  49'h0_ffff_ffff_ffff
+`define TB_PMA_C2_END    49'h3_ffff_ffff_ffff
+
+// uncacheable regions
+`define TB_PMA_U0_START  49'h0_3000_0000_0000
+`define TB_PMA_U0_END    49'h0_4000_0000_0000
 
