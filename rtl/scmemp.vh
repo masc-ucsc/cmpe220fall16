@@ -17,7 +17,8 @@
 `define L2_REQIDBITS  6
 `define L2_REQIDS     (1<<`L2_REQIDBITS)
 
-// Node ID (needed for directory). Max num of L2s in the system
+// Node ID (needed for directory). Max num of L2s and TLBs in the system (even
+// L2s, Odd TLB)
 `define SC_NODEIDBITS 5
 `define SC_NODEIDS  (1<<`SC_NODEIDBITS)
 
