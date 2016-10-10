@@ -80,7 +80,7 @@ module async_ram_1port
 
    always_comb begin
      if (p0_enable) begin
-       d0 = 'bx;
+       d0 = 'b0;
      end else begin
        d0 = data[p0_pos];
      end
