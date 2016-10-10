@@ -9,6 +9,8 @@
 // cores. No need to have a switch command as the DCs and L2s are coherent.
 
 module net_2core2dr(
+  /* verilator lint_off UNUSED */
+  /* verilator lint_off UNDRIVEN */
    input                           clk
   ,input                           reset
 
@@ -245,6 +247,8 @@ module net_2core2dr(
   ,output                          l2todr_snoop_ack_valid
   ,input                           l2todr_snoop_ack_retry
   ,output I_drsnoop_ack_type       l2todr_snoop_ack
+  /* verilator lint_on UNUSED */
+  /* verilator lint_on UNDRIVEN */
   );
 
   // Connect L2s to directory using a ring or switch topology

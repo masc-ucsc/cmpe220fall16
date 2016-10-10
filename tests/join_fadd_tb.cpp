@@ -35,9 +35,16 @@ void advance_clock(Vjoin_fadd *top, int nclocks=1) {
   }
 }
 
-void sim_finish() {
+void sim_finish(bool pass) {
 #ifdef TRACE
   tfp->close();
+#endif
+
+#if 0
+  if (pass)
+    printf("\nTB:PASS\n");
+  else
+    printf("\nTB:FAILED\n");
 #endif
 
   exit(0);
@@ -115,7 +122,7 @@ void try_send_packet(Vjoin_fadd *top) {
 void error_found(Vjoin_fadd *top) {
   advance_half_clock(top);
   advance_half_clock(top);
-  sim_finish();
+  sim_finish(false);
 }
 
 void try_recv_packet(Vjoin_fadd *top) {
@@ -207,7 +214,6 @@ int main(int argc, char **argv, char **env) {
   }
 #endif
 
-  sim_finish();
-
+  sim_finish(true);
 }
 
