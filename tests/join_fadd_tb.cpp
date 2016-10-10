@@ -40,7 +40,7 @@ void sim_finish(bool pass) {
   tfp->close();
 #endif
 
-#if 0
+#if 1
   if (pass)
     printf("\nTB:PASS\n");
   else
