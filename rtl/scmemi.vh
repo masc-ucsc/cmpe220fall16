@@ -75,7 +75,7 @@ typedef struct packed {
 // {{{1 l2todr_disp 
 typedef struct packed {
   SC_nodeid_type    nid; 
-  L1_reqid_type     l2id; // != means L2 initiated disp (drid==0)
+  L2_reqid_type     l2id; // != means L2 initiated disp (drid==0)
   DR_reqid_type     drid; // !=0 snoop ack. (E.g: SMCD_WI resulting in a disp)
 
   SC_disp_mask_type mask;
