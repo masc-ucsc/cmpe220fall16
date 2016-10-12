@@ -1,5 +1,12 @@
 before_install:
-  - sudo apt-get install -y verilator
+  - wget http://www.veripool.org/ftp/verilator-3.886.tgz
+  - unsetenv VERILATOR_ROOT
+  - unset VERILATOR_ROOT
+  - tar xvzf verilator*.t*gz
+  - cd verilator*
+  - ./configure
+  - make
+  - sudo make install
 
 language: cpp
 
