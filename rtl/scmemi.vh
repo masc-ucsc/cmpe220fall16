@@ -219,15 +219,41 @@ typedef struct packed {
 } I_l2todr_pfreq_type;
 // 1}}}
 
-`ifdef NOT_CLEAN_ENOUGH
 // {{{1 core_decode
 typedef struct packed {
-  SC_pcsing_type   pcsign;
+  SC_pcsign_type   pcsign;
   SC_robid_type    rid;
   SC_robid_type    rid_end;
-} I_core_decode_type;
+} I_core_pfdecode_type;
 // 1}}}
-`endif
+
+// {{{1 pftocore_pred
+typedef struct packed {
+  SC_pcsign_type   pcsign;
+  SC_robid_type    d0_rid; // 4 LD/ST delta notified per cycle at most
+  PF_delta_type    d0_val;
+  SC_robid_type    d1_rid;
+  PF_delta_type    d1_val;
+  SC_robid_type    d2_rid;
+  PF_delta_type    d2_val;
+  SC_robid_type    d3_rid;
+  PF_delta_type    d3_val;
+} I_pftocore_pred_type;
+// 1}}}
+
+// {{{1 core_pfretire
+typedef struct packed {
+  SC_pcsign_type   pcsign;
+  SC_robid_type    d0_rid; // 4 LD/ST delta notified per cycle at most
+  PF_delta_type    d0_val;
+  SC_robid_type    d1_rid;
+  PF_delta_type    d1_val;
+  SC_robid_type    d2_rid;
+  PF_delta_type    d2_val;
+  SC_robid_type    d3_rid;
+  PF_delta_type    d3_val;
+} I_core_pfretire_type;
+// 1}}}
 
 // {{{1 drtomem_req
 typedef struct packed {
