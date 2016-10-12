@@ -55,9 +55,9 @@ module directory_bank(
   ,output                          memtodr_ack_retry
   ,input  I_memtodr_ack_type       memtodr_ack
 
-  ,input                           drtomem_wb_valid
-  ,output                          drtomem_wb_retry
-  ,input  I_drtomem_wb_type        drtomem_wb // Plain WB, no disp ack needed
+  ,output                          drtomem_wb_valid
+  ,input                           drtomem_wb_retry
+  ,output I_drtomem_wb_type        drtomem_wb // Plain WB, no disp ack needed
 
   ,output logic                    drtomem_pfreq_valid
   ,input  logic                    drtomem_pfreq_retry
