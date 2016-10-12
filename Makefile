@@ -1,4 +1,6 @@
 
+.PHONY: all lint join_fadd run_join_fadd
+
 all: 
 	@echo "Select the set of tests to run"
 
