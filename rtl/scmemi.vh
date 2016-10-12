@@ -219,6 +219,7 @@ typedef struct packed {
 } I_l2todr_pfreq_type;
 // 1}}}
 
+
 // {{{1 core_decode
 typedef struct packed {
   SC_pcsign_type   pcsign;
@@ -280,5 +281,11 @@ typedef struct packed {
   SC_line_type      line;
   SC_paddr_type     paddr;
 } I_drtomem_wb_type;
+// 1}}}
+
+// {{{1 drtomem_pfreq
+typedef struct packed {
+  SC_paddr_type     paddr;
+} I_drtomem_pfreq_type;
 // 1}}}
 `endif 

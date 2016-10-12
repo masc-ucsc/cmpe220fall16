@@ -44,10 +44,6 @@ module directory_bank(
   ,input                           l2todr_snoop_ack_retry
   ,output I_drsnoop_ack_type       l2todr_snoop_ack
 
-  ,input  logic                    l2todr_pfreq_valid
-  ,output logic                    l2todr_pfreq_retry
-  ,input  I_pftocache_req_type     l2todr_pfreq
-
   // Memory interface
   // If nobody has the data, send request to memory
 
@@ -65,7 +61,7 @@ module directory_bank(
 
   ,output logic                    drtomem_pfreq_valid
   ,input  logic                    drtomem_pfreq_retry
-  ,output I_pftocache_req_type     drtomem_pfreq
+  ,output I_drtomem_pfreq_type     drtomem_pfreq
 
   );
 
