@@ -1,0 +1,8 @@
+before_install:
+  - sudo apt-get install -y verilator
+
+language: cpp
+
+script:
+  - make lint
+
