@@ -1,8 +1,7 @@
 before_install:
   - wget http://www.veripool.org/ftp/verilator-3.886.tgz
-  - unsetenv VERILATOR_ROOT
-  - unset VERILATOR_ROOT
-  - tar xvzf verilator*.t*gz
+  - export VERILATOR_ROOT=""
+  - tar xzf verilator*.t*gz
   - cd verilator*
   - ./configure
   - make
