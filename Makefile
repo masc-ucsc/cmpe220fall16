@@ -38,7 +38,7 @@ run_ram_1port_dense_wp: ram_1port_dense_wp
 REGLIST+=ram_1port_dense_wp
 ###########################
 regression: lint $(REGLIST)
-	./scripts/regcheck.rb $(REGLIST)
+	ruby scripts/regcheck.rb $(REGLIST)
 
 clean:
 	rm -rf obj_dir output.vcd a.out
