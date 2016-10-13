@@ -68,6 +68,7 @@ module pfengine(
 
 
 //fflop between pfgtopfe_op to pftodc_req0
+/* verilator lint_off WIDTH */
   fflop #(.Size(128)) ff0 (
     .clk      (clk),
     .reset    (reset),
@@ -80,7 +81,6 @@ module pfengine(
     .qValid   (pftodc_req0_valid),
     .qRetry   (pftodc_req0_retry)
   );
-
  
 //fflop between pfgtopfe_op to pftodc_req1
   fflop #(.Size(128)) ff1 (
@@ -201,9 +201,7 @@ module pfengine(
     .q        (pf_l2stats)
   );
 
-
-
-
+/* verilator lint_off WIDTH */
 
 
 endmodule

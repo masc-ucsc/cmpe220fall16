@@ -38,7 +38,7 @@ run_ram_1port_dense_wp: ram_1port_dense_wp
 REGLIST+=ram_1port_dense_wp
 ###########################
 pfengine_wp:
-	    verilator --assert --debug-check -I./rtl --Wall --cc --trace --top-module pfengine_wp ./rtl/pfengine.v ./tests/pfengine_wp.v ./rtl/fflop.v --exe tests/pfengine_wp_tb.cpp -CFLAGS -DTRACE=1
+	    verilator --assert --debug-check -I./rtl --Wall --cc --trace --top-module pfengine_wp ./rtl/pfengine.v ./tests/pfengine_wp.v ./rtl/fflop.v ./rtl/flop.v --exe tests/pfengine_wp_tb.cpp -CFLAGS -DTRACE=1
 			make -C obj_dir/ -f Vpfengine_wp.mk Vpfengine_wp
 
 run_pfengine_wp: pfengine_wp
@@ -47,7 +47,7 @@ run_pfengine_wp: pfengine_wp
 REGLIST+=pfengine_wp
 ###########################
 regression: lint $(REGLIST)
-	    ./scripts/regcheck.rb $(REGLIST)
+	    ruby scripts/regcheck.rb $(REGLIST)
 
 clean:
 	rm -rf obj_dir output.vcd a.out
