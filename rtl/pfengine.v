@@ -11,7 +11,7 @@ module pfengine(
 
   ,input  logic                    pfgtopfe_op_valid
   ,output logic                    pfgtopfe_op_retry
-  ,input  I_pfgtopfe_op_type       pfgtopfe_op
+  ,input I_pfgtopfe_op_type        pfgtopfe_op
 
   ,output logic                    pftodc_req0_valid
   ,input  logic                    pftodc_req0_retry
@@ -68,7 +68,7 @@ module pfengine(
 
 
 //fflop between pfgtopfe_op to pftodc_req0
-  fflop #(.Size(64)) ff0 (
+  fflop #(.Size(128)) ff0 (
     .clk      (clk),
     .reset    (reset),
 
@@ -83,7 +83,7 @@ module pfengine(
 
  
 //fflop between pfgtopfe_op to pftodc_req1
-  fflop #(.Size(64)) ff1 (
+  fflop #(.Size(128)) ff1 (
     .clk      (clk),
     .reset    (reset),
 
@@ -98,7 +98,7 @@ module pfengine(
 
 
 //fflop between pfgtopfe_op to pftodc_req2
-  fflop #(.Size(64)) ff2 (
+  fflop #(.Size(128)) ff2 (
     .clk      (clk),
     .reset    (reset),
 
@@ -113,7 +113,7 @@ module pfengine(
 
 
 //fflop between pfgtopfe_op to pftodc_req3
-  fflop #(.Size(64)) ff3 (
+  fflop #(.Size(128)) ff3 (
     .clk      (clk),
     .reset    (reset),
 
@@ -127,7 +127,7 @@ module pfengine(
   );
 
 //fflop between pfgtopfe_op to pftol2_req0
-  fflop #(.Size(64)) ff4 (
+  fflop #(.Size(128)) ff4 (
     .clk      (clk),
     .reset    (reset),
 
@@ -142,7 +142,7 @@ module pfengine(
 
 
 //fflop between pfgtopfe_op to pftol2_req1
-  fflop #(.Size(64)) ff5 (
+  fflop #(.Size(128)) ff5 (
     .clk      (clk),
     .reset    (reset),
 
@@ -156,7 +156,7 @@ module pfengine(
   );
 
 //fflop between pfgtopfe_op to pftol2_req2
-  fflop #(.Size(64)) ff6 (
+  fflop #(.Size(128)) ff6 (
     .clk      (clk),
     .reset    (reset),
 
