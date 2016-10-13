@@ -65,13 +65,13 @@
 `define SC_PAGESIZE_4MB    2'b10
 `define SC_PAGESIZE_4GB    2'b11
 
-`define TB_DCTLB_INDEXBITS 9
-`define TB_DCTLB_ENTRIES    (1<<(`TB_DCTLB_INDEXBITS))
+`define SC_DCTLB_INDEXBITS 7
+`define SC_DCTLB_ENTRIES    (1<<(`SC_DCTLB_INDEXBITS))
 
-`define TB_L2TLB_0INDEXBITS 14 // just 4KB page size
-`define TB_L2TLB_1INDEXBITS 6  // Any page size
-`define TB_L2TLB_0ENTRIES    (1<<(`TB_L2TLB_0INDEXBITS))
-`define TB_L2TLB_1ENTRIES    (1<<(`TB_L2TLB_1INDEXBITS))
+`define SC_L2TLB_0INDEXBITS 14 // just 4KB page size
+`define SC_L2TLB_1INDEXBITS 6  // Any page size
+`define SC_L2TLB_0ENTRIES    (1<<(`SC_L2TLB_0INDEXBITS))
+`define SC_L2TLB_1ENTRIES    (1<<(`SC_L2TLB_1INDEXBITS))
 
 `define PF_STATBITS        7
 `define PF_DELTABITS       5

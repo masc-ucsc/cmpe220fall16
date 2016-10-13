@@ -25,6 +25,50 @@ typedef struct packed {
 } I_l2tol1_snack_type;
 // 1}}}
 
+// {{{1 l1todctlb_snoop
+typedef struct packed {
+  L2_reqid_type     l2id;  // ==0 ACK, != 0 snoop
+
+  SC_laddr_type     laddr;
+  SC_sptbr_type     sptbr;
+
+  SC_snack_type     snack; // Snoop or ACK
+  SC_paddr_type     paddr; // paddr translation for the laddr in the miss
+  SC_dctlbe_type    dctlbe;
+} I_l1todctlb_snoop_type;
+// 1}}}
+
+// {{{1 l1tol1tb_req
+typedef struct packed {
+  DC_ckpid_type     ckpid;
+
+  SC_laddr_type     laddr;
+  SC_sptbr_type     sptbr;
+} I_l1todctlb_req_type;
+// 1}}}
+
+// {{{1 dctlbtol1_ack
+typedef struct packed {
+  logic             miss;
+  SC_dctlb_idx_type l1idx;
+  SC_paddr_type     paddr; // paddr translation for the laddr in the miss
+} I_dctlbtol1_ack_type;
+// 1}}}
+
+// {{{1 dctlbtol1_cmd
+typedef struct packed {
+  logic             flush;
+  SC_dctlb_idx_type l1idx;
+} I_dctlbtol1_cmd_type;
+// 1}}}
+
+// {{{1 l1todctlb_cmd
+typedef struct packed {
+  DC_ckpid_type     ckpid;
+  CORE_mop_type     mop;
+} I_l1todctlb_cmd_type;
+// 1}}}
+
 // {{{1 l1tol2_disp 
 typedef struct packed {
   L1_reqid_type     l1id;

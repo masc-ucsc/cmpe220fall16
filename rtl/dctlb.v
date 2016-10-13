@@ -1,25 +1,47 @@
 
-`include "scmem.vh"
-
-// This is a small TLB that supports some subset of pages from the L2. It is
-// not coherent like the l2tlb. Instead it relies in TLBI messages triggered
-// from the l2tlb
-
-// dctlb supports 4KB pages. Pages larger are translated to multiple 4KB page
-// entries. The TLB2M/TLB4M/TLB1G invalidates can invalidate many entries
-//
-// The dctlb is a direct mapped TLB translation that uses bits starting 12
-// (4KB page) but using a hash over all the virtual bits to decrease conflicts
-//
-// ENTRY: ~14bytes (SRAM indexed by VPN) (64 enties ~1KB of 2 way table)
-//   SPTRBR
-//   VPN
-//   PPN
-//   perm
 module dctlb(
   /* verilator lint_off UNUSED */
    input                           clk
   ,input                           reset
+
+  ,input                           l1todctlb_req0_valid
+  ,output                          l1todctlb_req0_retry
+  ,input  I_l1todctlb_req_type     l1todctlb_req0
+
+  ,input                           l1todctlb_req1_valid
+  ,output                          l1todctlb_req1_retry
+  ,input  I_l1todctlb_req_type     l1todctlb_req1
+
+  ,output                          dctlbtol1_ack0_valid
+  ,input                           dctlbtol1_ack0_retry
+  ,output I_dctlbtol1_ack_type     dctlbtol1_ack0
+
+  ,output                          dctlbtol1_ack0_valid
+  ,input                           dctlbtol1_ack0_retry
+  ,output I_dctlbtol1_ack_type     dctlbtol1_ack0
+
+  // L1 interface for versions
+ 
+  // Notify TLB when new checkpoints are created/recycled
+  ,input                           l1todctlb_cmd_valid
+  ,output                          l1todctlb_cmd_retry
+  ,input  I_dctlbtol1_cmd_type     l1todctlb_cmd
+
+  // Notify the L1 that the index of the TLB is gone
+  ,output                          dctlbtol1_cmd_valid
+  ,input                           dctlbtol1_cmd_retry
+  ,output I_dctlbtol1_cmd_type     dctlbtol1_cmd
+
+  // Interface with the L2 TLB
+  // Just the SNOOPS that have a TLB
+  ,input                           l1todctlb_snoop_valid
+  ,output                          l1todctlb_snoop_retry
+  ,input I_l1todctlb_snoop_type    l1todctlb_snoop
+
+  ,output                          l1tol2_snoop_ack_valid
+  ,input                           l1tol2_snoop_ack_retry
+  ,output I_l2snoop_ack_type       l1tol2_snoop_ack
+
   /* verilator lint_on UNUSED */
 );
 
