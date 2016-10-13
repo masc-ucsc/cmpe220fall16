@@ -47,6 +47,13 @@ typedef struct packed {
 } I_l1todctlb_req_type;
 // 1}}}
 
+// {{{1 l2tol2tb_req
+typedef struct packed {
+  SC_laddr_type     laddr;
+  SC_sptbr_type     sptbr;
+} I_l2tol2tlb_req_type;
+// 1}}}
+
 // {{{1 dctlbtol1_ack
 typedef struct packed {
   logic             miss;
@@ -55,6 +62,12 @@ typedef struct packed {
 } I_dctlbtol1_ack_type;
 // 1}}}
 
+// {{{1 l2tlbtol2_ack
+typedef struct packed {
+  logic             miss;
+  SC_paddr_type     paddr; // paddr translation for the laddr in the miss
+} I_l2tlbtol2_ack_type;
+// 1}}}
 // {{{1 dctlbtol1_cmd
 typedef struct packed {
   logic             flush;

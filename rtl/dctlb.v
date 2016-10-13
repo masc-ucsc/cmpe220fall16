@@ -1,4 +1,12 @@
 
+// This module is instantiated inside the dcache_pipe
+//
+// The DCTLB has to track at least 4 SPBTRs at once, but no need to have
+// unlimited. This means that just 4 flops translating SBPTR to valid indexes
+// are enough. If a new SBPTR checkpoint create arrives, the TLB can
+// invalidate all the associated TLB entries (and notify the L1 accordingly)
+//
+
 module dctlb(
   /* verilator lint_off UNUSED */
    input                           clk
