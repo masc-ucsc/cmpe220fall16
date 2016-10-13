@@ -21,6 +21,7 @@ typedef logic [`DR_REQIDBITS-1:0]    DR_reqid_type;
 
 typedef logic [`SC_ROBIDBITS-1:0]    SC_robid_type;
 
+typedef logic [`SC_DCTLB_INDEXBITS-1:0] SC_dctlb_idx_type;
 
 // RISCV sv39 supported (not sv48 for the moment)
 
