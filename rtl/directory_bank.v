@@ -14,7 +14,8 @@
 // Parameter for the # of entry to remember: 4,8,16
 // 
 // For replacement use HawkEye or RRIP
-
+/* verilator lint_off UNUSED */
+/* verilator lint_off UNDRIVEN */
 module directory_bank(
    input                           clk
   ,input                           reset
@@ -63,6 +64,47 @@ module directory_bank(
   ,input  logic                    drtomem_pfreq_retry
   ,output I_drtomem_pfreq_type     drtomem_pfreq
 
+  );
+
+  I_l2todr_req_type        drff_pfreq;
+  assign drtomem_pfreq.paddr = drff_pfreq.paddr;
+  
+  //fflop for pfreq (prefetch request)
+  //currently, only the address of the prefetch is used and passed through to the memory (for pass through test)
+  //I do not know what to us the rest of the signals for and am not sure why main memory only has an address input
+  //for its prefetch request type. If you know the answer, feel free to comment in my Directory good doc about it.
+  /* verilator lint_off WIDTH */
+  fflop #(.Size(63)) ff0 (
+    .clk      (clk),
+    .reset    (reset),
+
+    .din      (l2todr_pfreq),
+    .dinValid (l2todr_pfreq_valid),
+    .dinRetry (l2todr_pfreq_retry),
+
+    .q        (drff_pfreq),
+    .qValid   (drtomem_pfreq_valid),
+    .qRetry   (drtomem_pfreq_retry)
+  );
+  
+  I_l2todr_req_type        drff_req;
+  assign drtomem_req.paddr = drff_req.paddr;
+  assign drtomem_req.cmd = drff_req.cmd;
+  assign drtomem_req.drid = 6'b0;
+   
+  
+  //fflop for l2todr_req (l2 request)
+  fflop #(.Size(63)) ff1 (
+    .clk      (clk),
+    .reset    (reset),
+
+    .din      (l2todr_req),
+    .dinValid (l2todr_req_valid),
+    .dinRetry (l2todr_req_retry),
+
+    .q        (drff_req),
+    .qValid   (drtomem_req_valid),
+    .qRetry   (drtomem_req_retry)
   );
 
 endmodule
