@@ -22,7 +22,7 @@ module directory_bank(
   // L2s interface
   ,input                           l2todr_pfreq_valid
   ,output                          l2todr_pfreq_retry
-  ,input  I_l2todr_req_type        l2todr_pfreq       // NOTE: pfreq does not have ack if dropped
+  ,input  I_l2todr_pfreq_type      l2todr_pfreq       // NOTE: pfreq does not have ack if dropped
 
   ,input                           l2todr_req_valid
   ,output                          l2todr_req_retry
