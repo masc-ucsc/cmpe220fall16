@@ -11,7 +11,7 @@ module pfengine(
 
   ,input  logic                    pfgtopfe_op_valid
   ,output logic                    pfgtopfe_op_retry
-  ,input  I_pfgtopfe_op_type       pfgtopfe_op
+  ,input I_pfgtopfe_op_type        pfgtopfe_op
 
   ,output logic                    pftodc_req0_valid
   ,input  logic                    pftodc_req0_retry
@@ -65,6 +65,143 @@ module pfengine(
 `endif
   /* verilator lint_on UNUSED */
 );
+
+
+//fflop between pfgtopfe_op to pftodc_req0
+/* verilator lint_off WIDTH */
+  fflop #(.Size(128)) ff0 (
+    .clk      (clk),
+    .reset    (reset),
+
+    .din      (pfgtopfe_op),
+    .dinValid (pfgtopfe_op_valid),
+    .dinRetry (pfgtopfe_op_retry),
+
+    .q        (pftodc_req0),
+    .qValid   (pftodc_req0_valid),
+    .qRetry   (pftodc_req0_retry)
+  );
+ 
+//fflop between pfgtopfe_op to pftodc_req1
+  fflop #(.Size(128)) ff1 (
+    .clk      (clk),
+    .reset    (reset),
+
+    .din      (pfgtopfe_op),
+    .dinValid (pfgtopfe_op_valid),
+    .dinRetry (pfgtopfe_op_retry),
+
+    .q        (pftodc_req1),
+    .qValid   (pftodc_req1_valid),
+    .qRetry   (pftodc_req1_retry)
+  );
+
+
+//fflop between pfgtopfe_op to pftodc_req2
+  fflop #(.Size(128)) ff2 (
+    .clk      (clk),
+    .reset    (reset),
+
+    .din      (pfgtopfe_op),
+    .dinValid (pfgtopfe_op_valid),
+    .dinRetry (pfgtopfe_op_retry),
+
+    .q        (pftodc_req2),
+    .qValid   (pftodc_req2_valid),
+    .qRetry   (pftodc_req2_retry)
+  );
+
+
+//fflop between pfgtopfe_op to pftodc_req3
+  fflop #(.Size(128)) ff3 (
+    .clk      (clk),
+    .reset    (reset),
+
+    .din      (pfgtopfe_op),
+    .dinValid (pfgtopfe_op_valid),
+    .dinRetry (pfgtopfe_op_retry),
+
+    .q        (pftodc_req3),
+    .qValid   (pftodc_req3_valid),
+    .qRetry   (pftodc_req3_retry)
+  );
+
+//fflop between pfgtopfe_op to pftol2_req0
+  fflop #(.Size(128)) ff4 (
+    .clk      (clk),
+    .reset    (reset),
+
+    .din      (pfgtopfe_op),
+    .dinValid (pfgtopfe_op_valid),
+    .dinRetry (pfgtopfe_op_retry),
+
+    .q        (pftol2_req0),
+    .qValid   (pftol2_req0_valid),
+    .qRetry   (pftol2_req0_retry)
+  );
+
+
+//fflop between pfgtopfe_op to pftol2_req1
+  fflop #(.Size(128)) ff5 (
+    .clk      (clk),
+    .reset    (reset),
+
+    .din      (pfgtopfe_op),
+    .dinValid (pfgtopfe_op_valid),
+    .dinRetry (pfgtopfe_op_retry),
+
+    .q        (pftol2_req1),
+    .qValid   (pftol2_req1_valid),
+    .qRetry   (pftol2_req1_retry)
+  );
+
+//fflop between pfgtopfe_op to pftol2_req2
+  fflop #(.Size(128)) ff6 (
+    .clk      (clk),
+    .reset    (reset),
+
+    .din      (pfgtopfe_op),
+    .dinValid (pfgtopfe_op_valid),
+    .dinRetry (pfgtopfe_op_retry),
+
+    .q        (pftol2_req2),
+    .qValid   (pftol2_req2_valid),
+    .qRetry   (pftol2_req2_retry)
+  );
+
+//fflop between pfgtopfe_op to pftol2_req3
+  fflop #(.Size(128)) ff7 (
+    .clk      (clk),
+    .reset    (reset),
+
+    .din      (pfgtopfe_op),
+    .dinValid (pfgtopfe_op_valid),
+    .dinRetry (pfgtopfe_op_retry),
+
+    .q        (pftol2_req3),
+    .qValid   (pftol2_req3_valid),
+    .qRetry   (pftol2_req3_retry)
+  );
+
+  //check flop connections
+  flop #(.Bits(56)) f0(
+    .clk      (clk),
+    .reset    (reset),
+
+    .d        (pf0_dcstats),
+    .q        (pf_dcstats)
+  );
+
+
+  flop #(.Bits(56)) f1(
+    .clk      (clk),
+    .reset    (reset),
+
+    .d        (pf0_l2stats),
+    .q        (pf_l2stats)
+  );
+
+/* verilator lint_off WIDTH */
 
 
 endmodule

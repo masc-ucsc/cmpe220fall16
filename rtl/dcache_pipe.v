@@ -254,6 +254,10 @@ module dcache_pipe(
   ,output                          coretodc_std_retry
   ,input  I_coretodc_std_type      coretodc_std
 
+  ,output                          dctocore_std_ack_valid
+  ,input                           dctocore_std_ack_retry
+  ,output I_dctocore_std_ack_type  dctocore_std_ack
+
   //---------------------------
   // core Prefetch interface
   ,input                           pftocache_req_valid

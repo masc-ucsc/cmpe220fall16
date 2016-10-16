@@ -103,12 +103,13 @@
 `define SC_SCMD_TLBI1G      5'b11111 // TLB Invalidate paddr 1G page
 
 // Displace command DC -> L2 and L2 -> DR 
-`define SC_DCMDBITS      2
-`define SC_DCMD_WI       2'b00 // Line got write-back & invalidated
-`define SC_DCMD_WE       2'b10 // Line got write-back & kept exclusive
-`define SC_DCMD_I        2'b11 // Line got invalidated (no disp)
-`define SC_DCMD_NC       2'b01 // non-cacheable write going down
-
+`define SC_DCMDBITS      3
+`define SC_DCMD_WI       3'b000 // Line got write-back & invalidated
+`define SC_DCMD_WE       3'b001 // Line got write-back & kept exclusive
+`define SC_DCMD_I        3'b010 // Line got invalidated (no disp)
+`define SC_DCMD_NC       3'b100 // non-cacheable write going down
+`define SC_DCMD_TLBWB    3'b100 // TLB disp writeback (mostly to update D/A bits). If D/A bits unchanged, no TLBWB
+`define SC_DCMD_TLBINV   3'b101 // TLB disp writeback, no D/A update
 
 `define SC_ABORTBITS       3
 `define SC_ABORT_NONE      3'b000  // No abort generated
@@ -116,6 +117,7 @@
 `define SC_ABORT_TLBX      3'b010  // TLB permission error
 `define SC_ABORT_OVERFLOW  3'b011  // Not performed due to lack of buffering space
 `define SC_ABORT_RETRY8    3'b100  // retry again in at least 8 cycles
+`define SC_ABORT_NCFWD     3'b101  // Non-Cacheable Load hit on a "cached" store (Only in TM-WB)
 // TODO: Add abort conditions as needed by the core to notify the OS
 // accordingly
 

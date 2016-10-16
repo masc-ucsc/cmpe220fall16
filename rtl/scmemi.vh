@@ -25,6 +25,63 @@ typedef struct packed {
 } I_l2tol1_snack_type;
 // 1}}}
 
+// {{{1 l1todctlb_snoop
+typedef struct packed {
+  L2_reqid_type     l2id;  // ==0 ACK, != 0 snoop
+
+  SC_laddr_type     laddr;
+  SC_sptbr_type     sptbr;
+
+  SC_snack_type     snack; // Snoop or ACK
+  SC_paddr_type     paddr; // paddr translation for the laddr in the miss
+  SC_dctlbe_type    dctlbe;
+} I_l1todctlb_snoop_type;
+// 1}}}
+
+// {{{1 l1tol1tb_req
+typedef struct packed {
+  DC_ckpid_type     ckpid;
+
+  SC_laddr_type     laddr;
+  SC_sptbr_type     sptbr;
+} I_l1todctlb_req_type;
+// 1}}}
+
+// {{{1 l2tol2tb_req
+typedef struct packed {
+  SC_laddr_type     laddr;
+  SC_sptbr_type     sptbr;
+} I_l2tol2tlb_req_type;
+// 1}}}
+
+// {{{1 dctlbtol1_ack
+typedef struct packed {
+  logic             miss;
+  SC_dctlb_idx_type l1idx;
+  SC_paddr_type     paddr; // paddr translation for the laddr in the miss
+} I_dctlbtol1_ack_type;
+// 1}}}
+
+// {{{1 l2tlbtol2_ack
+typedef struct packed {
+  logic             miss;
+  SC_paddr_type     paddr; // paddr translation for the laddr in the miss
+} I_l2tlbtol2_ack_type;
+// 1}}}
+// {{{1 dctlbtol1_cmd
+typedef struct packed {
+  logic             flush;
+  SC_dctlb_idx_type l1idx;
+} I_dctlbtol1_cmd_type;
+// 1}}}
+
+// {{{1 l1todctlb_cmd
+typedef struct packed {
+  DC_ckpid_type     ckpid;
+  CORE_mop_type     mop;
+} I_l1todctlb_cmd_type;
+// 1}}}
+
 // {{{1 l1tol2_disp 
 typedef struct packed {
   L1_reqid_type     l1id;
@@ -75,7 +132,7 @@ typedef struct packed {
 // {{{1 l2todr_disp 
 typedef struct packed {
   SC_nodeid_type    nid; 
-  L1_reqid_type     l2id; // != means L2 initiated disp (drid==0)
+  L2_reqid_type     l2id; // != means L2 initiated disp (drid==0)
   DR_reqid_type     drid; // !=0 snoop ack. (E.g: SMCD_WI resulting in a disp)
 
   SC_disp_mask_type mask;
@@ -178,20 +235,9 @@ typedef struct packed {
   // w2:0
   // laddr: addr
   // prefetches: addr+123,addr+2*123,addr+3*123
-  //
-  // Complex stride:
-  // d1:7
-  // w2:3
-  // d2:100
-  // w2:3
-  // laddr:0
-  // prefetches: 7,107,114,214,221,321
-  //
-  PF_delta_type     d1; // Delta from the DVTAGE or delta predictor
-  PF_weigth_type    w1; // delta confidence (higher better)
 
-  PF_delta_type     d2;
-  PF_weigth_type    w2;
+  PF_delta_type     d; // Delta from the DVTAGE or delta predictor
+  PF_weigth_type    w; // delta confidence (higher better)
 
   SC_pcsign_type    pcsign;
   SC_laddr_type     laddr; // Base Address
@@ -219,15 +265,42 @@ typedef struct packed {
 } I_l2todr_pfreq_type;
 // 1}}}
 
-`ifdef NOT_CLEAN_ENOUGH
+
 // {{{1 core_decode
 typedef struct packed {
-  SC_pcsing_type   pcsign;
+  SC_pcsign_type   pcsign;
   SC_robid_type    rid;
   SC_robid_type    rid_end;
-} I_core_decode_type;
+} I_core_pfdecode_type;
 // 1}}}
-`endif
+
+// {{{1 pftocore_pred
+typedef struct packed {
+  SC_pcsign_type   pcsign;
+  SC_robid_type    d0_rid; // 4 LD/ST delta notified per cycle at most
+  PF_delta_type    d0_val;
+  SC_robid_type    d1_rid;
+  PF_delta_type    d1_val;
+  SC_robid_type    d2_rid;
+  PF_delta_type    d2_val;
+  SC_robid_type    d3_rid;
+  PF_delta_type    d3_val;
+} I_pftocore_pred_type;
+// 1}}}
+
+// {{{1 core_pfretire
+typedef struct packed {
+  SC_pcsign_type   pcsign;
+  SC_robid_type    d0_rid; // 4 LD/ST delta notified per cycle at most
+  PF_delta_type    d0_val;
+  SC_robid_type    d1_rid;
+  PF_delta_type    d1_val;
+  SC_robid_type    d2_rid;
+  PF_delta_type    d2_val;
+  SC_robid_type    d3_rid;
+  PF_delta_type    d3_val;
+} I_core_pfretire_type;
+// 1}}}
 
 // {{{1 drtomem_req
 typedef struct packed {
@@ -254,5 +327,11 @@ typedef struct packed {
   SC_line_type      line;
   SC_paddr_type     paddr;
 } I_drtomem_wb_type;
+// 1}}}
+
+// {{{1 drtomem_pfreq
+typedef struct packed {
+  SC_paddr_type     paddr;
+} I_drtomem_pfreq_type;
 // 1}}}
 `endif 

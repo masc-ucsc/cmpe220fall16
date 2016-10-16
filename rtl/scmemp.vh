@@ -17,7 +17,8 @@
 `define L2_REQIDBITS  6
 `define L2_REQIDS     (1<<`L2_REQIDBITS)
 
-// Node ID (needed for directory). Max num of L2s in the system
+// Node ID (needed for directory). Max num of L2s and TLBs in the system (even
+// L2s, Odd TLB)
 `define SC_NODEIDBITS 5
 `define SC_NODEIDS  (1<<`SC_NODEIDBITS)
 
@@ -47,8 +48,10 @@
 
 `define SC_PCSIGNBITS  13
 
-// RISC CSR register for address base translation (also threadid)
-`define SC_SBPTRBITS     (`SC_PADDRBITS-12)
+// RISC CSR register for address base translation (also threadid). Hart in
+// RISCV (
+`define SC_ASID          0
+`define SC_SBPTRBITS     38
 
 `define SC_LINEBITS   512
 `define SC_LINEBYTES (`SC_LINEBITS/8)
@@ -62,13 +65,13 @@
 `define SC_PAGESIZE_4MB    2'b10
 `define SC_PAGESIZE_4GB    2'b11
 
-`define TB_DCTLB_INDEXBITS 9
-`define TB_DCTLB_ENTRIES    (1<<(`TB_DCTLB_INDEXBITS))
+`define SC_DCTLB_INDEXBITS 7
+`define SC_DCTLB_ENTRIES    (1<<(`SC_DCTLB_INDEXBITS))
 
-`define TB_L2TLB_0INDEXBITS 14 // just 4KB page size
-`define TB_L2TLB_1INDEXBITS 6  // Any page size
-`define TB_L2TLB_0ENTRIES    (1<<(`TB_L2TLB_0INDEXBITS))
-`define TB_L2TLB_1ENTRIES    (1<<(`TB_L2TLB_1INDEXBITS))
+`define SC_L2TLB_0INDEXBITS 14 // just 4KB page size
+`define SC_L2TLB_1INDEXBITS 6  // Any page size
+`define SC_L2TLB_0ENTRIES    (1<<(`SC_L2TLB_0INDEXBITS))
+`define SC_L2TLB_1ENTRIES    (1<<(`SC_L2TLB_1INDEXBITS))
 
 `define PF_STATBITS        7
 `define PF_DELTABITS       5
@@ -84,4 +87,20 @@
 `define PF_PE_L1_MAXDEGREE  4
 `define PF_PE_L2_MAXDEGREE 16
 
+`define TB_PMA_IO0_START 49'h0_2000_0000_0000
+`define TB_PMA_IO0_END   49'h0_3000_0000_0000
+`define TB_PMA_IO1_START 49'h0_2000_0000_0000
+`define TB_PMA_IO1_END   49'h0_3000_0000_0000
+
+// cacheable regions
+`define TB_PMA_C0_START  49'h0_0000_0000_0000
+`define TB_PMA_C0_END    49'h0_1000_0000_0000
+`define TB_PMA_C1_START  49'h0_4000_0000_0000
+`define TB_PMA_C1_END    49'h0_5000_0000_0000
+`define TB_PMA_C2_START  49'h0_ffff_ffff_ffff
+`define TB_PMA_C2_END    49'h3_ffff_ffff_ffff
+
+// uncacheable regions
+`define TB_PMA_U0_START  49'h0_3000_0000_0000
+`define TB_PMA_U0_END    49'h0_4000_0000_0000
 

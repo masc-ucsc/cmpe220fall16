@@ -3,18 +3,24 @@
 // accordingly
 //
 
+`include "scmem.vh"
+
 module pfmonitor(
   /* verilator lint_off UNUSED */
    input                           clk
   ,input                           reset
 
-  ,input SC_robid_type             rrid // Retire ROBid
+  ,input  I_core_pfdecode_type     pfdecode
+  ,input                           pfretire_valid
+  ,output                          pfretire_retry
 
-`ifdef NOT_CLEAN_ENOUGH
-  ,input SC_core_decode_type       cdec // Decode
-  ,input SC_core_exec_type         agen0 // address gen
-  ,input SC_core_exec_type         agen1 // address gen
-`endif
+  ,output I_pftocore_pred_type     pfpred
+  ,output                          pfpred_valid
+  ,input                           pfpred_retry
+
+  ,input  I_core_pfretire_type     pfretire
+  ,input                           pfretire_valid
+  ,output                          pfretire_retry
   /* verilator lint_on UNUSED */
 );
 
