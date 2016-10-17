@@ -274,7 +274,7 @@ typedef struct packed {
 } I_core_pfdecode_type;
 // 1}}}
 
-// {{{1 pftocore_pred
+// {{{1 PFTocore_pred
 typedef struct packed {
   SC_pcsign_type   pcsign;
   SC_robid_type    d0_rid; // 4 LD/ST delta notified per cycle at most
@@ -295,10 +295,12 @@ typedef struct packed {
   PF_delta_type    d0_val;
   SC_robid_type    d1_rid;
   PF_delta_type    d1_val;
+`ifdef SCMEM_PFRETIRE_4
   SC_robid_type    d2_rid;
   PF_delta_type    d2_val;
   SC_robid_type    d3_rid;
   PF_delta_type    d3_val;
+`endif
 } I_core_pfretire_type;
 // 1}}}
 
