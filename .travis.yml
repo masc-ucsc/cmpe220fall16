@@ -3,13 +3,14 @@ dist: trusty
 language: cpp
 
 before_install:
-  - sudo apt-get install verilator
-  #- git clone http://git.veripool.org/git/verilator
-  #- cd verilator
-  #- autoconf
-  #- ./configure
-  #- make
-  #- sudo make install
+  #- sudo apt-get install verilator
+  - git clone http://git.veripool.org/git/verilator
+  - cd verilator
+  - autoconf
+  - ./configure
+  - make
+  - sudo make install
+  - cd ..
 
 before_script:
   - make lint
