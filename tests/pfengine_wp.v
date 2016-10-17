@@ -7,7 +7,10 @@ module pfengine_wp (
 
   ,input  logic                    pfgtopfe_op_valid
   ,output logic                    pfgtopfe_op_retry
-  ,input  I_pfgtopfe_op_type       pfgtopfe_op 
+  ,input PF_delta_type             pfgtopfe_op_d
+  ,input PF_weigth_type            pfgtopfe_op_w
+  ,input SC_laddr_type             pfgtopfe_op_laddr
+  //,input  I_pfgtopfe_op_type       pfgtopfe_op 
 
   ,output logic                    pftodc_req0_valid
   ,input  logic                    pftodc_req0_retry
@@ -62,14 +65,17 @@ module pfengine_wp (
 
  );
 
+/* verilator lint_off WIDTH */
  pfengine 
  pfe (
    .clk         (clk)
   ,.reset       (reset)
 
-  ,.pfgtopfe_op_valid   (pfgtopfe_op_valid)
-  ,.pfgtopfe_op_retry   (pfgtopfe_op_retry)
-  ,.pfgtopfe_op         (pfgtopfe_op)
+  ,.pfgtopfe_op_valid       (pfgtopfe_op_valid)
+  ,.pfgtopfe_op_retry       (pfgtopfe_op_retry)
+  ,.pfgtopfe_op             ({pfgtopfe_op_d
+                             ,pfgtopfe_op_w
+                             ,pfgtopfe_op_laddr})
 
   ,.pftodc_req0_valid   (pftodc_req0_valid)
   ,.pftodc_req0_retry   (pftodc_req0_retry)
@@ -124,5 +130,6 @@ module pfengine_wp (
 
   );
 
+/* verilator lint_on WIDTH */  
 endmodule
 
