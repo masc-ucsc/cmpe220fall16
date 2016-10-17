@@ -148,5 +148,6 @@ fflop #(.Size($bits(I_l2tol1_snack_type))) fsnack (
     .qRetry   (l2tol1_snack_retry)
   );
 
+
 endmodule
 
