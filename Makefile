@@ -46,6 +46,15 @@ run_pfengine_wp: pfengine_wp
 
 REGLIST+=pfengine_wp
 ###########################
+directory_bank_wp:
+	verilator --assert --debug-check -I./rtl --Wall --cc --trace --top-module directory_bank_wp ./tests/directory_bank_wp.v ./rtl/directory_bank.v ./rtl/fflop.v --exe tests/directory_bank_wp_tb.cpp -CFLAGS -DTRACE=1
+	make -C obj_dir/ -f Vdirectory_bank_wp.mk Vdirectory_bank_wp
+
+run_directory_bank_wp: directory_bank_wp
+	./obj_dir/Vdirectory_bank_wp
+
+REGLIST+=directory_bank_wp
+###########################
 regression: lint $(REGLIST)
 	    ruby scripts/regcheck.rb $(REGLIST)
 

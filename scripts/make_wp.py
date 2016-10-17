@@ -82,6 +82,7 @@ dict = {'I_drtol2_snack_type': [
         }
 
 content = []
+new_content = []
 
 with open(sys.argv[1]) as f:
     content = f.readlines()
@@ -95,9 +96,19 @@ for line in content:
             print "\t//" + line,
             for type in types:
                 print '\t' + words[0] + '\t'+ type[0] +'\t' + words[2] + '_' + type[1]
+                #this should generate the assign statements that are needed for breaking the structs
+                #not tested at all. Uncomment line below to see if it works for you.
+
+                #new_content.append('\tassign ' + words[2] + '_' + type[1] + ' = ' + words[2] + '.' + type[1] + ';')
         elif words[1] == 'logic':
             print '\t' + words[0] + '\tlogic\t\t\t\t' +  words[2]
         else:
             print '\t' + words[0] + '\tlogic\t\t\t\t' +  words[1]
     else:
-        print line,
+        if len(words) > 0 and words[0] == 'endmodule':
+            #this should print out all the "assigns" that are needed from breaking the structs
+            for new_line in new_content:
+                print new_line
+            print line,
+        else:
+            print line,

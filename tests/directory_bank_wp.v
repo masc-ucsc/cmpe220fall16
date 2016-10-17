@@ -27,9 +27,6 @@ module directory_bank_wp(
   // L2s interface
   ,input                           l2todr_pfreq_valid
   ,output                          l2todr_pfreq_retry
-  ,input  SC_nodeid_type           l2todr_pfreq_nid 
-  ,input  L2_reqid_type            l2todr_pfreq_l2id
-  ,input  SC_cmd_type              l2todr_pfreq_cmd
   ,input  SC_paddr_type            l2todr_pfreq_paddr
 
   ,input                           l2todr_req_valid
@@ -101,10 +98,7 @@ module directory_bank_wp(
   // L2s interface
    ,.l2todr_pfreq_valid(l2todr_pfreq_valid)
    ,.l2todr_pfreq_retry(l2todr_pfreq_retry)
-   ,.l2todr_pfreq({ l2todr_pfreq_nid
-                   ,l2todr_pfreq_l2id
-                   ,l2todr_pfreq_cmd
-                   ,l2todr_pfreq_paddr})       // NOTE: pfreq does not have ack if dropped
+   ,.l2todr_pfreq(l2todr_pfreq_paddr)       // NOTE: pfreq does not have ack if dropped
 
    ,.l2todr_req_valid(l2todr_req_valid)
    ,.l2todr_req_retry(l2todr_req_retry)
