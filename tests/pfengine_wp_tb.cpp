@@ -49,11 +49,16 @@ void sim_finish(bool pass) {
 }
 
 struct InputPacket {
-  uint8_t  pf_req_addr;
+  uint8_t  pf_d;
+  uint8_t  pf_w;
+  uint8_t  pf_pcsign;
+  uint8_t  pf_laddr;
+  uint8_t  pf_sptbr;
 };
 
 struct OutputPacket {
-  uint8_t pf_predicted_addr; // read result
+  uint8_t pf_dcreq0_laddr;
+  uint8_t pf_dcreq0_sptbr;
 };
 
 double sc_time_stamp() {
@@ -76,7 +81,7 @@ void try_send_packet(Vpfengine_wp *top) {
   top->pftol2_req3_retry = (rand()&0xF)==0;
 
   if (!top->pfgtopfe_op_retry) {
-    //top->pfgtopfe_op = (I_pfgtopfe_op_type)128;
+    top->pfgtopfe_op_pcsign = rand();
     if (inp_list.empty() || (rand() & 0x3)) { // Once every 4 cycles
       top->pfgtopfe_op_valid = 0;
     }else{
@@ -89,13 +94,18 @@ void try_send_packet(Vpfengine_wp *top) {
       fprintf(stderr,"ERROR: Internal error, could not be empty input\n");
     }
     InputPacket inp = inp_list.back();
-    //top->pfgtopfe_op = inp.pf_req_addr;
+    top->pfgtopfe_op_d      = inp.pf_d;
+    top->pfgtopfe_op_w      = inp.pf_w;
+    top->pfgtopfe_op_pcsign = inp.pf_pcsign;
+    top->pfgtopfe_op_laddr  = inp.pf_laddr;
+    //top->pfgtopfe_op_sptbr  = inp.pf_sptbr;
+
 #ifdef DEBUG_TRACE
-    printf("@%lld req_addr:%x \n",global_time, inp.pf_req_addr);
+    printf("@%lld delta:%x weight:%x laddr:%x pcsign:%x \n",global_time, inp.pf_d, inp.pf_w, inp.pf_laddr, inp.pf_pcsign);
 #endif
 
     OutputPacket out;
-    out.pf_predicted_addr = rand();
+    out.pf_dcreq0_laddr = rand();
     out_list.push_front(out);
 
     inp_list.pop_back();
@@ -103,58 +113,60 @@ void try_send_packet(Vpfengine_wp *top) {
 
 }
 
+
 void error_found(Vpfengine_wp *top) {
   advance_half_clock(top);
   advance_half_clock(top);
   sim_finish(false);
 }
 
+
 void try_recv_packet(Vpfengine_wp *top) {
 
   if (top->pftodc_req0_valid && out_list.empty()) {
-    printf("ERROR: unexpected prefetch:%x\n", rand());
+    printf("ERROR: unexpected prefetch:%x\n", top->pftodc_req0_laddr);
     error_found(top);
     return;
   }
 
   if (top->pftodc_req1_valid && out_list.empty()) {
-    printf("ERROR: unexpected prefetch req:%x\n", rand());
+    printf("ERROR: unexpected prefetch req:%x\n", top->pftodc_req1_laddr);
     error_found(top);
     return;
   }
 
   if (top->pftodc_req2_valid && out_list.empty()) {
-    printf("ERROR: unexpected prefetch:%x\n", rand());
+    printf("ERROR: unexpected prefetch:%x\n", top->pftodc_req2_laddr);
     error_found(top);
     return;
   }
 
   if (top->pftodc_req3_valid && out_list.empty()) {
-    printf("ERROR: unexpected prefetch:%x\n", rand());
+    printf("ERROR: unexpected prefetch:%x\n", top->pftodc_req3_laddr);
     error_found(top);
     return;
   }
 
   if (top->pftol2_req0_valid && out_list.empty()) {
-    printf("ERROR: unexpected prefetch:%x\n", rand());
+    printf("ERROR: unexpected prefetch:%x\n", top->pftol2_req0_laddr);
     error_found(top);
     return;
   }
 
   if (top->pftol2_req1_valid && out_list.empty()) {
-    printf("ERROR: unexpected prefetch:%x\n", rand());
+    printf("ERROR: unexpected prefetch:%x\n", top->pftol2_req1_laddr);
     error_found(top);
     return;
   }
 
   if (top->pftol2_req2_valid && out_list.empty()) {
-    printf("ERROR: unexpected prefetch:%x\n", rand());
+    printf("ERROR: unexpected prefetch:%x\n", top->pftol2_req2_laddr);
     error_found(top);
     return;
   }
 
   if (top->pftol2_req3_valid && out_list.empty()) {
-    printf("ERROR: unexpected prefetch:%x\n", rand());
+    printf("ERROR: unexpected prefetch:%x\n", top->pftol2_req3_laddr);
     error_found(top);
     return;
   }
@@ -211,7 +223,29 @@ void try_recv_packet(Vpfengine_wp *top) {
     return;
 
 #ifdef DEBUG_TRACE
-    printf("@%lld req prefetch:%x\n",global_time, rand());
+    if (top->pftodc_req0_valid)
+      printf("@%lld prefetch_addr:%x\n",global_time, top->pftodc_req0_laddr);
+
+    if (top->pftodc_req1_valid)
+      printf("@%lld prefetch_addr:%x\n",global_time, top->pftodc_req1_laddr);
+
+    if (top->pftodc_req2_valid)
+      printf("@%lld prefetch_addr:%x\n",global_time, top->pftodc_req2_laddr);
+
+    if (top->pftodc_req3_valid)
+      printf("@%lld prefetch_addr:%x\n",global_time, top->pftodc_req3_laddr);
+
+    if (top->pftol2_req0_valid)
+      printf("@%lld prefetch_addr:%x\n",global_time, top->pftol2_req0_laddr);
+
+    if (top->pftol2_req1_valid)
+      printf("@%lld prefetch_addr:%x\n",global_time, top->pftol2_req1_laddr);
+
+    if (top->pftol2_req2_valid)
+      printf("@%lld prefetch_addr:%x\n",global_time, top->pftol2_req2_laddr);
+
+    if (top->pftol2_req3_valid)
+      printf("@%lld prefetch_addr:%x\n",global_time, top->pftol2_req3_laddr);
 #endif
   OutputPacket o = out_list.back();
 
@@ -236,7 +270,7 @@ int main(int argc, char **argv, char **env) {
   tfp = new VerilatedVcdC;
 
   top->trace(tfp, 99);
-  tfp->open("pfoutput.vcd");
+  tfp->open("output.vcd");
 #endif
 
   // initialize simulation inputs
@@ -246,7 +280,6 @@ int main(int argc, char **argv, char **env) {
   advance_clock(top,1024);  // Long reset to give time to the state machine
   //-------------------------------------------------------
   top->reset = 0;
-  //top->pfgtopfe_op.laddr = rand();
   top->pftodc_req0_retry = 1; 
   top->pftodc_req1_retry = 1;
   top->pftodc_req2_retry = 1;
@@ -267,7 +300,10 @@ int main(int argc, char **argv, char **env) {
 
     if (((rand() & 0x3)==0) && inp_list.size() < 3 ) {
       InputPacket i;
-      i.pf_req_addr = rand() & 0xFF;
+      i.pf_d      = 0;
+      i.pf_w      = 1;
+      i.pf_laddr  = rand() & 0xFF;
+      i.pf_pcsign = rand() & 0xFFFF;
       inp_list.push_front(i);
     }
   }

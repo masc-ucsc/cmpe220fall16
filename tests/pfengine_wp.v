@@ -9,6 +9,7 @@ module pfengine_wp (
   ,output logic                    pfgtopfe_op_retry
   ,input PF_delta_type             pfgtopfe_op_d
   ,input PF_weigth_type            pfgtopfe_op_w
+  ,input SC_pcsign_type            pfgtopfe_op_pcsign
   ,input SC_laddr_type             pfgtopfe_op_laddr
   ,input SC_sptbr_type             pfgtopfe_op_sptbr
   //,input  I_pfgtopfe_op_type       pfgtopfe_op 
@@ -92,6 +93,7 @@ module pfengine_wp (
   ,.pfgtopfe_op_retry       (pfgtopfe_op_retry)
   ,.pfgtopfe_op             ({pfgtopfe_op_d
                              ,pfgtopfe_op_w
+                             ,pfgtopfe_op_pcsign
                              ,pfgtopfe_op_laddr
                              ,pfgtopfe_op_sptbr})
 
