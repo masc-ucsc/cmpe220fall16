@@ -13,7 +13,7 @@ before_install:
   #- cd ..
    - wget https://users.soe.ucsc.edu/~rafaeltp/files/verilator_3_888.tar.gz
    #- git clone https://github.com/cornell-brg/verilator-travisci-cache.git
-   - tar xfz verilator-travisci-cache/verilator_3_888.tar.gz
+   - tar xfz verilator_3_888.tar.gz
    - export VERILATOR_ROOT=$PWD/verilator
    - export PATH=$VERILATOR_ROOT/bin:$PATH
    - verilator --version
