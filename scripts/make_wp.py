@@ -112,13 +112,16 @@ for line in content:
             print '\t' + words[0] + '\tlogic\t\t\t\t' +  words[1]
     elif len(words) > 0 and words[0] == 'module':
         print 'module ' + modulename + '_wp('
+    elif len(words) > 0 and (words[0] == '`ifdef' or words[0] == '`endif'):
+        new_content.append('\n')
+        new_content.append(line)
+        print line,
+    elif len(words) > 0 and words[0] == 'endmodule':
+        #this should print out all the "assigns" that are needed from breaking the structs
+        for new_line in new_content:
+            print new_line
+        #this should print out the module and instance names set above
+        print '\n\n' + modulename + ' ' + instancename +  '(.*);'
+        print line,
     else:
-        if len(words) > 0 and words[0] == 'endmodule':
-            #this should print out all the "assigns" that are needed from breaking the structs
-            for new_line in new_content:
-                print new_line
-            #this should print out the module and instance names set above
-            print '\n\n' + modulename + ' ' + instancename +  '(.*);'
-            print line,
-        else:
-            print line,
+        print line,
