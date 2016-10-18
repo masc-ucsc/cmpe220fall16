@@ -56,7 +56,7 @@ run_directory_bank_wp: directory_bank_wp
 REGLIST+=directory_bank_wp
 ###########################
 regression: lint $(REGLIST)
-	    ruby scripts/regcheck.rb $(REGLIST)
+	ruby scripts/regcheck.rb $(REGLIST)
 
 clean:
 	rm -rf obj_dir output.vcd a.out
