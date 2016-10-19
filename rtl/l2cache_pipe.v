@@ -63,6 +63,8 @@
 // A snoop share request (SCMD_WS or SCMD_TS) is received to the L2, and the
 // cache is not in the L1. The L2 should invalidate the entry with a disp
 // message of DCMD_WI or DMCD_I.
+`include "scmem.vh"
+`define PASS_THROUGH
 
 module l2cache_pipe(
   /* verilator lint_off UNUSED */
@@ -128,10 +130,11 @@ module l2cache_pipe(
 
   ,output logic                    l2todr_pfreq_valid
   ,input  logic                    l2todr_pfreq_retry
-  ,output I_pftocache_req_type     l2todr_pfreq
+  ,output I_l2todr_pfreq_type     l2todr_pfreq
 
   /* verilator lint_on UNUSED */
 );
+    /*
     logic l2tol1_snack_next_valid;
     logic l2tol1_snack_next_retry;
     I_l2tol1_snack_type   l2tol1_snack_next;
@@ -141,13 +144,67 @@ fflop #(.Size($bits(I_l2tol1_snack_type))) fsnack (
 
     .din      (l2tol1_snack_next),
     .dinValid (l2tol1_snack_next_valid),
-    .dinRetry (l2tol1_snack_next_retry),
+    .dinRetry (),
+    //.dinRetry (l2tol1_snack_next_retry),
 
     .q        (l2tol1_snack),
     .qValid   (l2tol1_snack_valid),
     .qRetry   (l2tol1_snack_retry)
   );
+*/
+    logic   l2todr_req_next_valid;
+    logic   l2todr_req_next_retry;
+    I_l2todr_req_type   l2todr_req_next;
 
+`ifdef PASS_THROUGH
+    assign l2todr_req_next_valid = l1tol2_req_valid;
+    assign  l1tol2_req_retry = l2todr_req_next_retry || (!l2todr_req_next_valid);
+
+    // Temp drive Begin
+    assign l1tol2_snoop_ack_retry = 0;
+    assign l1tol2_disp_retry = 0;
+    assign l2tol1_dack_valid = 1;
+    assign l2tol1_dack = 0;
+    assign l1tol2_pfreq_retry = 0;
+    assign pftol2_pfreq_retry = 0;
+    assign cachetopf_stats = 0;
+    assign drtol2_snack_retry = 0;
+    assign l2todr_snoop_ack_valid = 1;
+    assign l2todr_snoop_ack = 0;
+    assign l2todr_disp_valid = 1;
+    assign l2todr_disp = 0;
+    assign drtol2_dack_retry = 0;
+    assign l2todr_pfreq_valid = 1;
+    assign l2todr_pfreq = 0;
+    //assign l2tol1_snack_next_valid = 1;
+    //assign l2tol1_snack_next = 0;
+    assign l2tol1_snack_valid = 1;
+    assign l2tol1_snack = 0;
+    
+
+    // Temp drive End
+    always_comb begin
+        if (l1tol2_req_valid) begin
+            l2todr_req_next.nid = l1tol2_req.dcid; // Could be wrong
+            l2todr_req_next.l2id = 6'b00_0000;
+            l2todr_req_next.cmd = l1tol2_req.cmd;
+            l2todr_req_next.paddr = {10'b00_0000_0000, l1tol2_req.laddr};
+        end
+    end
+
+    fflop #(.Size($bits(I_l2todr_req_type))) fl2todr_req (
+    .clk      (clk),
+    .reset    (reset),
+
+    .din      (l2todr_req_next),
+    .dinValid (l2todr_req_next_valid),
+    .dinRetry (l2todr_req_next_retry),
+
+    .q        (l2todr_req),
+    .qValid   (l2todr_req_valid),
+    .qRetry   (l2todr_req_retry)
+    );
+`endif
 
 endmodule
 

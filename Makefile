@@ -19,6 +19,11 @@ run_join_fadd: join_fadd
 
 REGLIST+=join_fadd
 ###########################
+l2:
+	verilator --assert --debug-check -I./rtl --Wall --cc --trace --top-module l2cache_pipe_wp ./rtl/l2cache_pipe.v ./tests/l2cache_pipe_wp.v ./rtl/fflop.v -CFLAGS -DTRACE=1
+		#--exe tests/ram_1port_fast_wp_tb.cpp -CFLAGS -DTRACE=1
+
+###########################
 ram_1port_fast_wp:
 	verilator --assert --debug-check -I./rtl --Wall --cc --trace --top-module ram_1port_fast_wp ./rtl/ram_1port_fast.v ./tests/ram_1port_fast_wp.v ./rtl/fflop.v --exe tests/ram_1port_fast_wp_tb.cpp -CFLAGS -DTRACE=1
 	make -C obj_dir/ -f Vram_1port_fast_wp.mk Vram_1port_fast_wp

@@ -1,4 +1,7 @@
 
+`include "scmem.vh"
+
+
 module l2cache_pipe_wp(
     input                                 clk,
     input                                 reset,
@@ -10,11 +13,11 @@ module l2cache_pipe_wp(
     input                                 l1tol2_req_valid,
     output                                l1tol2_req_retry,
       // Dispatching
-    input   L1_reqid_type                 l1tol2_req_dcid,
-    input   SC_cmd_type                   l1tol2_req_cmd,
-    input   SC_pcsign_type                l1tol2_req_pcsign,
-    input   SC_laddr_type                 l1tol2_req_laddr,
-    input   SC_sptbr_type                 l1tol2_req_sptbr,
+    input   L1_reqid_type                 l1tol2_req_dcid, // 5 bit
+    input   SC_cmd_type                   l1tol2_req_cmd, // 3 bit
+    input   SC_pcsign_type                l1tol2_req_pcsign, // 13 bit
+    input   SC_laddr_type                 l1tol2_req_laddr, // 39 bit
+    input   SC_sptbr_type                 l1tol2_req_sptbr, // 38 bit
     
     // output I_l2tol1_snack_type           l2tol1_snack,
     output                                l2tol1_snack_valid,
@@ -43,7 +46,7 @@ module l2cache_pipe_wp(
     
     // input I_l1tol2_disp_type             l1tol2_disp,
     input                                 l1tol2_disp_valid,
-    output                                l1tol2_diso_retry,
+    output                                l1tol2_disp_retry,
       // Dispatching
     input   L1_reqid_type                 l1tol2_disp_l1id,
     input   L2_reqid_type                 l1tol2_disp_l2id,
@@ -67,7 +70,7 @@ module l2cache_pipe_wp(
     output  L1_reqid_type                 l2tol1_dack_l1id,
     
     // input  I_pftocache_req_type          pftocache_req,
-    input                                 l1tol2_pfreq valid,
+    input                                 l1tol2_pfreq_valid,
     output                                l1tol2_pfreq_retry,
       // Dispatching
     input   SC_laddr_type                 l1tol2_pfreq_laddr,
@@ -100,10 +103,10 @@ module l2cache_pipe_wp(
     output                                l2todr_req_valid,
     input                                 l2todr_req_retry,
       // Dispatching
-    output  SC_nodeid_type                l2todr_req_nid, 
-    output  L2_reqid_type                 l2todr_req_l2id,
-    output  SC_cmd_type                   l2todr_req_cmd,
-    output  SC_paddr_type                 l2todr_req_paddr,
+    output  SC_nodeid_type                l2todr_req_nid, // 5 bit
+    output  L2_reqid_type                 l2todr_req_l2id, // 6 bit
+    output  SC_cmd_type                   l2todr_req_cmd, // 3 bit
+    output  SC_paddr_type                 l2todr_req_paddr, // 49 bit
 
     // input  I_drtol2_snack_type           drtol2_snack,
     input                                 drtol2_snack_valid,
@@ -224,7 +227,7 @@ module l2cache_pipe_wp(
                             l1tol2_pfreq_sptbr}),
 
         .pftol2_pfreq_valid(pftol2_pfreq_valid),
-        .pftol2_pfreq_retry(pftol2_pfreq_vretry),
+        .pftol2_pfreq_retry(pftol2_pfreq_retry),
         .pftol2_pfreq({     pftol2_pfreq_laddr,
                             pftol2_pfreq_sptbr}),
 
@@ -288,7 +291,7 @@ module l2cache_pipe_wp(
 
          .l2todr_pfreq_valid(l2todr_pfreq_valid),
          .l2todr_pfreq_retry(l2todr_pfreq_retry),
-         .l2todr_pfreq(      l2todr_pfreq_paddr)
+         .l2todr_pfreq( {   l2todr_pfreq_paddr})
 
       );
 
