@@ -66,7 +66,7 @@ int main(int argc, char **argv, char **env) {
   tfp = new VerilatedVcdC;
 
   top->trace(tfp, 99);
-  tfp->open("top_2core2dr_output.vcd");
+  tfp->open("integration_2core2dr_output.vcd");
 #endif
 
   // initialize simulation inputs

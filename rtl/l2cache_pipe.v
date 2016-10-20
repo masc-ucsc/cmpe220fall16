@@ -64,7 +64,7 @@
 // cache is not in the L1. The L2 should invalidate the entry with a disp
 // message of DCMD_WI or DMCD_I.
 `include "scmem.vh"
-`define PASS_THROUGH
+`define L2_PASSTHROUGH
 
 module l2cache_pipe(
   /* verilator lint_off UNUSED */
@@ -156,7 +156,7 @@ fflop #(.Size($bits(I_l2tol1_snack_type))) fsnack (
     logic   l2todr_req_next_retry;
     I_l2todr_req_type   l2todr_req_next;
 
-`ifdef PASS_THROUGH
+`ifdef L2_PASSTHROUGH
     assign l2todr_req_next_valid = l1tol2_req_valid;
     assign  l1tol2_req_retry = l2todr_req_next_retry;
 
