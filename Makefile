@@ -67,6 +67,9 @@ integration_2core2dr:
 	verilator --assert --debug-check -I./rtl --Wall --cc --trace --top-module integration_2core2dr ./tests/integration_2core2dr.v ./rtl/top_2core2dr.v ./rtl/fflop.v --exe tests/integration_2core2dr_tests.cpp -CFLAGS -DTRACE=1
 	make -C obj_dir/ -f Vintegration_2core2dr.mk Vintegration_2core2dr
 
+run_integration_2core2dr: integration_2core2dr
+	./obj_dir/Vintegration_2core2dr
+
 REGLIST+=integration_2core2dr
 ###########################
 regression: lint $(REGLIST)
