@@ -111,7 +111,7 @@ $dcache_core_interface = [
 
   ["dctocore_ld_valid     ", "output", "                        "],
   ["dctocore_ld_retry     ", "input ", "                        "],
-  ["dctocore_ld           ", "output", " I_coretodc_ld_type     "],
+  ["dctocore_ld           ", "output", " I_dctocore_ld_type     "],
 
   ["coretodc_std_valid    ", "input ", "                        "],
   ["coretodc_std_retry    ", "output", "                        "],
@@ -288,13 +288,15 @@ def dcache_instance core_id, slice_id, f
 
   f.puts
   f.puts
-  $dcache_l2_interface.each do |name,dir,type|
-    f.puts "  wire #{type} core#{core_id}_slice#{slice_id}_#{name};"
+  $dcache_l2_interface.each do |name,dir,type_|
+    type = (type_ =~ /^\s*$/)? "wire" : type_
+    f.puts "  #{type} core#{core_id}_slice#{slice_id}_#{name};"
   end
 
-  $dcache_prefetch_interface.each do |name,dir,type, pf_name_|
+  $dcache_prefetch_interface.each do |name,dir,type_, pf_name_|
     pf_name = pf_name_.gsub("##",slice_id.to_s)
-    f.puts "  wire #{type} core#{core_id}_slice#{slice_id}_#{pf_name};"
+    type = (type_ =~ /^\s*$/)? "wire" : type_
+    f.puts "  #{type} core#{core_id}_slice#{slice_id}_#{pf_name};"
   end
 
   f.puts
@@ -349,8 +351,9 @@ end
 def icache_instance core_id, f
   f.puts
   f.puts
-  $icache_l2_interface.each do |name,dir,type|
-    f.puts "  wire #{type} core#{core_id}_#{name};"
+  $icache_l2_interface.each do |name,dir,type_|
+    type = (type_ =~ /^\s*$/)? "wire" : type_
+    f.puts "  #{type} core#{core_id}_#{name};"
   end
 
   f.puts
@@ -378,13 +381,15 @@ def l2d_instance core_id, slice_id, f
 
   f.puts
   f.puts
-  $prefetch_l2cache_interface.each do |pf_name_,dir,type,name|
+  $prefetch_l2cache_interface.each do |pf_name_,dir,type_,name|
     pf_name = pf_name_.gsub("##",slice_id.to_s)
-    f.puts "  wire #{type} core#{core_id}_slice#{slice_id}_#{pf_name};"
+    type = (type_ =~ /^\s*$/)? "wire" : type_
+    f.puts "  #{type} core#{core_id}_slice#{slice_id}_#{pf_name};"
   end
 
-  $directory_l2_interface.each do |name,dir,type|
-    f.puts "  wire #{type} core#{core_id}_slice#{slice_id}_#{name};"
+  $directory_l2_interface.each do |name,dir,type_|
+    type = (type_ =~ /^\s*$/)? "wire" : type_
+    f.puts "  #{type} core#{core_id}_slice#{slice_id}_#{name};"
   end
 
   f.puts
@@ -417,17 +422,20 @@ def l2i_instance core_id, f
 
   f.puts
   f.puts
-  $prefetch_l2cache_interface.each do |pf_name_,dir,type,name|
+  $prefetch_l2cache_interface.each do |pf_name_,dir,type_,name|
     pf_name = pf_name_.gsub("##","icache")
-    f.puts "  wire #{type} core#{core_id}_icache_#{pf_name};"
+    type = (type_ =~ /^\s*$/)? "wire" : type_
+    f.puts "  #{type} core#{core_id}_icache_#{pf_name};"
   end
 
-  $unconnected_icache_l2_interface.each do |name,dir,type|
-    f.puts "  wire #{type} unconnected_#{core_id}_icache_#{name};"
+  $unconnected_icache_l2_interface.each do |name,dir,type_|
+    type = (type_ =~ /^\s*$/)? "wire" : type_
+    f.puts "  #{type} unconnected_#{core_id}_icache_#{name};"
   end
 
-  $directory_l2_interface.each do |name,dir,type|
-    f.puts "  wire #{type} core#{core_id}_icache_#{name};"
+  $directory_l2_interface.each do |name,dir,type_|
+    type = (type_ =~ /^\s*$/)? "wire" : type_
+    f.puts "  #{type} core#{core_id}_icache_#{name};"
   end
   f.puts
 
@@ -469,8 +477,9 @@ end
 def prefetch_instance core_id, f
   f.puts
 
-  $other_prefecther.each do |name,dir,type|
-    f.puts "  wire #{type} unconnected_pfe#{core_id}_#{name};"
+  $other_prefecther.each do |name,dir,type_|
+    type = (type_ =~ /^\s*$/)? "wire" : type_
+    f.puts "  #{type} unconnected_pfe#{core_id}_#{name};"
   end
 
   f.puts 
@@ -526,8 +535,9 @@ end
 def network_instance n_cores, n_drs, f
 
   n_drs.times do |dr_id|
-    $directory_l2_interface.each do |name,dir,type,net_name_|
-      f.puts "  wire #{type} dr#{dr_id}_#{name};"
+    $directory_l2_interface.each do |name,dir,type_,net_name_|
+    type = (type_ =~ /^\s*$/)? "wire" : type_
+      f.puts "  #{type} dr#{dr_id}_#{name};"
     end
   end
 
@@ -618,7 +628,12 @@ f.puts "// #{options[:slices]} data cache slice(s) per core, and"
 f.puts "// #{options[:directory]} directory(ies)"
 2.times { f.puts }
 
+f.puts '`include "scmem.vh"'
+
 f.puts "module top_#{options[:cores]}core#{options[:directory]}dr("
+f.puts "  /* verilator lint_off UNUSED */"
+f.puts "  /* verilator lint_off UNDRIVEN */"
+
 f.puts "   input clk"
 f.puts "  ,input reset"
 f.puts
@@ -647,5 +662,7 @@ end
 dr_all options[:directory], f
 network_instance options[:cores], options[:directory], f
 
+f.puts "  /* verilator lint_on UNUSED */"
+f.puts "  /* verilator lint_on UNDRIVEN */"
 f.puts "endmodule"
 

@@ -6,6 +6,7 @@
 // 2 directory(ies)
 
 
+`include "scmem.vh"
 module top_2core2dr(
   /* verilator lint_off UNUSED */
   /* verilator lint_off UNDRIVEN */
@@ -201,28 +202,28 @@ module top_2core2dr(
 );
 
 
-  wire                          core0_slice0_l1tol2_req_valid      ;
-  wire                          core0_slice0_l1tol2_req_retry      ;
-  wire  I_l1tol2_req_type       core0_slice0_l1tol2_req            ;
-  wire                          core0_slice0_l2tol1_snack_valid    ;
-  wire                          core0_slice0_l2tol1_snack_retry    ;
-  wire  I_l2tol1_snack_type     core0_slice0_l2tol1_snack          ;
-  wire                          core0_slice0_l1tol2_snoop_ack_valid;
-  wire                          core0_slice0_l1tol2_snoop_ack_retry;
-  wire  I_l2snoop_ack_type      core0_slice0_l1tol2_snoop_ack      ;
-  wire                          core0_slice0_l1tol2_disp_valid     ;
-  wire                          core0_slice0_l1tol2_disp_retry     ;
-  wire  I_l1tol2_disp_type      core0_slice0_l1tol2_disp           ;
-  wire                          core0_slice0_l2tol1_dack_valid     ;
-  wire                          core0_slice0_l2tol1_dack_retry     ;
-  wire  I_l2tol1_dack_type      core0_slice0_l2tol1_dack           ;
-  wire                          core0_slice0_l1tol2_pfreq_valid    ;
-  wire                          core0_slice0_l1tol2_pfreq_retry    ;
-  wire  I_pftocache_req_type    core0_slice0_l1tol2_pfreq          ;
-  wire                          core0_slice0_pftodc_req0_valid;
-  wire                          core0_slice0_pftodc_req0_retry;
-  wire  I_pftocache_req_type    core0_slice0_pftodc_req0      ;
-  wire  PF_cache_stats_type     core0_slice0_pf0_dcstats      ;
+  wire core0_slice0_l1tol2_req_valid      ;
+  wire core0_slice0_l1tol2_req_retry      ;
+   I_l1tol2_req_type       core0_slice0_l1tol2_req            ;
+  wire core0_slice0_l2tol1_snack_valid    ;
+  wire core0_slice0_l2tol1_snack_retry    ;
+   I_l2tol1_snack_type     core0_slice0_l2tol1_snack          ;
+  wire core0_slice0_l1tol2_snoop_ack_valid;
+  wire core0_slice0_l1tol2_snoop_ack_retry;
+   I_l2snoop_ack_type      core0_slice0_l1tol2_snoop_ack      ;
+  wire core0_slice0_l1tol2_disp_valid     ;
+  wire core0_slice0_l1tol2_disp_retry     ;
+   I_l1tol2_disp_type      core0_slice0_l1tol2_disp           ;
+  wire core0_slice0_l2tol1_dack_valid     ;
+  wire core0_slice0_l2tol1_dack_retry     ;
+   I_l2tol1_dack_type      core0_slice0_l2tol1_dack           ;
+  wire core0_slice0_l1tol2_pfreq_valid    ;
+  wire core0_slice0_l1tol2_pfreq_retry    ;
+   I_pftocache_req_type    core0_slice0_l1tol2_pfreq          ;
+  wire core0_slice0_pftodc_req0_valid;
+  wire core0_slice0_pftodc_req0_retry;
+   I_pftocache_req_type    core0_slice0_pftodc_req0      ;
+   PF_cache_stats_type     core0_slice0_pf0_dcstats      ;
 
 
   dcache_pipe core0_slice0_dcache(
@@ -269,28 +270,28 @@ module top_2core2dr(
 
 
 
-  wire                          core0_slice1_l1tol2_req_valid      ;
-  wire                          core0_slice1_l1tol2_req_retry      ;
-  wire  I_l1tol2_req_type       core0_slice1_l1tol2_req            ;
-  wire                          core0_slice1_l2tol1_snack_valid    ;
-  wire                          core0_slice1_l2tol1_snack_retry    ;
-  wire  I_l2tol1_snack_type     core0_slice1_l2tol1_snack          ;
-  wire                          core0_slice1_l1tol2_snoop_ack_valid;
-  wire                          core0_slice1_l1tol2_snoop_ack_retry;
-  wire  I_l2snoop_ack_type      core0_slice1_l1tol2_snoop_ack      ;
-  wire                          core0_slice1_l1tol2_disp_valid     ;
-  wire                          core0_slice1_l1tol2_disp_retry     ;
-  wire  I_l1tol2_disp_type      core0_slice1_l1tol2_disp           ;
-  wire                          core0_slice1_l2tol1_dack_valid     ;
-  wire                          core0_slice1_l2tol1_dack_retry     ;
-  wire  I_l2tol1_dack_type      core0_slice1_l2tol1_dack           ;
-  wire                          core0_slice1_l1tol2_pfreq_valid    ;
-  wire                          core0_slice1_l1tol2_pfreq_retry    ;
-  wire  I_pftocache_req_type    core0_slice1_l1tol2_pfreq          ;
-  wire                          core0_slice1_pftodc_req1_valid;
-  wire                          core0_slice1_pftodc_req1_retry;
-  wire  I_pftocache_req_type    core0_slice1_pftodc_req1      ;
-  wire  PF_cache_stats_type     core0_slice1_pf1_dcstats      ;
+  wire core0_slice1_l1tol2_req_valid      ;
+  wire core0_slice1_l1tol2_req_retry      ;
+   I_l1tol2_req_type       core0_slice1_l1tol2_req            ;
+  wire core0_slice1_l2tol1_snack_valid    ;
+  wire core0_slice1_l2tol1_snack_retry    ;
+   I_l2tol1_snack_type     core0_slice1_l2tol1_snack          ;
+  wire core0_slice1_l1tol2_snoop_ack_valid;
+  wire core0_slice1_l1tol2_snoop_ack_retry;
+   I_l2snoop_ack_type      core0_slice1_l1tol2_snoop_ack      ;
+  wire core0_slice1_l1tol2_disp_valid     ;
+  wire core0_slice1_l1tol2_disp_retry     ;
+   I_l1tol2_disp_type      core0_slice1_l1tol2_disp           ;
+  wire core0_slice1_l2tol1_dack_valid     ;
+  wire core0_slice1_l2tol1_dack_retry     ;
+   I_l2tol1_dack_type      core0_slice1_l2tol1_dack           ;
+  wire core0_slice1_l1tol2_pfreq_valid    ;
+  wire core0_slice1_l1tol2_pfreq_retry    ;
+   I_pftocache_req_type    core0_slice1_l1tol2_pfreq          ;
+  wire core0_slice1_pftodc_req1_valid;
+  wire core0_slice1_pftodc_req1_retry;
+   I_pftocache_req_type    core0_slice1_pftodc_req1      ;
+   PF_cache_stats_type     core0_slice1_pf1_dcstats      ;
 
 
   dcache_pipe core0_slice1_dcache(
@@ -339,28 +340,28 @@ module top_2core2dr(
 `ifdef SC_4PIPE
 
 
-  wire                          core0_slice2_l1tol2_req_valid      ;
-  wire                          core0_slice2_l1tol2_req_retry      ;
-  wire  I_l1tol2_req_type       core0_slice2_l1tol2_req            ;
-  wire                          core0_slice2_l2tol1_snack_valid    ;
-  wire                          core0_slice2_l2tol1_snack_retry    ;
-  wire  I_l2tol1_snack_type     core0_slice2_l2tol1_snack          ;
-  wire                          core0_slice2_l1tol2_snoop_ack_valid;
-  wire                          core0_slice2_l1tol2_snoop_ack_retry;
-  wire  I_l2snoop_ack_type      core0_slice2_l1tol2_snoop_ack      ;
-  wire                          core0_slice2_l1tol2_disp_valid     ;
-  wire                          core0_slice2_l1tol2_disp_retry     ;
-  wire  I_l1tol2_disp_type      core0_slice2_l1tol2_disp           ;
-  wire                          core0_slice2_l2tol1_dack_valid     ;
-  wire                          core0_slice2_l2tol1_dack_retry     ;
-  wire  I_l2tol1_dack_type      core0_slice2_l2tol1_dack           ;
-  wire                          core0_slice2_l1tol2_pfreq_valid    ;
-  wire                          core0_slice2_l1tol2_pfreq_retry    ;
-  wire  I_pftocache_req_type    core0_slice2_l1tol2_pfreq          ;
-  wire                          core0_slice2_pftodc_req2_valid;
-  wire                          core0_slice2_pftodc_req2_retry;
-  wire  I_pftocache_req_type    core0_slice2_pftodc_req2      ;
-  wire  PF_cache_stats_type     core0_slice2_pf2_dcstats      ;
+  wire core0_slice2_l1tol2_req_valid      ;
+  wire core0_slice2_l1tol2_req_retry      ;
+   I_l1tol2_req_type       core0_slice2_l1tol2_req            ;
+  wire core0_slice2_l2tol1_snack_valid    ;
+  wire core0_slice2_l2tol1_snack_retry    ;
+   I_l2tol1_snack_type     core0_slice2_l2tol1_snack          ;
+  wire core0_slice2_l1tol2_snoop_ack_valid;
+  wire core0_slice2_l1tol2_snoop_ack_retry;
+   I_l2snoop_ack_type      core0_slice2_l1tol2_snoop_ack      ;
+  wire core0_slice2_l1tol2_disp_valid     ;
+  wire core0_slice2_l1tol2_disp_retry     ;
+   I_l1tol2_disp_type      core0_slice2_l1tol2_disp           ;
+  wire core0_slice2_l2tol1_dack_valid     ;
+  wire core0_slice2_l2tol1_dack_retry     ;
+   I_l2tol1_dack_type      core0_slice2_l2tol1_dack           ;
+  wire core0_slice2_l1tol2_pfreq_valid    ;
+  wire core0_slice2_l1tol2_pfreq_retry    ;
+   I_pftocache_req_type    core0_slice2_l1tol2_pfreq          ;
+  wire core0_slice2_pftodc_req2_valid;
+  wire core0_slice2_pftodc_req2_retry;
+   I_pftocache_req_type    core0_slice2_pftodc_req2      ;
+   PF_cache_stats_type     core0_slice2_pf2_dcstats      ;
 
 
   dcache_pipe core0_slice2_dcache(
@@ -407,28 +408,28 @@ module top_2core2dr(
 
 
 
-  wire                          core0_slice3_l1tol2_req_valid      ;
-  wire                          core0_slice3_l1tol2_req_retry      ;
-  wire  I_l1tol2_req_type       core0_slice3_l1tol2_req            ;
-  wire                          core0_slice3_l2tol1_snack_valid    ;
-  wire                          core0_slice3_l2tol1_snack_retry    ;
-  wire  I_l2tol1_snack_type     core0_slice3_l2tol1_snack          ;
-  wire                          core0_slice3_l1tol2_snoop_ack_valid;
-  wire                          core0_slice3_l1tol2_snoop_ack_retry;
-  wire  I_l2snoop_ack_type      core0_slice3_l1tol2_snoop_ack      ;
-  wire                          core0_slice3_l1tol2_disp_valid     ;
-  wire                          core0_slice3_l1tol2_disp_retry     ;
-  wire  I_l1tol2_disp_type      core0_slice3_l1tol2_disp           ;
-  wire                          core0_slice3_l2tol1_dack_valid     ;
-  wire                          core0_slice3_l2tol1_dack_retry     ;
-  wire  I_l2tol1_dack_type      core0_slice3_l2tol1_dack           ;
-  wire                          core0_slice3_l1tol2_pfreq_valid    ;
-  wire                          core0_slice3_l1tol2_pfreq_retry    ;
-  wire  I_pftocache_req_type    core0_slice3_l1tol2_pfreq          ;
-  wire                          core0_slice3_pftodc_req3_valid;
-  wire                          core0_slice3_pftodc_req3_retry;
-  wire  I_pftocache_req_type    core0_slice3_pftodc_req3      ;
-  wire  PF_cache_stats_type     core0_slice3_pf3_dcstats      ;
+  wire core0_slice3_l1tol2_req_valid      ;
+  wire core0_slice3_l1tol2_req_retry      ;
+   I_l1tol2_req_type       core0_slice3_l1tol2_req            ;
+  wire core0_slice3_l2tol1_snack_valid    ;
+  wire core0_slice3_l2tol1_snack_retry    ;
+   I_l2tol1_snack_type     core0_slice3_l2tol1_snack          ;
+  wire core0_slice3_l1tol2_snoop_ack_valid;
+  wire core0_slice3_l1tol2_snoop_ack_retry;
+   I_l2snoop_ack_type      core0_slice3_l1tol2_snoop_ack      ;
+  wire core0_slice3_l1tol2_disp_valid     ;
+  wire core0_slice3_l1tol2_disp_retry     ;
+   I_l1tol2_disp_type      core0_slice3_l1tol2_disp           ;
+  wire core0_slice3_l2tol1_dack_valid     ;
+  wire core0_slice3_l2tol1_dack_retry     ;
+   I_l2tol1_dack_type      core0_slice3_l2tol1_dack           ;
+  wire core0_slice3_l1tol2_pfreq_valid    ;
+  wire core0_slice3_l1tol2_pfreq_retry    ;
+   I_pftocache_req_type    core0_slice3_l1tol2_pfreq          ;
+  wire core0_slice3_pftodc_req3_valid;
+  wire core0_slice3_pftodc_req3_retry;
+   I_pftocache_req_type    core0_slice3_pftodc_req3      ;
+   PF_cache_stats_type     core0_slice3_pf3_dcstats      ;
 
 
   dcache_pipe core0_slice3_dcache(
@@ -476,18 +477,18 @@ module top_2core2dr(
 `endif
 
 
-  wire                      core0_l1tol2_req_valid      ;
-  wire                      core0_l1tol2_req_retry      ;
-  wire I_l1tol2_req_type    core0_l1tol2_req            ;
-  wire                      core0_l2tol1_snack_valid    ;
-  wire                      core0_l2tol1_snack_retry    ;
-  wire I_l2tol1_snack_type  core0_l2tol1_snack          ;
-  wire                      core0_l1tol2_snoop_ack_valid;
-  wire                      core0_l1tol2_snoop_ack_retry;
-  wire I_l2snoop_ack_type   core0_l1tol2_snoop_ack      ;
-  wire                      core0_l1tol2_pfreq_valid    ;
-  wire                      core0_l1tol2_pfreq_retry    ;
-  wire I_pftocache_req_type core0_l1tol2_pfreq          ;
+  wire core0_l1tol2_req_valid      ;
+  wire core0_l1tol2_req_retry      ;
+  I_l1tol2_req_type    core0_l1tol2_req            ;
+  wire core0_l2tol1_snack_valid    ;
+  wire core0_l2tol1_snack_retry    ;
+  I_l2tol1_snack_type  core0_l2tol1_snack          ;
+  wire core0_l1tol2_snoop_ack_valid;
+  wire core0_l1tol2_snoop_ack_retry;
+  I_l2snoop_ack_type   core0_l1tol2_snoop_ack      ;
+  wire core0_l1tol2_pfreq_valid    ;
+  wire core0_l1tol2_pfreq_retry    ;
+  I_pftocache_req_type core0_l1tol2_pfreq          ;
 
   icache core0_icache(
      .clk(clk)
@@ -516,28 +517,28 @@ module top_2core2dr(
 
 
 
-  wire logic                core0_slice0_pftol2_req0_valid;
-  wire logic                core0_slice0_pftol2_req0_retry;
-  wire I_pftocache_req_type core0_slice0_pftol2_req0      ;
-  wire PF_cache_stats_type  core0_slice0_pf0_l2stats      ;
-  wire                       core0_slice0_l2todr_pfreq_valid    ;
-  wire                       core0_slice0_l2todr_pfreq_retry    ;
-  wire  I_l2todr_pfreq_type  core0_slice0_l2todr_pfreq          ;
-  wire                       core0_slice0_l2todr_req_valid      ;
-  wire                       core0_slice0_l2todr_req_retry      ;
-  wire  I_l2todr_req_type    core0_slice0_l2todr_req            ;
-  wire                       core0_slice0_drtol2_snack_valid    ;
-  wire                       core0_slice0_drtol2_snack_retry    ;
-  wire  I_drtol2_snack_type  core0_slice0_drtol2_snack          ;
-  wire                       core0_slice0_l2todr_disp_valid     ;
-  wire                       core0_slice0_l2todr_disp_retry     ;
-  wire  I_l2todr_disp_type   core0_slice0_l2todr_disp           ;
-  wire                       core0_slice0_drtol2_dack_valid     ;
-  wire                       core0_slice0_drtol2_dack_retry     ;
-  wire  I_drtol2_dack_type   core0_slice0_drtol2_dack           ;
-  wire                       core0_slice0_l2todr_snoop_ack_valid;
-  wire                       core0_slice0_l2todr_snoop_ack_retry;
-  wire  I_drsnoop_ack_type   core0_slice0_l2todr_snoop_ack      ;
+  logic                core0_slice0_pftol2_req0_valid;
+  logic                core0_slice0_pftol2_req0_retry;
+  I_pftocache_req_type core0_slice0_pftol2_req0      ;
+  PF_cache_stats_type  core0_slice0_pf0_l2stats      ;
+  wire core0_slice0_l2todr_pfreq_valid    ;
+  wire core0_slice0_l2todr_pfreq_retry    ;
+   I_l2todr_pfreq_type  core0_slice0_l2todr_pfreq          ;
+  wire core0_slice0_l2todr_req_valid      ;
+  wire core0_slice0_l2todr_req_retry      ;
+   I_l2todr_req_type    core0_slice0_l2todr_req            ;
+  wire core0_slice0_drtol2_snack_valid    ;
+  wire core0_slice0_drtol2_snack_retry    ;
+   I_drtol2_snack_type  core0_slice0_drtol2_snack          ;
+  wire core0_slice0_l2todr_disp_valid     ;
+  wire core0_slice0_l2todr_disp_retry     ;
+   I_l2todr_disp_type   core0_slice0_l2todr_disp           ;
+  wire core0_slice0_drtol2_dack_valid     ;
+  wire core0_slice0_drtol2_dack_retry     ;
+   I_drtol2_dack_type   core0_slice0_drtol2_dack           ;
+  wire core0_slice0_l2todr_snoop_ack_valid;
+  wire core0_slice0_l2todr_snoop_ack_retry;
+   I_drsnoop_ack_type   core0_slice0_l2todr_snoop_ack      ;
 
   l2cache_pipe core0_l2d_slice0(
      .clk(clk)
@@ -588,28 +589,28 @@ module top_2core2dr(
 
 
 
-  wire logic                core0_slice1_pftol2_req1_valid;
-  wire logic                core0_slice1_pftol2_req1_retry;
-  wire I_pftocache_req_type core0_slice1_pftol2_req1      ;
-  wire PF_cache_stats_type  core0_slice1_pf1_l2stats      ;
-  wire                       core0_slice1_l2todr_pfreq_valid    ;
-  wire                       core0_slice1_l2todr_pfreq_retry    ;
-  wire  I_l2todr_pfreq_type  core0_slice1_l2todr_pfreq          ;
-  wire                       core0_slice1_l2todr_req_valid      ;
-  wire                       core0_slice1_l2todr_req_retry      ;
-  wire  I_l2todr_req_type    core0_slice1_l2todr_req            ;
-  wire                       core0_slice1_drtol2_snack_valid    ;
-  wire                       core0_slice1_drtol2_snack_retry    ;
-  wire  I_drtol2_snack_type  core0_slice1_drtol2_snack          ;
-  wire                       core0_slice1_l2todr_disp_valid     ;
-  wire                       core0_slice1_l2todr_disp_retry     ;
-  wire  I_l2todr_disp_type   core0_slice1_l2todr_disp           ;
-  wire                       core0_slice1_drtol2_dack_valid     ;
-  wire                       core0_slice1_drtol2_dack_retry     ;
-  wire  I_drtol2_dack_type   core0_slice1_drtol2_dack           ;
-  wire                       core0_slice1_l2todr_snoop_ack_valid;
-  wire                       core0_slice1_l2todr_snoop_ack_retry;
-  wire  I_drsnoop_ack_type   core0_slice1_l2todr_snoop_ack      ;
+  logic                core0_slice1_pftol2_req1_valid;
+  logic                core0_slice1_pftol2_req1_retry;
+  I_pftocache_req_type core0_slice1_pftol2_req1      ;
+  PF_cache_stats_type  core0_slice1_pf1_l2stats      ;
+  wire core0_slice1_l2todr_pfreq_valid    ;
+  wire core0_slice1_l2todr_pfreq_retry    ;
+   I_l2todr_pfreq_type  core0_slice1_l2todr_pfreq          ;
+  wire core0_slice1_l2todr_req_valid      ;
+  wire core0_slice1_l2todr_req_retry      ;
+   I_l2todr_req_type    core0_slice1_l2todr_req            ;
+  wire core0_slice1_drtol2_snack_valid    ;
+  wire core0_slice1_drtol2_snack_retry    ;
+   I_drtol2_snack_type  core0_slice1_drtol2_snack          ;
+  wire core0_slice1_l2todr_disp_valid     ;
+  wire core0_slice1_l2todr_disp_retry     ;
+   I_l2todr_disp_type   core0_slice1_l2todr_disp           ;
+  wire core0_slice1_drtol2_dack_valid     ;
+  wire core0_slice1_drtol2_dack_retry     ;
+   I_drtol2_dack_type   core0_slice1_drtol2_dack           ;
+  wire core0_slice1_l2todr_snoop_ack_valid;
+  wire core0_slice1_l2todr_snoop_ack_retry;
+   I_drsnoop_ack_type   core0_slice1_l2todr_snoop_ack      ;
 
   l2cache_pipe core0_l2d_slice1(
      .clk(clk)
@@ -662,28 +663,28 @@ module top_2core2dr(
 `ifdef SC_4PIPE
 
 
-  wire logic                core0_slice2_pftol2_req2_valid;
-  wire logic                core0_slice2_pftol2_req2_retry;
-  wire I_pftocache_req_type core0_slice2_pftol2_req2      ;
-  wire PF_cache_stats_type  core0_slice2_pf2_l2stats      ;
-  wire                       core0_slice2_l2todr_pfreq_valid    ;
-  wire                       core0_slice2_l2todr_pfreq_retry    ;
-  wire  I_l2todr_pfreq_type  core0_slice2_l2todr_pfreq          ;
-  wire                       core0_slice2_l2todr_req_valid      ;
-  wire                       core0_slice2_l2todr_req_retry      ;
-  wire  I_l2todr_req_type    core0_slice2_l2todr_req            ;
-  wire                       core0_slice2_drtol2_snack_valid    ;
-  wire                       core0_slice2_drtol2_snack_retry    ;
-  wire  I_drtol2_snack_type  core0_slice2_drtol2_snack          ;
-  wire                       core0_slice2_l2todr_disp_valid     ;
-  wire                       core0_slice2_l2todr_disp_retry     ;
-  wire  I_l2todr_disp_type   core0_slice2_l2todr_disp           ;
-  wire                       core0_slice2_drtol2_dack_valid     ;
-  wire                       core0_slice2_drtol2_dack_retry     ;
-  wire  I_drtol2_dack_type   core0_slice2_drtol2_dack           ;
-  wire                       core0_slice2_l2todr_snoop_ack_valid;
-  wire                       core0_slice2_l2todr_snoop_ack_retry;
-  wire  I_drsnoop_ack_type   core0_slice2_l2todr_snoop_ack      ;
+  logic                core0_slice2_pftol2_req2_valid;
+  logic                core0_slice2_pftol2_req2_retry;
+  I_pftocache_req_type core0_slice2_pftol2_req2      ;
+  PF_cache_stats_type  core0_slice2_pf2_l2stats      ;
+  wire core0_slice2_l2todr_pfreq_valid    ;
+  wire core0_slice2_l2todr_pfreq_retry    ;
+   I_l2todr_pfreq_type  core0_slice2_l2todr_pfreq          ;
+  wire core0_slice2_l2todr_req_valid      ;
+  wire core0_slice2_l2todr_req_retry      ;
+   I_l2todr_req_type    core0_slice2_l2todr_req            ;
+  wire core0_slice2_drtol2_snack_valid    ;
+  wire core0_slice2_drtol2_snack_retry    ;
+   I_drtol2_snack_type  core0_slice2_drtol2_snack          ;
+  wire core0_slice2_l2todr_disp_valid     ;
+  wire core0_slice2_l2todr_disp_retry     ;
+   I_l2todr_disp_type   core0_slice2_l2todr_disp           ;
+  wire core0_slice2_drtol2_dack_valid     ;
+  wire core0_slice2_drtol2_dack_retry     ;
+   I_drtol2_dack_type   core0_slice2_drtol2_dack           ;
+  wire core0_slice2_l2todr_snoop_ack_valid;
+  wire core0_slice2_l2todr_snoop_ack_retry;
+   I_drsnoop_ack_type   core0_slice2_l2todr_snoop_ack      ;
 
   l2cache_pipe core0_l2d_slice2(
      .clk(clk)
@@ -734,28 +735,28 @@ module top_2core2dr(
 
 
 
-  wire logic                core0_slice3_pftol2_req3_valid;
-  wire logic                core0_slice3_pftol2_req3_retry;
-  wire I_pftocache_req_type core0_slice3_pftol2_req3      ;
-  wire PF_cache_stats_type  core0_slice3_pf3_l2stats      ;
-  wire                       core0_slice3_l2todr_pfreq_valid    ;
-  wire                       core0_slice3_l2todr_pfreq_retry    ;
-  wire  I_l2todr_pfreq_type  core0_slice3_l2todr_pfreq          ;
-  wire                       core0_slice3_l2todr_req_valid      ;
-  wire                       core0_slice3_l2todr_req_retry      ;
-  wire  I_l2todr_req_type    core0_slice3_l2todr_req            ;
-  wire                       core0_slice3_drtol2_snack_valid    ;
-  wire                       core0_slice3_drtol2_snack_retry    ;
-  wire  I_drtol2_snack_type  core0_slice3_drtol2_snack          ;
-  wire                       core0_slice3_l2todr_disp_valid     ;
-  wire                       core0_slice3_l2todr_disp_retry     ;
-  wire  I_l2todr_disp_type   core0_slice3_l2todr_disp           ;
-  wire                       core0_slice3_drtol2_dack_valid     ;
-  wire                       core0_slice3_drtol2_dack_retry     ;
-  wire  I_drtol2_dack_type   core0_slice3_drtol2_dack           ;
-  wire                       core0_slice3_l2todr_snoop_ack_valid;
-  wire                       core0_slice3_l2todr_snoop_ack_retry;
-  wire  I_drsnoop_ack_type   core0_slice3_l2todr_snoop_ack      ;
+  logic                core0_slice3_pftol2_req3_valid;
+  logic                core0_slice3_pftol2_req3_retry;
+  I_pftocache_req_type core0_slice3_pftol2_req3      ;
+  PF_cache_stats_type  core0_slice3_pf3_l2stats      ;
+  wire core0_slice3_l2todr_pfreq_valid    ;
+  wire core0_slice3_l2todr_pfreq_retry    ;
+   I_l2todr_pfreq_type  core0_slice3_l2todr_pfreq          ;
+  wire core0_slice3_l2todr_req_valid      ;
+  wire core0_slice3_l2todr_req_retry      ;
+   I_l2todr_req_type    core0_slice3_l2todr_req            ;
+  wire core0_slice3_drtol2_snack_valid    ;
+  wire core0_slice3_drtol2_snack_retry    ;
+   I_drtol2_snack_type  core0_slice3_drtol2_snack          ;
+  wire core0_slice3_l2todr_disp_valid     ;
+  wire core0_slice3_l2todr_disp_retry     ;
+   I_l2todr_disp_type   core0_slice3_l2todr_disp           ;
+  wire core0_slice3_drtol2_dack_valid     ;
+  wire core0_slice3_drtol2_dack_retry     ;
+   I_drtol2_dack_type   core0_slice3_drtol2_dack           ;
+  wire core0_slice3_l2todr_snoop_ack_valid;
+  wire core0_slice3_l2todr_snoop_ack_retry;
+   I_drsnoop_ack_type   core0_slice3_l2todr_snoop_ack      ;
 
   l2cache_pipe core0_l2d_slice3(
      .clk(clk)
@@ -807,31 +808,31 @@ module top_2core2dr(
 `endif
 
 
-  wire logic                core0_icache_pftol2_reqicache_valid;
-  wire logic                core0_icache_pftol2_reqicache_retry;
-  wire I_pftocache_req_type core0_icache_pftol2_reqicache      ;
-  wire PF_cache_stats_type  core0_icache_pficache_l2stats      ;
-  wire                     unconnected_0_icache_l1tol2_disp_retry ;
-  wire                     unconnected_0_icache_l2tol1_dack_valid ;
-  wire I_l2tol1_dack_type  unconnected_0_icache_l2tol1_dack       ;
-  wire                       core0_icache_l2todr_pfreq_valid    ;
-  wire                       core0_icache_l2todr_pfreq_retry    ;
-  wire  I_l2todr_pfreq_type  core0_icache_l2todr_pfreq          ;
-  wire                       core0_icache_l2todr_req_valid      ;
-  wire                       core0_icache_l2todr_req_retry      ;
-  wire  I_l2todr_req_type    core0_icache_l2todr_req            ;
-  wire                       core0_icache_drtol2_snack_valid    ;
-  wire                       core0_icache_drtol2_snack_retry    ;
-  wire  I_drtol2_snack_type  core0_icache_drtol2_snack          ;
-  wire                       core0_icache_l2todr_disp_valid     ;
-  wire                       core0_icache_l2todr_disp_retry     ;
-  wire  I_l2todr_disp_type   core0_icache_l2todr_disp           ;
-  wire                       core0_icache_drtol2_dack_valid     ;
-  wire                       core0_icache_drtol2_dack_retry     ;
-  wire  I_drtol2_dack_type   core0_icache_drtol2_dack           ;
-  wire                       core0_icache_l2todr_snoop_ack_valid;
-  wire                       core0_icache_l2todr_snoop_ack_retry;
-  wire  I_drsnoop_ack_type   core0_icache_l2todr_snoop_ack      ;
+  logic                core0_icache_pftol2_reqicache_valid;
+  logic                core0_icache_pftol2_reqicache_retry;
+  I_pftocache_req_type core0_icache_pftol2_reqicache      ;
+  PF_cache_stats_type  core0_icache_pficache_l2stats      ;
+  wire unconnected_0_icache_l1tol2_disp_retry ;
+  wire unconnected_0_icache_l2tol1_dack_valid ;
+  I_l2tol1_dack_type  unconnected_0_icache_l2tol1_dack       ;
+  wire core0_icache_l2todr_pfreq_valid    ;
+  wire core0_icache_l2todr_pfreq_retry    ;
+   I_l2todr_pfreq_type  core0_icache_l2todr_pfreq          ;
+  wire core0_icache_l2todr_req_valid      ;
+  wire core0_icache_l2todr_req_retry      ;
+   I_l2todr_req_type    core0_icache_l2todr_req            ;
+  wire core0_icache_drtol2_snack_valid    ;
+  wire core0_icache_drtol2_snack_retry    ;
+   I_drtol2_snack_type  core0_icache_drtol2_snack          ;
+  wire core0_icache_l2todr_disp_valid     ;
+  wire core0_icache_l2todr_disp_retry     ;
+   I_l2todr_disp_type   core0_icache_l2todr_disp           ;
+  wire core0_icache_drtol2_dack_valid     ;
+  wire core0_icache_drtol2_dack_retry     ;
+   I_drtol2_dack_type   core0_icache_drtol2_dack           ;
+  wire core0_icache_l2todr_snoop_ack_valid;
+  wire core0_icache_l2todr_snoop_ack_retry;
+   I_drsnoop_ack_type   core0_icache_l2todr_snoop_ack      ;
 
   l2cache_pipe core0_l2icache(
      .clk(clk)
@@ -883,8 +884,8 @@ module top_2core2dr(
   );
 
 
-  wire PF_cache_stats_type  unconnected_pfe0_pf_dcstats       ;
-  wire PF_cache_stats_type  unconnected_pfe0_pf_l2stats       ;
+  PF_cache_stats_type  unconnected_pfe0_pf_dcstats       ;
+  PF_cache_stats_type  unconnected_pfe0_pf_l2stats       ;
 
   pfengine core0_pfe(
      .clk(clk)
@@ -942,28 +943,28 @@ module top_2core2dr(
   );
 
 
-  wire                          core1_slice0_l1tol2_req_valid      ;
-  wire                          core1_slice0_l1tol2_req_retry      ;
-  wire  I_l1tol2_req_type       core1_slice0_l1tol2_req            ;
-  wire                          core1_slice0_l2tol1_snack_valid    ;
-  wire                          core1_slice0_l2tol1_snack_retry    ;
-  wire  I_l2tol1_snack_type     core1_slice0_l2tol1_snack          ;
-  wire                          core1_slice0_l1tol2_snoop_ack_valid;
-  wire                          core1_slice0_l1tol2_snoop_ack_retry;
-  wire  I_l2snoop_ack_type      core1_slice0_l1tol2_snoop_ack      ;
-  wire                          core1_slice0_l1tol2_disp_valid     ;
-  wire                          core1_slice0_l1tol2_disp_retry     ;
-  wire  I_l1tol2_disp_type      core1_slice0_l1tol2_disp           ;
-  wire                          core1_slice0_l2tol1_dack_valid     ;
-  wire                          core1_slice0_l2tol1_dack_retry     ;
-  wire  I_l2tol1_dack_type      core1_slice0_l2tol1_dack           ;
-  wire                          core1_slice0_l1tol2_pfreq_valid    ;
-  wire                          core1_slice0_l1tol2_pfreq_retry    ;
-  wire  I_pftocache_req_type    core1_slice0_l1tol2_pfreq          ;
-  wire                          core1_slice0_pftodc_req0_valid;
-  wire                          core1_slice0_pftodc_req0_retry;
-  wire  I_pftocache_req_type    core1_slice0_pftodc_req0      ;
-  wire  PF_cache_stats_type     core1_slice0_pf0_dcstats      ;
+  wire core1_slice0_l1tol2_req_valid      ;
+  wire core1_slice0_l1tol2_req_retry      ;
+   I_l1tol2_req_type       core1_slice0_l1tol2_req            ;
+  wire core1_slice0_l2tol1_snack_valid    ;
+  wire core1_slice0_l2tol1_snack_retry    ;
+   I_l2tol1_snack_type     core1_slice0_l2tol1_snack          ;
+  wire core1_slice0_l1tol2_snoop_ack_valid;
+  wire core1_slice0_l1tol2_snoop_ack_retry;
+   I_l2snoop_ack_type      core1_slice0_l1tol2_snoop_ack      ;
+  wire core1_slice0_l1tol2_disp_valid     ;
+  wire core1_slice0_l1tol2_disp_retry     ;
+   I_l1tol2_disp_type      core1_slice0_l1tol2_disp           ;
+  wire core1_slice0_l2tol1_dack_valid     ;
+  wire core1_slice0_l2tol1_dack_retry     ;
+   I_l2tol1_dack_type      core1_slice0_l2tol1_dack           ;
+  wire core1_slice0_l1tol2_pfreq_valid    ;
+  wire core1_slice0_l1tol2_pfreq_retry    ;
+   I_pftocache_req_type    core1_slice0_l1tol2_pfreq          ;
+  wire core1_slice0_pftodc_req0_valid;
+  wire core1_slice0_pftodc_req0_retry;
+   I_pftocache_req_type    core1_slice0_pftodc_req0      ;
+   PF_cache_stats_type     core1_slice0_pf0_dcstats      ;
 
 
   dcache_pipe core1_slice0_dcache(
@@ -1010,28 +1011,28 @@ module top_2core2dr(
 
 
 
-  wire                          core1_slice1_l1tol2_req_valid      ;
-  wire                          core1_slice1_l1tol2_req_retry      ;
-  wire  I_l1tol2_req_type       core1_slice1_l1tol2_req            ;
-  wire                          core1_slice1_l2tol1_snack_valid    ;
-  wire                          core1_slice1_l2tol1_snack_retry    ;
-  wire  I_l2tol1_snack_type     core1_slice1_l2tol1_snack          ;
-  wire                          core1_slice1_l1tol2_snoop_ack_valid;
-  wire                          core1_slice1_l1tol2_snoop_ack_retry;
-  wire  I_l2snoop_ack_type      core1_slice1_l1tol2_snoop_ack      ;
-  wire                          core1_slice1_l1tol2_disp_valid     ;
-  wire                          core1_slice1_l1tol2_disp_retry     ;
-  wire  I_l1tol2_disp_type      core1_slice1_l1tol2_disp           ;
-  wire                          core1_slice1_l2tol1_dack_valid     ;
-  wire                          core1_slice1_l2tol1_dack_retry     ;
-  wire  I_l2tol1_dack_type      core1_slice1_l2tol1_dack           ;
-  wire                          core1_slice1_l1tol2_pfreq_valid    ;
-  wire                          core1_slice1_l1tol2_pfreq_retry    ;
-  wire  I_pftocache_req_type    core1_slice1_l1tol2_pfreq          ;
-  wire                          core1_slice1_pftodc_req1_valid;
-  wire                          core1_slice1_pftodc_req1_retry;
-  wire  I_pftocache_req_type    core1_slice1_pftodc_req1      ;
-  wire  PF_cache_stats_type     core1_slice1_pf1_dcstats      ;
+  wire core1_slice1_l1tol2_req_valid      ;
+  wire core1_slice1_l1tol2_req_retry      ;
+   I_l1tol2_req_type       core1_slice1_l1tol2_req            ;
+  wire core1_slice1_l2tol1_snack_valid    ;
+  wire core1_slice1_l2tol1_snack_retry    ;
+   I_l2tol1_snack_type     core1_slice1_l2tol1_snack          ;
+  wire core1_slice1_l1tol2_snoop_ack_valid;
+  wire core1_slice1_l1tol2_snoop_ack_retry;
+   I_l2snoop_ack_type      core1_slice1_l1tol2_snoop_ack      ;
+  wire core1_slice1_l1tol2_disp_valid     ;
+  wire core1_slice1_l1tol2_disp_retry     ;
+   I_l1tol2_disp_type      core1_slice1_l1tol2_disp           ;
+  wire core1_slice1_l2tol1_dack_valid     ;
+  wire core1_slice1_l2tol1_dack_retry     ;
+   I_l2tol1_dack_type      core1_slice1_l2tol1_dack           ;
+  wire core1_slice1_l1tol2_pfreq_valid    ;
+  wire core1_slice1_l1tol2_pfreq_retry    ;
+   I_pftocache_req_type    core1_slice1_l1tol2_pfreq          ;
+  wire core1_slice1_pftodc_req1_valid;
+  wire core1_slice1_pftodc_req1_retry;
+   I_pftocache_req_type    core1_slice1_pftodc_req1      ;
+   PF_cache_stats_type     core1_slice1_pf1_dcstats      ;
 
 
   dcache_pipe core1_slice1_dcache(
@@ -1080,28 +1081,28 @@ module top_2core2dr(
 `ifdef SC_4PIPE
 
 
-  wire                          core1_slice2_l1tol2_req_valid      ;
-  wire                          core1_slice2_l1tol2_req_retry      ;
-  wire  I_l1tol2_req_type       core1_slice2_l1tol2_req            ;
-  wire                          core1_slice2_l2tol1_snack_valid    ;
-  wire                          core1_slice2_l2tol1_snack_retry    ;
-  wire  I_l2tol1_snack_type     core1_slice2_l2tol1_snack          ;
-  wire                          core1_slice2_l1tol2_snoop_ack_valid;
-  wire                          core1_slice2_l1tol2_snoop_ack_retry;
-  wire  I_l2snoop_ack_type      core1_slice2_l1tol2_snoop_ack      ;
-  wire                          core1_slice2_l1tol2_disp_valid     ;
-  wire                          core1_slice2_l1tol2_disp_retry     ;
-  wire  I_l1tol2_disp_type      core1_slice2_l1tol2_disp           ;
-  wire                          core1_slice2_l2tol1_dack_valid     ;
-  wire                          core1_slice2_l2tol1_dack_retry     ;
-  wire  I_l2tol1_dack_type      core1_slice2_l2tol1_dack           ;
-  wire                          core1_slice2_l1tol2_pfreq_valid    ;
-  wire                          core1_slice2_l1tol2_pfreq_retry    ;
-  wire  I_pftocache_req_type    core1_slice2_l1tol2_pfreq          ;
-  wire                          core1_slice2_pftodc_req2_valid;
-  wire                          core1_slice2_pftodc_req2_retry;
-  wire  I_pftocache_req_type    core1_slice2_pftodc_req2      ;
-  wire  PF_cache_stats_type     core1_slice2_pf2_dcstats      ;
+  wire core1_slice2_l1tol2_req_valid      ;
+  wire core1_slice2_l1tol2_req_retry      ;
+   I_l1tol2_req_type       core1_slice2_l1tol2_req            ;
+  wire core1_slice2_l2tol1_snack_valid    ;
+  wire core1_slice2_l2tol1_snack_retry    ;
+   I_l2tol1_snack_type     core1_slice2_l2tol1_snack          ;
+  wire core1_slice2_l1tol2_snoop_ack_valid;
+  wire core1_slice2_l1tol2_snoop_ack_retry;
+   I_l2snoop_ack_type      core1_slice2_l1tol2_snoop_ack      ;
+  wire core1_slice2_l1tol2_disp_valid     ;
+  wire core1_slice2_l1tol2_disp_retry     ;
+   I_l1tol2_disp_type      core1_slice2_l1tol2_disp           ;
+  wire core1_slice2_l2tol1_dack_valid     ;
+  wire core1_slice2_l2tol1_dack_retry     ;
+   I_l2tol1_dack_type      core1_slice2_l2tol1_dack           ;
+  wire core1_slice2_l1tol2_pfreq_valid    ;
+  wire core1_slice2_l1tol2_pfreq_retry    ;
+   I_pftocache_req_type    core1_slice2_l1tol2_pfreq          ;
+  wire core1_slice2_pftodc_req2_valid;
+  wire core1_slice2_pftodc_req2_retry;
+   I_pftocache_req_type    core1_slice2_pftodc_req2      ;
+   PF_cache_stats_type     core1_slice2_pf2_dcstats      ;
 
 
   dcache_pipe core1_slice2_dcache(
@@ -1148,28 +1149,28 @@ module top_2core2dr(
 
 
 
-  wire                          core1_slice3_l1tol2_req_valid      ;
-  wire                          core1_slice3_l1tol2_req_retry      ;
-  wire  I_l1tol2_req_type       core1_slice3_l1tol2_req            ;
-  wire                          core1_slice3_l2tol1_snack_valid    ;
-  wire                          core1_slice3_l2tol1_snack_retry    ;
-  wire  I_l2tol1_snack_type     core1_slice3_l2tol1_snack          ;
-  wire                          core1_slice3_l1tol2_snoop_ack_valid;
-  wire                          core1_slice3_l1tol2_snoop_ack_retry;
-  wire  I_l2snoop_ack_type      core1_slice3_l1tol2_snoop_ack      ;
-  wire                          core1_slice3_l1tol2_disp_valid     ;
-  wire                          core1_slice3_l1tol2_disp_retry     ;
-  wire  I_l1tol2_disp_type      core1_slice3_l1tol2_disp           ;
-  wire                          core1_slice3_l2tol1_dack_valid     ;
-  wire                          core1_slice3_l2tol1_dack_retry     ;
-  wire  I_l2tol1_dack_type      core1_slice3_l2tol1_dack           ;
-  wire                          core1_slice3_l1tol2_pfreq_valid    ;
-  wire                          core1_slice3_l1tol2_pfreq_retry    ;
-  wire  I_pftocache_req_type    core1_slice3_l1tol2_pfreq          ;
-  wire                          core1_slice3_pftodc_req3_valid;
-  wire                          core1_slice3_pftodc_req3_retry;
-  wire  I_pftocache_req_type    core1_slice3_pftodc_req3      ;
-  wire  PF_cache_stats_type     core1_slice3_pf3_dcstats      ;
+  wire core1_slice3_l1tol2_req_valid      ;
+  wire core1_slice3_l1tol2_req_retry      ;
+   I_l1tol2_req_type       core1_slice3_l1tol2_req            ;
+  wire core1_slice3_l2tol1_snack_valid    ;
+  wire core1_slice3_l2tol1_snack_retry    ;
+   I_l2tol1_snack_type     core1_slice3_l2tol1_snack          ;
+  wire core1_slice3_l1tol2_snoop_ack_valid;
+  wire core1_slice3_l1tol2_snoop_ack_retry;
+   I_l2snoop_ack_type      core1_slice3_l1tol2_snoop_ack      ;
+  wire core1_slice3_l1tol2_disp_valid     ;
+  wire core1_slice3_l1tol2_disp_retry     ;
+   I_l1tol2_disp_type      core1_slice3_l1tol2_disp           ;
+  wire core1_slice3_l2tol1_dack_valid     ;
+  wire core1_slice3_l2tol1_dack_retry     ;
+   I_l2tol1_dack_type      core1_slice3_l2tol1_dack           ;
+  wire core1_slice3_l1tol2_pfreq_valid    ;
+  wire core1_slice3_l1tol2_pfreq_retry    ;
+   I_pftocache_req_type    core1_slice3_l1tol2_pfreq          ;
+  wire core1_slice3_pftodc_req3_valid;
+  wire core1_slice3_pftodc_req3_retry;
+   I_pftocache_req_type    core1_slice3_pftodc_req3      ;
+   PF_cache_stats_type     core1_slice3_pf3_dcstats      ;
 
 
   dcache_pipe core1_slice3_dcache(
@@ -1217,18 +1218,18 @@ module top_2core2dr(
 `endif
 
 
-  wire                      core1_l1tol2_req_valid      ;
-  wire                      core1_l1tol2_req_retry      ;
-  wire I_l1tol2_req_type    core1_l1tol2_req            ;
-  wire                      core1_l2tol1_snack_valid    ;
-  wire                      core1_l2tol1_snack_retry    ;
-  wire I_l2tol1_snack_type  core1_l2tol1_snack          ;
-  wire                      core1_l1tol2_snoop_ack_valid;
-  wire                      core1_l1tol2_snoop_ack_retry;
-  wire I_l2snoop_ack_type   core1_l1tol2_snoop_ack      ;
-  wire                      core1_l1tol2_pfreq_valid    ;
-  wire                      core1_l1tol2_pfreq_retry    ;
-  wire I_pftocache_req_type core1_l1tol2_pfreq          ;
+  wire core1_l1tol2_req_valid      ;
+  wire core1_l1tol2_req_retry      ;
+  I_l1tol2_req_type    core1_l1tol2_req            ;
+  wire core1_l2tol1_snack_valid    ;
+  wire core1_l2tol1_snack_retry    ;
+  I_l2tol1_snack_type  core1_l2tol1_snack          ;
+  wire core1_l1tol2_snoop_ack_valid;
+  wire core1_l1tol2_snoop_ack_retry;
+  I_l2snoop_ack_type   core1_l1tol2_snoop_ack      ;
+  wire core1_l1tol2_pfreq_valid    ;
+  wire core1_l1tol2_pfreq_retry    ;
+  I_pftocache_req_type core1_l1tol2_pfreq          ;
 
   icache core1_icache(
      .clk(clk)
@@ -1257,28 +1258,28 @@ module top_2core2dr(
 
 
 
-  wire logic                core1_slice0_pftol2_req0_valid;
-  wire logic                core1_slice0_pftol2_req0_retry;
-  wire I_pftocache_req_type core1_slice0_pftol2_req0      ;
-  wire PF_cache_stats_type  core1_slice0_pf0_l2stats      ;
-  wire                       core1_slice0_l2todr_pfreq_valid    ;
-  wire                       core1_slice0_l2todr_pfreq_retry    ;
-  wire  I_l2todr_pfreq_type  core1_slice0_l2todr_pfreq          ;
-  wire                       core1_slice0_l2todr_req_valid      ;
-  wire                       core1_slice0_l2todr_req_retry      ;
-  wire  I_l2todr_req_type    core1_slice0_l2todr_req            ;
-  wire                       core1_slice0_drtol2_snack_valid    ;
-  wire                       core1_slice0_drtol2_snack_retry    ;
-  wire  I_drtol2_snack_type  core1_slice0_drtol2_snack          ;
-  wire                       core1_slice0_l2todr_disp_valid     ;
-  wire                       core1_slice0_l2todr_disp_retry     ;
-  wire  I_l2todr_disp_type   core1_slice0_l2todr_disp           ;
-  wire                       core1_slice0_drtol2_dack_valid     ;
-  wire                       core1_slice0_drtol2_dack_retry     ;
-  wire  I_drtol2_dack_type   core1_slice0_drtol2_dack           ;
-  wire                       core1_slice0_l2todr_snoop_ack_valid;
-  wire                       core1_slice0_l2todr_snoop_ack_retry;
-  wire  I_drsnoop_ack_type   core1_slice0_l2todr_snoop_ack      ;
+  logic                core1_slice0_pftol2_req0_valid;
+  logic                core1_slice0_pftol2_req0_retry;
+  I_pftocache_req_type core1_slice0_pftol2_req0      ;
+  PF_cache_stats_type  core1_slice0_pf0_l2stats      ;
+  wire core1_slice0_l2todr_pfreq_valid    ;
+  wire core1_slice0_l2todr_pfreq_retry    ;
+   I_l2todr_pfreq_type  core1_slice0_l2todr_pfreq          ;
+  wire core1_slice0_l2todr_req_valid      ;
+  wire core1_slice0_l2todr_req_retry      ;
+   I_l2todr_req_type    core1_slice0_l2todr_req            ;
+  wire core1_slice0_drtol2_snack_valid    ;
+  wire core1_slice0_drtol2_snack_retry    ;
+   I_drtol2_snack_type  core1_slice0_drtol2_snack          ;
+  wire core1_slice0_l2todr_disp_valid     ;
+  wire core1_slice0_l2todr_disp_retry     ;
+   I_l2todr_disp_type   core1_slice0_l2todr_disp           ;
+  wire core1_slice0_drtol2_dack_valid     ;
+  wire core1_slice0_drtol2_dack_retry     ;
+   I_drtol2_dack_type   core1_slice0_drtol2_dack           ;
+  wire core1_slice0_l2todr_snoop_ack_valid;
+  wire core1_slice0_l2todr_snoop_ack_retry;
+   I_drsnoop_ack_type   core1_slice0_l2todr_snoop_ack      ;
 
   l2cache_pipe core1_l2d_slice0(
      .clk(clk)
@@ -1329,28 +1330,28 @@ module top_2core2dr(
 
 
 
-  wire logic                core1_slice1_pftol2_req1_valid;
-  wire logic                core1_slice1_pftol2_req1_retry;
-  wire I_pftocache_req_type core1_slice1_pftol2_req1      ;
-  wire PF_cache_stats_type  core1_slice1_pf1_l2stats      ;
-  wire                       core1_slice1_l2todr_pfreq_valid    ;
-  wire                       core1_slice1_l2todr_pfreq_retry    ;
-  wire  I_l2todr_pfreq_type  core1_slice1_l2todr_pfreq          ;
-  wire                       core1_slice1_l2todr_req_valid      ;
-  wire                       core1_slice1_l2todr_req_retry      ;
-  wire  I_l2todr_req_type    core1_slice1_l2todr_req            ;
-  wire                       core1_slice1_drtol2_snack_valid    ;
-  wire                       core1_slice1_drtol2_snack_retry    ;
-  wire  I_drtol2_snack_type  core1_slice1_drtol2_snack          ;
-  wire                       core1_slice1_l2todr_disp_valid     ;
-  wire                       core1_slice1_l2todr_disp_retry     ;
-  wire  I_l2todr_disp_type   core1_slice1_l2todr_disp           ;
-  wire                       core1_slice1_drtol2_dack_valid     ;
-  wire                       core1_slice1_drtol2_dack_retry     ;
-  wire  I_drtol2_dack_type   core1_slice1_drtol2_dack           ;
-  wire                       core1_slice1_l2todr_snoop_ack_valid;
-  wire                       core1_slice1_l2todr_snoop_ack_retry;
-  wire  I_drsnoop_ack_type   core1_slice1_l2todr_snoop_ack      ;
+  logic                core1_slice1_pftol2_req1_valid;
+  logic                core1_slice1_pftol2_req1_retry;
+  I_pftocache_req_type core1_slice1_pftol2_req1      ;
+  PF_cache_stats_type  core1_slice1_pf1_l2stats      ;
+  wire core1_slice1_l2todr_pfreq_valid    ;
+  wire core1_slice1_l2todr_pfreq_retry    ;
+   I_l2todr_pfreq_type  core1_slice1_l2todr_pfreq          ;
+  wire core1_slice1_l2todr_req_valid      ;
+  wire core1_slice1_l2todr_req_retry      ;
+   I_l2todr_req_type    core1_slice1_l2todr_req            ;
+  wire core1_slice1_drtol2_snack_valid    ;
+  wire core1_slice1_drtol2_snack_retry    ;
+   I_drtol2_snack_type  core1_slice1_drtol2_snack          ;
+  wire core1_slice1_l2todr_disp_valid     ;
+  wire core1_slice1_l2todr_disp_retry     ;
+   I_l2todr_disp_type   core1_slice1_l2todr_disp           ;
+  wire core1_slice1_drtol2_dack_valid     ;
+  wire core1_slice1_drtol2_dack_retry     ;
+   I_drtol2_dack_type   core1_slice1_drtol2_dack           ;
+  wire core1_slice1_l2todr_snoop_ack_valid;
+  wire core1_slice1_l2todr_snoop_ack_retry;
+   I_drsnoop_ack_type   core1_slice1_l2todr_snoop_ack      ;
 
   l2cache_pipe core1_l2d_slice1(
      .clk(clk)
@@ -1403,28 +1404,28 @@ module top_2core2dr(
 `ifdef SC_4PIPE
 
 
-  wire logic                core1_slice2_pftol2_req2_valid;
-  wire logic                core1_slice2_pftol2_req2_retry;
-  wire I_pftocache_req_type core1_slice2_pftol2_req2      ;
-  wire PF_cache_stats_type  core1_slice2_pf2_l2stats      ;
-  wire                       core1_slice2_l2todr_pfreq_valid    ;
-  wire                       core1_slice2_l2todr_pfreq_retry    ;
-  wire  I_l2todr_pfreq_type  core1_slice2_l2todr_pfreq          ;
-  wire                       core1_slice2_l2todr_req_valid      ;
-  wire                       core1_slice2_l2todr_req_retry      ;
-  wire  I_l2todr_req_type    core1_slice2_l2todr_req            ;
-  wire                       core1_slice2_drtol2_snack_valid    ;
-  wire                       core1_slice2_drtol2_snack_retry    ;
-  wire  I_drtol2_snack_type  core1_slice2_drtol2_snack          ;
-  wire                       core1_slice2_l2todr_disp_valid     ;
-  wire                       core1_slice2_l2todr_disp_retry     ;
-  wire  I_l2todr_disp_type   core1_slice2_l2todr_disp           ;
-  wire                       core1_slice2_drtol2_dack_valid     ;
-  wire                       core1_slice2_drtol2_dack_retry     ;
-  wire  I_drtol2_dack_type   core1_slice2_drtol2_dack           ;
-  wire                       core1_slice2_l2todr_snoop_ack_valid;
-  wire                       core1_slice2_l2todr_snoop_ack_retry;
-  wire  I_drsnoop_ack_type   core1_slice2_l2todr_snoop_ack      ;
+  logic                core1_slice2_pftol2_req2_valid;
+  logic                core1_slice2_pftol2_req2_retry;
+  I_pftocache_req_type core1_slice2_pftol2_req2      ;
+  PF_cache_stats_type  core1_slice2_pf2_l2stats      ;
+  wire core1_slice2_l2todr_pfreq_valid    ;
+  wire core1_slice2_l2todr_pfreq_retry    ;
+   I_l2todr_pfreq_type  core1_slice2_l2todr_pfreq          ;
+  wire core1_slice2_l2todr_req_valid      ;
+  wire core1_slice2_l2todr_req_retry      ;
+   I_l2todr_req_type    core1_slice2_l2todr_req            ;
+  wire core1_slice2_drtol2_snack_valid    ;
+  wire core1_slice2_drtol2_snack_retry    ;
+   I_drtol2_snack_type  core1_slice2_drtol2_snack          ;
+  wire core1_slice2_l2todr_disp_valid     ;
+  wire core1_slice2_l2todr_disp_retry     ;
+   I_l2todr_disp_type   core1_slice2_l2todr_disp           ;
+  wire core1_slice2_drtol2_dack_valid     ;
+  wire core1_slice2_drtol2_dack_retry     ;
+   I_drtol2_dack_type   core1_slice2_drtol2_dack           ;
+  wire core1_slice2_l2todr_snoop_ack_valid;
+  wire core1_slice2_l2todr_snoop_ack_retry;
+   I_drsnoop_ack_type   core1_slice2_l2todr_snoop_ack      ;
 
   l2cache_pipe core1_l2d_slice2(
      .clk(clk)
@@ -1475,28 +1476,28 @@ module top_2core2dr(
 
 
 
-  wire logic                core1_slice3_pftol2_req3_valid;
-  wire logic                core1_slice3_pftol2_req3_retry;
-  wire I_pftocache_req_type core1_slice3_pftol2_req3      ;
-  wire PF_cache_stats_type  core1_slice3_pf3_l2stats      ;
-  wire                       core1_slice3_l2todr_pfreq_valid    ;
-  wire                       core1_slice3_l2todr_pfreq_retry    ;
-  wire  I_l2todr_pfreq_type  core1_slice3_l2todr_pfreq          ;
-  wire                       core1_slice3_l2todr_req_valid      ;
-  wire                       core1_slice3_l2todr_req_retry      ;
-  wire  I_l2todr_req_type    core1_slice3_l2todr_req            ;
-  wire                       core1_slice3_drtol2_snack_valid    ;
-  wire                       core1_slice3_drtol2_snack_retry    ;
-  wire  I_drtol2_snack_type  core1_slice3_drtol2_snack          ;
-  wire                       core1_slice3_l2todr_disp_valid     ;
-  wire                       core1_slice3_l2todr_disp_retry     ;
-  wire  I_l2todr_disp_type   core1_slice3_l2todr_disp           ;
-  wire                       core1_slice3_drtol2_dack_valid     ;
-  wire                       core1_slice3_drtol2_dack_retry     ;
-  wire  I_drtol2_dack_type   core1_slice3_drtol2_dack           ;
-  wire                       core1_slice3_l2todr_snoop_ack_valid;
-  wire                       core1_slice3_l2todr_snoop_ack_retry;
-  wire  I_drsnoop_ack_type   core1_slice3_l2todr_snoop_ack      ;
+  logic                core1_slice3_pftol2_req3_valid;
+  logic                core1_slice3_pftol2_req3_retry;
+  I_pftocache_req_type core1_slice3_pftol2_req3      ;
+  PF_cache_stats_type  core1_slice3_pf3_l2stats      ;
+  wire core1_slice3_l2todr_pfreq_valid    ;
+  wire core1_slice3_l2todr_pfreq_retry    ;
+   I_l2todr_pfreq_type  core1_slice3_l2todr_pfreq          ;
+  wire core1_slice3_l2todr_req_valid      ;
+  wire core1_slice3_l2todr_req_retry      ;
+   I_l2todr_req_type    core1_slice3_l2todr_req            ;
+  wire core1_slice3_drtol2_snack_valid    ;
+  wire core1_slice3_drtol2_snack_retry    ;
+   I_drtol2_snack_type  core1_slice3_drtol2_snack          ;
+  wire core1_slice3_l2todr_disp_valid     ;
+  wire core1_slice3_l2todr_disp_retry     ;
+   I_l2todr_disp_type   core1_slice3_l2todr_disp           ;
+  wire core1_slice3_drtol2_dack_valid     ;
+  wire core1_slice3_drtol2_dack_retry     ;
+   I_drtol2_dack_type   core1_slice3_drtol2_dack           ;
+  wire core1_slice3_l2todr_snoop_ack_valid;
+  wire core1_slice3_l2todr_snoop_ack_retry;
+   I_drsnoop_ack_type   core1_slice3_l2todr_snoop_ack      ;
 
   l2cache_pipe core1_l2d_slice3(
      .clk(clk)
@@ -1548,31 +1549,31 @@ module top_2core2dr(
 `endif
 
 
-  wire logic                core1_icache_pftol2_reqicache_valid;
-  wire logic                core1_icache_pftol2_reqicache_retry;
-  wire I_pftocache_req_type core1_icache_pftol2_reqicache      ;
-  wire PF_cache_stats_type  core1_icache_pficache_l2stats      ;
-  wire                     unconnected_1_icache_l1tol2_disp_retry ;
-  wire                     unconnected_1_icache_l2tol1_dack_valid ;
-  wire I_l2tol1_dack_type  unconnected_1_icache_l2tol1_dack       ;
-  wire                       core1_icache_l2todr_pfreq_valid    ;
-  wire                       core1_icache_l2todr_pfreq_retry    ;
-  wire  I_l2todr_pfreq_type  core1_icache_l2todr_pfreq          ;
-  wire                       core1_icache_l2todr_req_valid      ;
-  wire                       core1_icache_l2todr_req_retry      ;
-  wire  I_l2todr_req_type    core1_icache_l2todr_req            ;
-  wire                       core1_icache_drtol2_snack_valid    ;
-  wire                       core1_icache_drtol2_snack_retry    ;
-  wire  I_drtol2_snack_type  core1_icache_drtol2_snack          ;
-  wire                       core1_icache_l2todr_disp_valid     ;
-  wire                       core1_icache_l2todr_disp_retry     ;
-  wire  I_l2todr_disp_type   core1_icache_l2todr_disp           ;
-  wire                       core1_icache_drtol2_dack_valid     ;
-  wire                       core1_icache_drtol2_dack_retry     ;
-  wire  I_drtol2_dack_type   core1_icache_drtol2_dack           ;
-  wire                       core1_icache_l2todr_snoop_ack_valid;
-  wire                       core1_icache_l2todr_snoop_ack_retry;
-  wire  I_drsnoop_ack_type   core1_icache_l2todr_snoop_ack      ;
+  logic                core1_icache_pftol2_reqicache_valid;
+  logic                core1_icache_pftol2_reqicache_retry;
+  I_pftocache_req_type core1_icache_pftol2_reqicache      ;
+  PF_cache_stats_type  core1_icache_pficache_l2stats      ;
+  wire unconnected_1_icache_l1tol2_disp_retry ;
+  wire unconnected_1_icache_l2tol1_dack_valid ;
+  I_l2tol1_dack_type  unconnected_1_icache_l2tol1_dack       ;
+  wire core1_icache_l2todr_pfreq_valid    ;
+  wire core1_icache_l2todr_pfreq_retry    ;
+   I_l2todr_pfreq_type  core1_icache_l2todr_pfreq          ;
+  wire core1_icache_l2todr_req_valid      ;
+  wire core1_icache_l2todr_req_retry      ;
+   I_l2todr_req_type    core1_icache_l2todr_req            ;
+  wire core1_icache_drtol2_snack_valid    ;
+  wire core1_icache_drtol2_snack_retry    ;
+   I_drtol2_snack_type  core1_icache_drtol2_snack          ;
+  wire core1_icache_l2todr_disp_valid     ;
+  wire core1_icache_l2todr_disp_retry     ;
+   I_l2todr_disp_type   core1_icache_l2todr_disp           ;
+  wire core1_icache_drtol2_dack_valid     ;
+  wire core1_icache_drtol2_dack_retry     ;
+   I_drtol2_dack_type   core1_icache_drtol2_dack           ;
+  wire core1_icache_l2todr_snoop_ack_valid;
+  wire core1_icache_l2todr_snoop_ack_retry;
+   I_drsnoop_ack_type   core1_icache_l2todr_snoop_ack      ;
 
   l2cache_pipe core1_l2icache(
      .clk(clk)
@@ -1624,8 +1625,8 @@ module top_2core2dr(
   );
 
 
-  wire PF_cache_stats_type  unconnected_pfe1_pf_dcstats       ;
-  wire PF_cache_stats_type  unconnected_pfe1_pf_l2stats       ;
+  PF_cache_stats_type  unconnected_pfe1_pf_dcstats       ;
+  PF_cache_stats_type  unconnected_pfe1_pf_l2stats       ;
 
   pfengine core1_pfe(
      .clk(clk)
@@ -1757,42 +1758,42 @@ module top_2core2dr(
   );
 
 
-  wire                       dr0_l2todr_pfreq_valid    ;
-  wire                       dr0_l2todr_pfreq_retry    ;
-  wire  I_l2todr_pfreq_type  dr0_l2todr_pfreq          ;
-  wire                       dr0_l2todr_req_valid      ;
-  wire                       dr0_l2todr_req_retry      ;
-  wire  I_l2todr_req_type    dr0_l2todr_req            ;
-  wire                       dr0_drtol2_snack_valid    ;
-  wire                       dr0_drtol2_snack_retry    ;
-  wire  I_drtol2_snack_type  dr0_drtol2_snack          ;
-  wire                       dr0_l2todr_disp_valid     ;
-  wire                       dr0_l2todr_disp_retry     ;
-  wire  I_l2todr_disp_type   dr0_l2todr_disp           ;
-  wire                       dr0_drtol2_dack_valid     ;
-  wire                       dr0_drtol2_dack_retry     ;
-  wire  I_drtol2_dack_type   dr0_drtol2_dack           ;
-  wire                       dr0_l2todr_snoop_ack_valid;
-  wire                       dr0_l2todr_snoop_ack_retry;
-  wire  I_drsnoop_ack_type   dr0_l2todr_snoop_ack      ;
-  wire                       dr1_l2todr_pfreq_valid    ;
-  wire                       dr1_l2todr_pfreq_retry    ;
-  wire  I_l2todr_pfreq_type  dr1_l2todr_pfreq          ;
-  wire                       dr1_l2todr_req_valid      ;
-  wire                       dr1_l2todr_req_retry      ;
-  wire  I_l2todr_req_type    dr1_l2todr_req            ;
-  wire                       dr1_drtol2_snack_valid    ;
-  wire                       dr1_drtol2_snack_retry    ;
-  wire  I_drtol2_snack_type  dr1_drtol2_snack          ;
-  wire                       dr1_l2todr_disp_valid     ;
-  wire                       dr1_l2todr_disp_retry     ;
-  wire  I_l2todr_disp_type   dr1_l2todr_disp           ;
-  wire                       dr1_drtol2_dack_valid     ;
-  wire                       dr1_drtol2_dack_retry     ;
-  wire  I_drtol2_dack_type   dr1_drtol2_dack           ;
-  wire                       dr1_l2todr_snoop_ack_valid;
-  wire                       dr1_l2todr_snoop_ack_retry;
-  wire  I_drsnoop_ack_type   dr1_l2todr_snoop_ack      ;
+  wire dr0_l2todr_pfreq_valid    ;
+  wire dr0_l2todr_pfreq_retry    ;
+   I_l2todr_pfreq_type  dr0_l2todr_pfreq          ;
+  wire dr0_l2todr_req_valid      ;
+  wire dr0_l2todr_req_retry      ;
+   I_l2todr_req_type    dr0_l2todr_req            ;
+  wire dr0_drtol2_snack_valid    ;
+  wire dr0_drtol2_snack_retry    ;
+   I_drtol2_snack_type  dr0_drtol2_snack          ;
+  wire dr0_l2todr_disp_valid     ;
+  wire dr0_l2todr_disp_retry     ;
+   I_l2todr_disp_type   dr0_l2todr_disp           ;
+  wire dr0_drtol2_dack_valid     ;
+  wire dr0_drtol2_dack_retry     ;
+   I_drtol2_dack_type   dr0_drtol2_dack           ;
+  wire dr0_l2todr_snoop_ack_valid;
+  wire dr0_l2todr_snoop_ack_retry;
+   I_drsnoop_ack_type   dr0_l2todr_snoop_ack      ;
+  wire dr1_l2todr_pfreq_valid    ;
+  wire dr1_l2todr_pfreq_retry    ;
+   I_l2todr_pfreq_type  dr1_l2todr_pfreq          ;
+  wire dr1_l2todr_req_valid      ;
+  wire dr1_l2todr_req_retry      ;
+   I_l2todr_req_type    dr1_l2todr_req            ;
+  wire dr1_drtol2_snack_valid    ;
+  wire dr1_drtol2_snack_retry    ;
+   I_drtol2_snack_type  dr1_drtol2_snack          ;
+  wire dr1_l2todr_disp_valid     ;
+  wire dr1_l2todr_disp_retry     ;
+   I_l2todr_disp_type   dr1_l2todr_disp           ;
+  wire dr1_drtol2_dack_valid     ;
+  wire dr1_drtol2_dack_retry     ;
+   I_drtol2_dack_type   dr1_drtol2_dack           ;
+  wire dr1_l2todr_snoop_ack_valid;
+  wire dr1_l2todr_snoop_ack_retry;
+   I_drsnoop_ack_type   dr1_l2todr_snoop_ack      ;
 
   net_2core2dr network(
      .clk(clk)
@@ -2044,9 +2045,9 @@ module top_2core2dr(
     ,.l2todr1_snoop_ack_valid(dr1_l2todr_snoop_ack_valid)
     ,.l2todr1_snoop_ack_retry(dr1_l2todr_snoop_ack_retry)
     ,.l2todr1_snoop_ack      (dr1_l2todr_snoop_ack      )
-  /* verilator lint_on UNUSED */
-  /* verilator lint_on UNDRIVEN */
 
   );
 
+  /* verilator lint_on UNUSED */
+  /* verilator lint_on UNDRIVEN */
 endmodule

@@ -11,8 +11,8 @@
 // 4 data cache slice(s) per core, and
 // 2 directory(ies)
 
-
-module top_2core2dr_wp(
+`include "scmem.vh"
+module integration_2core2dr(
   /* verilator lint_off UNUSED */
   /* verilator lint_off UNDRIVEN */
     input   logic               clk

@@ -61,13 +61,13 @@ directory_bank_wp:
 run_directory_bank_wp: directory_bank_wp
 	./obj_dir/Vdirectory_bank_wp
 
-REGLIST+=integration_test_2core2dr
-###########################
-integration_test_2core2dr:
-	verilator --assert --debug-check -I./rtl --Wall --cc --trace --top-module top_2core2dr_wp ./tests/top_2core2dr_wp.v ./rtl/top_2core2dr.v ./rtl/fflop.v --exe tests/top_2core2dr_wp_tb.cpp -CFLAGS -DTRACE=1
-	make -C obj_dir/ -f Vtop_2core2dr_wp.mk Vtop_2core2dr_wp
-
 REGLIST+=directory_bank_wp
+###########################
+integration_2core2dr:
+	verilator --assert --debug-check -I./rtl --Wall --cc --trace --top-module integration_2core2dr ./tests/integration_2core2dr.v ./rtl/top_2core2dr.v ./rtl/fflop.v --exe tests/integration_2core2dr_tests.cpp -CFLAGS -DTRACE=1
+	make -C obj_dir/ -f Vintegration_2core2dr.mk Vintegration_2core2dr
+
+REGLIST+=integration_2core2dr
 ###########################
 regression: lint $(REGLIST)
 	ruby scripts/regcheck.rb $(REGLIST)
