@@ -59,6 +59,21 @@ struct InputPacket {
 struct OutputPacket {
   uint8_t pf_dcreq0_laddr;
   uint8_t pf_dcreq0_sptbr;
+  uint8_t pf_dcreq1_laddr;
+  uint8_t pf_dcreq1_sptbr;
+  uint8_t pf_dcreq2_laddr;
+  uint8_t pf_dcreq2_sptbr;
+  uint8_t pf_dcreq3_laddr;
+  uint8_t pf_dcreq3_sptbr;
+
+  uint8_t pf_l2req0_laddr;
+  uint8_t pf_l2req0_sptbr;
+  uint8_t pf_l2req1_laddr;
+  uint8_t pf_l2req1_sptbr;
+  uint8_t pf_l2req2_laddr;
+  uint8_t pf_l2req2_sptbr;
+  uint8_t pf_l2req3_laddr;
+  uint8_t pf_l2req3_sptbr;
 };
 
 double sc_time_stamp() {
@@ -105,7 +120,11 @@ void try_send_packet(Vpfengine_wp *top) {
 #endif
 
     OutputPacket out;
-    out.pf_dcreq0_laddr = rand();
+    if (inp.pf_laddr%2 == 0)
+      out.pf_dcreq0_laddr = inp.pf_laddr;
+    else
+      out.pf_dcreq1_laddr = inp.pf_laddr;
+
     out_list.push_front(out);
 
     inp_list.pop_back();
