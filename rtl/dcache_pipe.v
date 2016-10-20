@@ -235,6 +235,7 @@
 
 module dcache_pipe(
   /* verilator lint_off UNUSED */
+  /* verilator lint_off UNDRIVEN */
    input clk
   ,input reset
 
@@ -293,6 +294,7 @@ module dcache_pipe(
   ,output I_pftocache_req_type     l1tol2_pfreq
 
   /* verilator lint_on UNUSED */
+  /* verilator lint_on UNDRIVEN */
 );
 
 

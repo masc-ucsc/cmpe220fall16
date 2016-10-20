@@ -130,7 +130,7 @@ module l2cache_pipe(
 
   ,output logic                    l2todr_pfreq_valid
   ,input  logic                    l2todr_pfreq_retry
-  ,output I_l2todr_pfreq_type     l2todr_pfreq
+  ,output I_l2todr_pfreq_type      l2todr_pfreq
 
   /* verilator lint_on UNUSED */
 );

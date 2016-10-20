@@ -67,7 +67,7 @@ module directory_bank(
   );
 
 I_l2todr_req_type        drff_pfreq;
-  assign drtomem_pfreq.paddr = drff_pfreq.paddr;
+  //assign drtomem_pfreq.paddr = drff_pfreq.paddr;
   
   //fflop for pfreq (prefetch request)
   //currently, only the address of the prefetch is used and passed through to the memory (for pass through test)

@@ -6,7 +6,7 @@ all:
 
 
 lint:
-	verilator --assert -I./rtl --Wall --lint-only --top-module net_2core2dr ./rtl/*.v
+	verilator --assert -I./rtl --Wall --lint-only --top-module top_2core2dr ./rtl/*.v
 
 REGLIST:=
 ###########################
@@ -20,8 +20,7 @@ run_join_fadd: join_fadd
 REGLIST+=join_fadd
 ###########################
 l2:
-	verilator --assert --debug-check -I./rtl --Wall --cc --trace --top-module l2cache_pipe_wp ./rtl/l2cache_pipe.v ./tests/l2cache_pipe_wp.v ./rtl/fflop.v -CFLAGS -DTRACE=1
-		#--exe tests/ram_1port_fast_wp_tb.cpp -CFLAGS -DTRACE=1
+	verilator --assert --debug-check -I./rtl --Wall --cc --trace --top-module l2cache_pipe_wp ./rtl/l2cache_pipe.v ./tests/l2cache_pipe_wp.v ./rtl/fflop.v -CFLAGS -DTRACE=1 #--exe tests/ram_1port_fast_wp_tb.cpp -CFLAGS -DTRACE=1
 
 ###########################
 ram_1port_fast_wp:
@@ -43,8 +42,8 @@ run_ram_1port_dense_wp: ram_1port_dense_wp
 REGLIST+=ram_1port_dense_wp
 ###########################
 pfengine_wp:
-	    verilator --assert --debug-check -I./rtl --Wall --cc --trace --top-module pfengine_wp ./rtl/pfengine.v ./tests/pfengine_wp.v ./rtl/fflop.v ./rtl/flop.v --exe tests/pfengine_wp_tb.cpp -CFLAGS -DTRACE=1
-			make -C obj_dir/ -f Vpfengine_wp.mk Vpfengine_wp
+	verilator --assert --debug-check -I./rtl --Wall --cc --trace --top-module pfengine_wp ./rtl/pfengine.v ./tests/pfengine_wp.v ./rtl/fflop.v ./rtl/flop.v --exe tests/pfengine_wp_tb.cpp -CFLAGS -DTRACE=1
+	make -C obj_dir/ -f Vpfengine_wp.mk Vpfengine_wp
 
 run_pfengine_wp: pfengine_wp
 	./obj_dir/Vpfengine_wp

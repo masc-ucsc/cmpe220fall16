@@ -19,6 +19,7 @@
 
 module icache(
   /* verilator lint_off UNUSED */
+  /* verilator lint_off UNDRIVEN */
    input                           clk
   ,input                           reset
 
@@ -31,13 +32,13 @@ module icache(
   ,output                          l2tol1_snack_retry
   ,input  I_l2tol1_snack_type      l2tol1_snack
 
-  ,output                          l2tol1_snoop_ack_valid
-  ,input                           l2tol1_snoop_ack_retry
-  ,output I_l2snoop_ack_type       l2tol1_snoop_ack
+  ,output                          l1tol2_snoop_ack_valid
+  ,input                           l1tol2_snoop_ack_retry
+  ,output I_l2snoop_ack_type       l1tol2_snoop_ack
 
-  ,output                          l1tol2pf_req_valid
-  ,input                           l1tol2pf_req_retry
-  ,output I_pftocache_req_type     l1tol2pf_req
+  ,output                          l1tol2_pfreq_valid
+  ,input                           l1tol2_pfreq_retry
+  ,output I_pftocache_req_type     l1tol2_pfreq
 
   // core interface
   ,input                           coretoic_valid
@@ -48,6 +49,7 @@ module icache(
   ,input                           ictocore_retry
   ,output I_ictocore_type          ictocore
   /* verilator lint_on UNUSED */
+  /* verilator lint_on UNDRIVEN */
 );
 
 
