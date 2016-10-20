@@ -45,6 +45,7 @@
 `define SC_PADDRBITS   49
 // SV39 from RISCV (bits 39 to 63 musts be equal to bit 38)
 `define SC_LADDRBITS   39
+`define SC_IMMBITS     12
 
 `define SC_PCSIGNBITS  13
 

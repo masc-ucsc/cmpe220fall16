@@ -247,7 +247,7 @@ module dcache_pipe(
 
   ,output                          dctocore_ld_valid
   ,input                           dctocore_ld_retry
-  ,output I_coretodc_ld_type       dctocore_ld
+  ,output I_dctocore_ld_type       dctocore_ld
 
   //---------------------------
   // core interface STD

@@ -29,7 +29,7 @@ module top_2core2dr(
   ,input   I_coretodc_ld_type      core0_slice0_coretodc_ld           
   ,output                          core0_slice0_dctocore_ld_valid     
   ,input                           core0_slice0_dctocore_ld_retry     
-  ,output  I_coretodc_ld_type      core0_slice0_dctocore_ld           
+  ,output  I_dctocore_ld_type      core0_slice0_dctocore_ld           
   ,input                           core0_slice0_coretodc_std_valid    
   ,output                          core0_slice0_coretodc_std_retry    
   ,input   I_coretodc_std_type     core0_slice0_coretodc_std          
@@ -43,7 +43,7 @@ module top_2core2dr(
   ,input   I_coretodc_ld_type      core0_slice1_coretodc_ld           
   ,output                          core0_slice1_dctocore_ld_valid     
   ,input                           core0_slice1_dctocore_ld_retry     
-  ,output  I_coretodc_ld_type      core0_slice1_dctocore_ld           
+  ,output  I_dctocore_ld_type      core0_slice1_dctocore_ld           
   ,input                           core0_slice1_coretodc_std_valid    
   ,output                          core0_slice1_coretodc_std_retry    
   ,input   I_coretodc_std_type     core0_slice1_coretodc_std          
@@ -59,7 +59,7 @@ module top_2core2dr(
   ,input   I_coretodc_ld_type      core0_slice2_coretodc_ld           
   ,output                          core0_slice2_dctocore_ld_valid     
   ,input                           core0_slice2_dctocore_ld_retry     
-  ,output  I_coretodc_ld_type      core0_slice2_dctocore_ld           
+  ,output  I_dctocore_ld_type      core0_slice2_dctocore_ld           
   ,input                           core0_slice2_coretodc_std_valid    
   ,output                          core0_slice2_coretodc_std_retry    
   ,input   I_coretodc_std_type     core0_slice2_coretodc_std          
@@ -73,7 +73,7 @@ module top_2core2dr(
   ,input   I_coretodc_ld_type      core0_slice3_coretodc_ld           
   ,output                          core0_slice3_dctocore_ld_valid     
   ,input                           core0_slice3_dctocore_ld_retry     
-  ,output  I_coretodc_ld_type      core0_slice3_dctocore_ld           
+  ,output  I_dctocore_ld_type      core0_slice3_dctocore_ld           
   ,input                           core0_slice3_coretodc_std_valid    
   ,output                          core0_slice3_coretodc_std_retry    
   ,input   I_coretodc_std_type     core0_slice3_coretodc_std          
@@ -106,7 +106,7 @@ module top_2core2dr(
   ,input   I_coretodc_ld_type      core1_slice0_coretodc_ld           
   ,output                          core1_slice0_dctocore_ld_valid     
   ,input                           core1_slice0_dctocore_ld_retry     
-  ,output  I_coretodc_ld_type      core1_slice0_dctocore_ld           
+  ,output  I_dctocore_ld_type      core1_slice0_dctocore_ld           
   ,input                           core1_slice0_coretodc_std_valid    
   ,output                          core1_slice0_coretodc_std_retry    
   ,input   I_coretodc_std_type     core1_slice0_coretodc_std          
@@ -120,7 +120,7 @@ module top_2core2dr(
   ,input   I_coretodc_ld_type      core1_slice1_coretodc_ld           
   ,output                          core1_slice1_dctocore_ld_valid     
   ,input                           core1_slice1_dctocore_ld_retry     
-  ,output  I_coretodc_ld_type      core1_slice1_dctocore_ld           
+  ,output  I_dctocore_ld_type      core1_slice1_dctocore_ld           
   ,input                           core1_slice1_coretodc_std_valid    
   ,output                          core1_slice1_coretodc_std_retry    
   ,input   I_coretodc_std_type     core1_slice1_coretodc_std          
@@ -136,7 +136,7 @@ module top_2core2dr(
   ,input   I_coretodc_ld_type      core1_slice2_coretodc_ld           
   ,output                          core1_slice2_dctocore_ld_valid     
   ,input                           core1_slice2_dctocore_ld_retry     
-  ,output  I_coretodc_ld_type      core1_slice2_dctocore_ld           
+  ,output  I_dctocore_ld_type      core1_slice2_dctocore_ld           
   ,input                           core1_slice2_coretodc_std_valid    
   ,output                          core1_slice2_coretodc_std_retry    
   ,input   I_coretodc_std_type     core1_slice2_coretodc_std          
@@ -150,7 +150,7 @@ module top_2core2dr(
   ,input   I_coretodc_ld_type      core1_slice3_coretodc_ld           
   ,output                          core1_slice3_dctocore_ld_valid     
   ,input                           core1_slice3_dctocore_ld_retry     
-  ,output  I_coretodc_ld_type      core1_slice3_dctocore_ld           
+  ,output  I_dctocore_ld_type      core1_slice3_dctocore_ld           
   ,input                           core1_slice3_coretodc_std_valid    
   ,output                          core1_slice3_coretodc_std_retry    
   ,input   I_coretodc_std_type     core1_slice3_coretodc_std          
