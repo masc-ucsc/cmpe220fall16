@@ -166,6 +166,7 @@ typedef struct packed {
 
   SC_pcsign_type    pcsign;
   SC_laddr_type     laddr;
+  SC_imm_type       imm;   // address is laddr+imm
   SC_sptbr_type     sptbr;
 } I_coretodc_ld_type;
 // 1}}}
@@ -197,6 +198,7 @@ typedef struct packed {
 
   SC_pcsign_type    pcsign;
   SC_laddr_type     laddr;
+  SC_imm_type       imm;   // address is laddr+imm
   SC_sptbr_type     sptbr;
   SC_line_type      data; // 1byte to 64bytes for vector
 } I_coretodc_std_type;

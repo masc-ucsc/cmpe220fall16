@@ -158,7 +158,7 @@ fflop #(.Size($bits(I_l2tol1_snack_type))) fsnack (
 
 `ifdef PASS_THROUGH
     assign l2todr_req_next_valid = l1tol2_req_valid;
-    assign  l1tol2_req_retry = l2todr_req_next_retry || (!l2todr_req_next_valid);
+    assign  l1tol2_req_retry = l2todr_req_next_retry;
 
     // Temp drive Begin
     assign l1tol2_snoop_ack_retry = 0;
