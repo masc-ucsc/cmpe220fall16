@@ -27,7 +27,7 @@ not be included in the rtl/ directory, but rather in the tests/ directory.
 Make sure to commit your code to the appropriated place, to avoid issues in the
 future.
 
-# Pass Through
+# Passthrough
 
 Remember that the passthroughs are supposed to be activated through a flag
 (define statement), this will make it easier to debug errors during integration.
