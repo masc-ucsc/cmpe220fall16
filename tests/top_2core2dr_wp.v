@@ -24,7 +24,7 @@ module top_2core2dr_wp(
    // icache core 0
     ,input  logic               core0_coretoic_valid
     ,output logic               core0_coretoic_retry
-    ,input  logic               SC_laddr_type
+    ,input  SC_laddr_type       core0_coretoic_pc
     ,output logic               core0_ictocore_valid
     ,input  logic               core0_ictocore_retry
     //  ,output I_ictocore_type      core0_ictocore              
@@ -188,7 +188,7 @@ module top_2core2dr_wp(
    // icache core 1
     ,input  logic               core1_coretoic_valid
     ,output logic               core1_coretoic_retry
-    ,input  logic               SC_laddr_type
+    ,input  SC_laddr_type       core1_coretoic_pc
     ,output logic               core1_ictocore_valid
     ,input  logic               core1_ictocore_retry
     //  ,output I_ictocore_type      core1_ictocore              

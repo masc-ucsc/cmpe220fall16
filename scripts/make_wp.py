@@ -123,6 +123,10 @@ for line in content:
             print '//POSSIBLE PROBLEM: ' + words[1] + ' MAY BE A STRUCT TYPE make_wp.py DOES NOT RECOGNIZE'
             print '//PLEASE ADD STRUCT TYPE ' + words[1] + ' TO dict{} AND RERUN'
             print line,
+        elif len(words) ==3 and words[1][0].isupper:
+            print '\t' + words[0] + '\t' + words[1] + '\t\t' + words[2]
+        elif len(words) == 2 and words[1][0].islower:
+            print '\t' + words[0] + '\tlogic\t\t\t\t' +  words[1]
         else:
             print '\t' + words[0] + '\tlogic\t\t\t\t' +  words[1]
     elif len(words) > 0 and words[0] == 'module':
