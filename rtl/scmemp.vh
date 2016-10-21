@@ -42,7 +42,7 @@
 // laddr: Logical Address
 // claddr: Logical cache aligned address (lower bits not used -> 0)
 
-`define SC_PADDRBITS   49
+`define SC_PADDRBITS   50
 // SV39 from RISCV (bits 39 to 63 musts be equal to bit 38)
 `define SC_LADDRBITS   39
 `define SC_IMMBITS     12
@@ -69,10 +69,15 @@
 `define SC_DCTLB_INDEXBITS 7
 `define SC_DCTLB_ENTRIES    (1<<(`SC_DCTLB_INDEXBITS))
 
-`define SC_L2TLB_0INDEXBITS 14 // just 4KB page size
-`define SC_L2TLB_1INDEXBITS 6  // Any page size
-`define SC_L2TLB_0ENTRIES    (1<<(`SC_L2TLB_0INDEXBITS))
-`define SC_L2TLB_1ENTRIES    (1<<(`SC_L2TLB_1INDEXBITS))
+`define SC_L2TLB_FASTINDEXBITS 4 // Any size, FLOPS just recently used pages
+
+`define SC_L2TLB_4KINDEXBITS 10 // just 4KB page size (SP 2 clk tables, 4way assoc)
+`define SC_L2TLB_2MINDEXBITS 6  // 2M/4M page size (SP 2 clk tables, 4Way Assoc)
+`define SC_L2TLB_4GINDEXBITS 3  // 4G page size (Flops, FA)
+`define SC_L2TLB_FASTENTRIES  (1<<(`SC_L2TLB_FASTINDEXBITS))
+`define SC_L2TLB_4KENTRIES    (1<<(`SC_L2TLB_4KINDEXBITS))
+`define SC_L2TLB_2MENTRIES    (1<<(`SC_L2TLB_2MINDEXBITS))
+`define SC_L2TLB_4GENTRIES    (1<<(`SC_L2TLB_4GINDEXBITS))
 
 `define PF_STATBITS        7
 `define PF_DELTABITS       5
