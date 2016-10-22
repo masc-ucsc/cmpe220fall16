@@ -1,5 +1,7 @@
 
-// This module is instantiated inside the dcache_pipe
+// DCTLB runs parallel to the Dcache. It gets the same requests as the dcache,
+// and sends the translation a bit after. It also has a command channel to
+// notify for when checkpoints are finishd from the TLB point of view.
 //
 // The DCTLB has to track at least 4 SPBTRs at once, but no need to have
 // unlimited. This means that just 4 flops translating SBPTR to valid indexes
@@ -12,28 +14,25 @@ module dctlb(
    input                           clk
   ,input                           reset
 
+  // ld core interface
   ,input                           coretodctlb_req0_valid
   ,output                          coretodctlb_req0_retry
   ,input  I_coretodctlb_req_type   coretodctlb_req0
 
+  // st core interface
   ,input                           coretodctlb_req1_valid
   ,output                          coretodctlb_req1_retry
   ,input  I_coretodctlb_req_type   coretodctlb_req1
 
-  ,output                          dctlbtol1_ack0_valid
-  ,input                           dctlbtol1_ack0_retry
-  ,output I_dctlbtol1_ack_type     dctlbtol1_ack0
+  // forward ld core interface
+  ,output                          dctlbtol1_fwd0_valid
+  ,input                           dctlbtol1_fwd0_retry
+  ,output I_dctlbtol1_fwd_type     dctlbtol1_fwd0
 
-  ,output                          dctlbtol1_ack0_valid
-  ,input                           dctlbtol1_ack0_retry
-  ,output I_dctlbtol1_ack_type     dctlbtol1_ack0
-
-  // L1 interface for versions
- 
-  // Notify TLB when new checkpoints are created/recycled
-  ,input                           l1todctlb_cmd_valid
-  ,output                          l1todctlb_cmd_retry
-  ,input  I_dctlbtol1_cmd_type     l1todctlb_cmd
+  // forward st core interface
+  ,output                          dctlbtol1_fwd1_valid
+  ,input                           dctlbtol1_fwd1_retry
+  ,output I_dctlbtol1_fwd_type     dctlbtol1_fwd1
 
   // Notify the L1 that the index of the TLB is gone
   ,output                          dctlbtol1_cmd_valid
@@ -41,14 +40,21 @@ module dctlb(
   ,output I_dctlbtol1_cmd_type     dctlbtol1_cmd
 
   // Interface with the L2 TLB
-  // Just the SNOOPS that have a TLB
-  ,input                           l1todctlb_snoop_valid
-  ,output                          l1todctlb_snoop_retry
-  ,input I_l1todctlb_snoop_type    l1todctlb_snoop
+  ,input                           l2tlbtodctlb_snoop_valid
+  ,output                          l2tlbtodctlb_snoop_retry
+  ,input I_l2tlbtodctlb_snoop_type l2tlbtodctlb_snoop
 
-  ,output                          l1tol2_snoop_ack_valid
-  ,input                           l1tol2_snoop_ack_retry
-  ,output I_l2snoop_ack_type       l1tol2_snoop_ack
+  ,input                           l2tlbtodctlb_ack_valid
+  ,output                          l2tlbtodctlb_ack_retry
+  ,input I_l2tlbtodctlb_ack_type   l2tlbtodctlb_ack
+
+  ,output                          dctlbtol2tlb_req_valid
+  ,input                           dctlbtol2tlb_req_retry
+  ,output I_dctlbtol2tlb_req_type  dctlbtol2tlb_req
+
+  ,output                          dctlbtol2tlb_sack_valid
+  ,input                           dctlbtol2tlb_sack_retry
+  ,output I_dctlbtol2tlb_sack_type dctlbtol2tlb_sack
 
   /* verilator lint_on UNUSED */
 );

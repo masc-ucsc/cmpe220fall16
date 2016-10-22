@@ -42,6 +42,10 @@
 // laddr: Logical Address
 // claddr: Logical cache aligned address (lower bits not used -> 0)
 
+// TLB
+`define TLB_REQIDBITS  2
+`define TLB_REQIDS     (1<<`TLB_REQBITS)
+
 `define SC_PADDRBITS   50
 // SV39 from RISCV (bits 39 to 63 musts be equal to bit 38)
 `define SC_LADDRBITS   39

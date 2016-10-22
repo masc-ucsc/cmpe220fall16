@@ -99,9 +99,9 @@ module l2cache_pipe(
 
   //---------------------------
   // L2TLB interface
-  ,input                           l2tlbtol2_ack_valid
-  ,output                          l2tlbtol2_ack_retry
-  ,input  I_l2tlbtol2_ack_type     l2tlbtol2_ack
+  ,input                           l2tlbtol2_fwd_valid
+  ,output                          l2tlbtol2_fwd_retry
+  ,input  I_l2tlbtol2_fwd_type     l2tlbtol2_fwd
   //---------------------------
   // core Prefetch interface
 

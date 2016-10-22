@@ -26,18 +26,42 @@ typedef struct packed {
 } I_l2tol1_snack_type;
 // 1}}}
 
-// {{{1 l1todctlb_snoop
+// {{{1 l2tlbtodctlb_snoop
 typedef struct packed {
-  L2_reqid_type     l2id;  // ==0 ACK, != 0 snoop
+  TLB_reqid_type    rid;
+  SC_hpaddr_type    hpaddr;
+} I_l2tlbtodctlb_snoop_type;
+// 1}}}
 
-  SC_laddr_type     laddr;
-  SC_sptbr_type     sptbr;
-  logic             user; // user mode or supervisor mode
+// {{{1 l2tlbtodctlb_ack
+typedef struct packed {
+  TLB_reqid_type    rid;
+  SC_hpaddr_type    hpaddr; // hash paddr 
+  SC_ppaddr_type    ppaddr; // predicted PADDR
 
-  SC_snack_type     snack; // Snoop or ACK
-  SC_paddr_type     paddr; // paddr translation for the laddr in the miss
-  SC_dctlbe_type    dctlbe;
-} I_l1todctlb_snoop_type;
+  SC_dctlbe_type    dctlbe; // ack
+} I_l2tlbtodctlb_ack_type;
+// 1}}}
+
+// {{{1 dctlbtol2tlb_req 
+typedef struct packed {
+  TLB_reqid_type    rid;
+
+  logic             disp_req; // True of disp from dcTLB (A/D bits)
+  logic             disp_A;
+  logic             disp_D;
+  SC_hpaddr_type    disp_hpaddr; // hash paddr 
+
+  SC_laddr_type     laddr; // Not during disp, just req
+  SC_sptbr_type     sptbr; // Not during disp, just req
+
+} I_dctlbtol2tlb_req_type;
+// 1}}}
+
+// {{{1 dctlbtol2tlb_sack 
+typedef struct packed {
+  TLB_reqid_type    rid;
+} I_dctlbtol2tlb_sack_type;
 // 1}}}
 
 // {{{1 coretodcl1tb_req
@@ -55,23 +79,13 @@ typedef struct packed {
 } I_coretodctlb_req_type;
 // 1}}}
 
-// {{{1 dctlbtol1_ack
+// {{{1 dctlbtol1_fwd
 typedef struct packed {
   CORE_reqid_type   coreid;
 
   SC_hpaddr_type    hpaddr; // hash paddr (only one hash cached at L1)
   SC_ppaddr_type    ppaddr; // predicted PADDR
-  SC_paddr_type     paddr;  // paddr translation for the laddr in the miss
-} I_dctlbtol1_ack_type;
-// 1}}}
-
-// {{{1 l2tlbtol2_ack
-typedef struct packed {
-  L1_reqid_type     dcid;
-
-  SC_fault_type     fault;
-  SC_paddr_type     paddr; // paddr translation for the laddr in the miss
-} I_l2tlbtol2_ack_type;
+} I_dctlbtol1_fwd_type;
 // 1}}}
 
 // {{{1 dctlbtol1_cmd
@@ -81,11 +95,13 @@ typedef struct packed {
 } I_dctlbtol1_cmd_type;
 // 1}}}
 
-// {{{1 l1todctlb_cmd
+// {{{1 l2tlbtol2_fwd
 typedef struct packed {
-  DC_ckpid_type     ckpid;
-  CORE_mop_type     mop;
-} I_l1todctlb_cmd_type;
+  L1_reqid_type     dcid;
+
+  SC_fault_type     fault;
+  SC_paddr_type     paddr; // paddr translation for the laddr in the miss
+} I_l2tlbtol2_fwd_type;
 // 1}}}
 
 // {{{1 l1tol2_disp 

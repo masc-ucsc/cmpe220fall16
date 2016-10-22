@@ -21,6 +21,7 @@ typedef logic [`SC_PCSIGNBITS-1:0]   SC_pcsign_type;
 typedef logic [`SC_FAULTBITS-1:0]    SC_fault_type;
 
 typedef logic [`DR_REQIDBITS-1:0]    DR_reqid_type;
+typedef logic [`TLB_REQIDBITS-1:0]   TLB_reqid_type;
 
 typedef logic [`SC_ROBIDBITS-1:0]    SC_robid_type;
 
