@@ -40,21 +40,28 @@ typedef struct packed {
 } I_l1todctlb_snoop_type;
 // 1}}}
 
-// {{{1 l1tol1tb_req
+// {{{1 coretodcl1tb_req
 typedef struct packed {
   DC_ckpid_type     ckpid;
 
+  CORE_reqid_type   coreid;
+
+  logic             pnr; // core knows it is non-cacheable, perform anyway
+
   SC_laddr_type     laddr;
+  SC_imm_type       imm;   // address is laddr+imm
   SC_sptbr_type     sptbr;
   logic             user; // user mode or supervisor mode
-} I_l1todctlb_req_type;
+} I_coretodctlb_req_type;
 // 1}}}
 
 // {{{1 dctlbtol1_ack
 typedef struct packed {
-  logic             miss;
-  SC_dctlb_idx_type l1idx;
-  SC_paddr_type     paddr; // paddr translation for the laddr in the miss
+  CORE_reqid_type   coreid;
+
+  SC_hpaddr_type    hpaddr; // hash paddr (only one hash cached at L1)
+  SC_ppaddr_type    ppaddr; // predicted PADDR
+  SC_paddr_type     paddr;  // paddr translation for the laddr in the miss
 } I_dctlbtol1_ack_type;
 // 1}}}
 
@@ -70,7 +77,7 @@ typedef struct packed {
 // {{{1 dctlbtol1_cmd
 typedef struct packed {
   logic             flush;
-  SC_dctlb_idx_type l1idx;
+  SC_hpaddr_type    hpaddr;
 } I_dctlbtol1_cmd_type;
 // 1}}}
 

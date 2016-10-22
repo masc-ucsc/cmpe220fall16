@@ -9,6 +9,8 @@ typedef logic [`SC_CMDBITS-1:0]      SC_cmd_type;   // request command (L1 -> L2
 typedef logic [`SC_SCMDBITS-1:0]     SC_snack_type;  // SNOOP and ack (snack) commands
 typedef logic [`SC_DCMDBITS-1:0]     SC_dcmd_type;  // displace DC to L2 or L2 to L3
 
+typedef logic [`SC_PPADDRBITS-1:0]   SC_ppaddr_type;
+typedef logic [`SC_HPADDRBITS-1:0]   SC_hpaddr_type;
 typedef logic [`SC_PADDRBITS-1:0]    SC_paddr_type;
 typedef logic [`SC_LADDRBITS-1:0]    SC_laddr_type;
 typedef logic [`SC_IMMBITS-1:0]      SC_imm_type;

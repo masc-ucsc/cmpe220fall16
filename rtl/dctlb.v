@@ -12,13 +12,13 @@ module dctlb(
    input                           clk
   ,input                           reset
 
-  ,input                           l1todctlb_req0_valid
-  ,output                          l1todctlb_req0_retry
-  ,input  I_l1todctlb_req_type     l1todctlb_req0
+  ,input                           coretodctlb_req0_valid
+  ,output                          coretodctlb_req0_retry
+  ,input  I_coretodctlb_req_type   coretodctlb_req0
 
-  ,input                           l1todctlb_req1_valid
-  ,output                          l1todctlb_req1_retry
-  ,input  I_l1todctlb_req_type     l1todctlb_req1
+  ,input                           coretodctlb_req1_valid
+  ,output                          coretodctlb_req1_retry
+  ,input  I_coretodctlb_req_type   coretodctlb_req1
 
   ,output                          dctlbtol1_ack0_valid
   ,input                           dctlbtol1_ack0_retry

@@ -45,6 +45,8 @@
 `define SC_PADDRBITS   50
 // SV39 from RISCV (bits 39 to 63 musts be equal to bit 38)
 `define SC_LADDRBITS   39
+`define SC_PPADDRBITS   3 // predicted lower paddr bits [n:12]
+`define SC_HPADDRBITS   7 // hash PADDR used by DCTLB
 `define SC_IMMBITS     12
 
 `define SC_PCSIGNBITS  13
@@ -66,8 +68,9 @@
 `define SC_PAGESIZE_4MB    2'b10
 `define SC_PAGESIZE_4GB    2'b11
 
-`define SC_DCTLB_INDEXBITS 7
+`define SC_DCTLB_INDEXBITS 5
 `define SC_DCTLB_ENTRIES    (1<<(`SC_DCTLB_INDEXBITS))
+
 
 `define SC_L2TLB_FASTINDEXBITS 4 // Any size, FLOPS just recently used pages
 
