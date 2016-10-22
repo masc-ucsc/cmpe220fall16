@@ -240,6 +240,8 @@ typedef struct packed {
 
   PF_delta_type     d; // Delta from the DVTAGE or delta predictor
   PF_weigth_type    w; // delta confidence (higher better)
+  PF_delta_type     d2; // Delta from the DVTAGE or delta predictor
+  PF_weigth_type    w2; // delta confidence (higher better)
 
   SC_pcsign_type    pcsign;
   SC_laddr_type     laddr; // Base Address
