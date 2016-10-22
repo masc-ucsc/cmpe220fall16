@@ -50,14 +50,6 @@ typedef struct packed {
 } I_l1todctlb_req_type;
 // 1}}}
 
-// {{{1 l2tol2tb_req
-typedef struct packed {
-  SC_laddr_type     laddr;
-  SC_sptbr_type     sptbr;
-  logic             user; // user mode or supervisor mode
-} I_l2tol2tlb_req_type;
-// 1}}}
-
 // {{{1 dctlbtol1_ack
 typedef struct packed {
   logic             miss;
@@ -68,7 +60,9 @@ typedef struct packed {
 
 // {{{1 l2tlbtol2_ack
 typedef struct packed {
-  logic             miss;
+  L1_reqid_type     dcid;
+
+  SC_fault_type     fault;
   SC_paddr_type     paddr; // paddr translation for the laddr in the miss
 } I_l2tlbtol2_ack_type;
 // 1}}}
@@ -180,7 +174,7 @@ typedef struct packed {
 // {{{1 dctocore_ld
 typedef struct packed {
   CORE_reqid_type   coreid;
-  SC_abort_type     aborted; // load not performed due to XXX
+  SC_fault_type     fault; // load not performed due to XXX
 
   SC_line_type      data; // 1byte to 64bytes for vector
 } I_dctocore_ld_type;
@@ -188,7 +182,7 @@ typedef struct packed {
 
 // {{{1 I_ictocore_type
 typedef struct packed {
-  SC_abort_type     aborted; // load not performed due to XXX
+  SC_fault_type     fault; // load not performed due to XXX
 
   IC_fwidth_type    data; // 1byte to 64bytes for vector
 } I_ictocore_type;
@@ -213,7 +207,7 @@ typedef struct packed {
 
 // {{{1 dctocore_std_ack
 typedef struct packed {
-  SC_abort_type     aborted; // load not performed due to XXX
+  SC_fault_type     fault; // load not performed due to XXX
 
   CORE_reqid_type   coreid;
 } I_dctocore_std_ack_type;

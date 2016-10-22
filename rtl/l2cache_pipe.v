@@ -98,6 +98,11 @@ module l2cache_pipe(
   ,input  I_pftocache_req_type     l1tol2_pfreq
 
   //---------------------------
+  // L2TLB interface
+  ,input                           l2tlbtol2_ack_valid
+  ,output                          l2tlbtol2_ack_retry
+  ,input  I_l2tlbtol2_ack_type     l2tlbtol2_ack
+  //---------------------------
   // core Prefetch interface
 
   ,input                           pftol2_pfreq_valid

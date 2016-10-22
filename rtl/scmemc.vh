@@ -111,13 +111,13 @@
 `define SC_DCMD_TLBWB    3'b100 // TLB disp writeback (mostly to update D/A bits). If D/A bits unchanged, no TLBWB
 `define SC_DCMD_TLBINV   3'b101 // TLB disp writeback, no D/A update
 
-`define SC_ABORTBITS       3
-`define SC_ABORT_NONE      3'b000  // No abort generated
-`define SC_ABORT_DEV       3'b001  // Device memory accessed
-`define SC_ABORT_TLBX      3'b010  // TLB permission error
-`define SC_ABORT_OVERFLOW  3'b011  // Not performed due to lack of buffering space
-`define SC_ABORT_RETRY8    3'b100  // retry again in at least 8 cycles
-`define SC_ABORT_NCFWD     3'b101  // Non-Cacheable Load hit on a "cached" store (Only in TM-WB)
+`define SC_FAULTBITS       3
+`define SC_FAULT_NONE      3'b000  // No FAULT generated
+`define SC_FAULT_DEV       3'b001  // Device memory accessed
+`define SC_FAULT_TLBX      3'b010  // TLB permission error (More TLB faults may be added)
+`define SC_FAULT_OVERFLOW  3'b011  // Not performed due to lack of buffering space
+`define SC_FAULT_RETRY8    3'b100  // retry again in at least 8 cycles
+`define SC_FAULT_NCFWD     3'b101  // Non-Cacheable Load hit on a "cached" store (Only in TM-WB)
 // TODO: Add abort conditions as needed by the core to notify the OS
 // accordingly
 

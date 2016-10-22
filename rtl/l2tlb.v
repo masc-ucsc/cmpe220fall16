@@ -12,9 +12,10 @@ module l2tlb(
    input                           clk
   ,input                           reset
 
-  ,input                           l2tol2tlb_req_valid
-  ,output                          l2tol2tlb_req_retry
-  ,input  I_l2tol2tlb_req_type     l2tol2tlb_req
+  // L2TLB listens the same L1 request (but no ack). Response sent to L2
+  ,input                           l1tol2_req_valid
+  ,output                          l1tol2_req_retry
+  ,input  I_l1tol2_req_type        l1tol2_req
 
   ,output                          l2tlbtol2_ack_valid
   ,input                           l2tlbtol2_ack_retry

@@ -16,7 +16,7 @@ typedef logic [`SC_SBPTRBITS-1:0]    SC_sptbr_type; // Thread ID for TLB or uTLB
 typedef logic [`SC_PAGESIZEBITS-1:0] SC_pagesize_type;
 typedef logic [`SC_PCSIGNBITS-1:0]   SC_pcsign_type;
 
-typedef logic [`SC_ABORTBITS-1:0]    SC_abort_type;
+typedef logic [`SC_FAULTBITS-1:0]    SC_fault_type;
 
 typedef logic [`DR_REQIDBITS-1:0]    DR_reqid_type;
 
