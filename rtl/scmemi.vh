@@ -10,6 +10,7 @@ typedef struct packed {
   SC_pcsign_type    pcsign;
   SC_laddr_type     laddr;
   SC_sptbr_type     sptbr;
+  logic             user; // user mode or supervisor mode
 } I_l1tol2_req_type;
 // 1}}}
 
@@ -31,6 +32,7 @@ typedef struct packed {
 
   SC_laddr_type     laddr;
   SC_sptbr_type     sptbr;
+  logic             user; // user mode or supervisor mode
 
   SC_snack_type     snack; // Snoop or ACK
   SC_paddr_type     paddr; // paddr translation for the laddr in the miss
@@ -44,6 +46,7 @@ typedef struct packed {
 
   SC_laddr_type     laddr;
   SC_sptbr_type     sptbr;
+  logic             user; // user mode or supervisor mode
 } I_l1todctlb_req_type;
 // 1}}}
 
@@ -51,6 +54,7 @@ typedef struct packed {
 typedef struct packed {
   SC_laddr_type     laddr;
   SC_sptbr_type     sptbr;
+  logic             user; // user mode or supervisor mode
 } I_l2tol2tlb_req_type;
 // 1}}}
 
@@ -68,6 +72,7 @@ typedef struct packed {
   SC_paddr_type     paddr; // paddr translation for the laddr in the miss
 } I_l2tlbtol2_ack_type;
 // 1}}}
+
 // {{{1 dctlbtol1_cmd
 typedef struct packed {
   logic             flush;
@@ -168,6 +173,7 @@ typedef struct packed {
   SC_laddr_type     laddr;
   SC_imm_type       imm;   // address is laddr+imm
   SC_sptbr_type     sptbr;
+  logic             user; // user mode or supervisor mode
 } I_coretodc_ld_type;
 // 1}}}
 
@@ -200,6 +206,7 @@ typedef struct packed {
   SC_laddr_type     laddr;
   SC_imm_type       imm;   // address is laddr+imm
   SC_sptbr_type     sptbr;
+  logic             user; // user mode or supervisor mode
   SC_line_type      data; // 1byte to 64bytes for vector
 } I_coretodc_std_type;
 // 1}}}
@@ -246,6 +253,7 @@ typedef struct packed {
   SC_pcsign_type    pcsign;
   SC_laddr_type     laddr; // Base Address
   SC_sptbr_type     sptbr;
+  logic             user; // user mode or supervisor mode
 } I_pfgtopfe_op_type;
 // 1}}}
 
@@ -253,6 +261,7 @@ typedef struct packed {
 typedef struct packed {
   SC_laddr_type     laddr;
   SC_sptbr_type     sptbr;
+  logic             user; // user mode or supervisor mode
 } I_pftocache_req_type;
 // 1}}}
 
@@ -260,6 +269,7 @@ typedef struct packed {
 typedef struct packed {
   SC_laddr_type     laddr;
   SC_sptbr_type     sptbr;
+  logic             user; // user mode or supervisor mode
 } I_l1tol2_pfreq_type;
 // 1}}}
 
@@ -268,7 +278,6 @@ typedef struct packed {
   SC_paddr_type     paddr;
 } I_l2todr_pfreq_type;
 // 1}}}
-
 
 // {{{1 core_decode
 typedef struct packed {

@@ -188,7 +188,7 @@ fflop #(.Size($bits(I_l2tol1_snack_type))) fsnack (
             l2todr_req_next.nid = l1tol2_req.dcid; // Could be wrong
             l2todr_req_next.l2id = 6'b00_0000;
             l2todr_req_next.cmd = l1tol2_req.cmd;
-            l2todr_req_next.paddr = {10'b00_0000_0000, l1tol2_req.laddr};
+            l2todr_req_next.paddr = {11'b000_0000_0000, l1tol2_req.laddr};
         end
     end
 
