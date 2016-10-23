@@ -49,11 +49,24 @@ void sim_finish(bool pass) {
   exit(0);
 }
 
-struct InputPacket {
+struct InputPacket_l2todr_pfreq {
   uint64_t addr;
 };
 
-struct OutputPacket {
+struct OutputPacket_drtomem_pfreq {
+  uint64_t addr; // read result
+};
+
+struct InputPacket_l2todr_req {
+  uint8_t nid;
+  uint8_t l2id;
+  uint8_t cmd;
+  uint64_t addr;
+};
+
+struct OutputPacket_drtomem_req {
+  uint8_t drid;
+  uint8_t cmd;
   uint64_t addr; // read result
 };
 
@@ -63,8 +76,11 @@ double sc_time_stamp() {
 
 uint16_t memory[256];
 
-std::list<InputPacket>  inp_list;
-std::list<OutputPacket> out_list;
+std::list<InputPacket_l2todr_pfreq>  inp_list_pfreq;
+std::list<OutputPacket_drtomem_pfreq> out_list_pfreq;
+
+std::list<InputPacket_l2todr_req>  inp_list_req;
+std::list<OutputPacket_drtomem_req> out_list_req;
 
 void error_found(Vdirectory_bank_wp *top) {
   advance_half_clock(top);
@@ -73,19 +89,35 @@ void error_found(Vdirectory_bank_wp *top) {
 }
 
 void try_send_packet(Vdirectory_bank_wp *top) {
+  
+  //pfreq
   top->drtomem_pfreq_retry = (rand()&0x3F)==0; 
 
   if (!top->l2todr_pfreq_retry) {
     top->l2todr_pfreq_paddr = rand();
-    if (inp_list.empty() || (rand() & 0x3)) { // Once every 4
+    if (inp_list_pfreq.empty() || (rand() & 0x3)) { // Once every 4
       top->l2todr_pfreq_valid = 0;
     }else{
       top->l2todr_pfreq_valid = 1;
     }
   }
+  
+  //req
+  top->drtomem_req_retry = (rand()&0x3F)==0; 
 
+  if (!top->l2todr_req_retry) {
+    top->l2todr_req_paddr = rand();
+    if (inp_list_req.empty() || (rand() & 0x3)) { // Once every 4
+      top->l2todr_req_valid = 0;
+    }else{
+      top->l2todr_req_valid = 1;
+    }
+  }
+  
+  
+  //pfreq
   if (top->l2todr_pfreq_valid && !top->l2todr_pfreq_retry) {
-    if (inp_list.empty()) {
+    if (inp_list_pfreq.empty()) {
       fprintf(stderr,"ERROR: Internal error, could not be empty inpa\n");
       error_found(top);
     }
@@ -97,18 +129,46 @@ void try_send_packet(Vdirectory_bank_wp *top) {
       error_found(top);
     }
 
-    InputPacket inp = inp_list.back();
-    top->l2todr_pfreq_paddr = inp.addr;
+    InputPacket_l2todr_pfreq inp1 = inp_list_pfreq.back();
+    top->l2todr_pfreq_paddr = inp1.addr;
 #ifdef DEBUG_TRACE
-    printf("@%lu req addr:%lu \n",global_time, inp.addr);
+    printf("@%lu pfreq addr:%lu \n",global_time, inp1.addr);
 #endif
    
-    OutputPacket out;
-    out.addr = inp.addr;
-    out_list.push_front(out);
+    OutputPacket_drtomem_pfreq out1;
+    out1.addr = inp1.addr;
+    out_list_pfreq.push_front(out1);
     
 
-    inp_list.pop_back();
+    inp_list_pfreq.pop_back();
+  }
+  
+  //req
+  if (top->l2todr_req_valid && !top->l2todr_req_retry) {
+    if (inp_list_req.empty()) {
+      fprintf(stderr,"ERROR: Internal error, could not be empty inpa\n");
+      error_found(top);
+    }
+
+    static vluint64_t last_clk = 0;
+
+    if (last_clk >= (global_time+2)) {
+      fprintf(stderr,"ERROR: dense RAMs have 2 cycle delay. No back to back requests accepted\n");
+      error_found(top);
+    }
+
+    InputPacket_l2todr_req inp2   = inp_list_req.back();
+    top->l2todr_req_paddr = inp2.addr;
+#ifdef DEBUG_TRACE
+    printf("@%lu req addr:%lu \n",global_time, inp2.addr);
+#endif
+   
+    OutputPacket_drtomem_req out2;
+    out2.addr = inp2.addr;
+    out_list_req.push_front(out2);
+    
+
+    inp_list_req.pop_back();
   }
 
 }
@@ -116,8 +176,9 @@ void try_send_packet(Vdirectory_bank_wp *top) {
 //above is code from other tb
 void try_recv_packet(Vdirectory_bank_wp *top) {
 
-  if (top->drtomem_pfreq_valid && out_list.empty()) {
-    printf("ERROR: unexpected ack addr:%lu\n",top->drtomem_pfreq_paddr);
+  //pfreq
+  if (top->drtomem_pfreq_valid && out_list_pfreq.empty()) {
+    printf("ERROR: unexpected pfreq ack addr:%lu\n",top->drtomem_pfreq_paddr);
     error_found(top);
     return;
   }
@@ -128,19 +189,50 @@ void try_recv_packet(Vdirectory_bank_wp *top) {
   if (!top->drtomem_pfreq_valid)
     return;
 
-  if (out_list.empty())
+  if (out_list_pfreq.empty())
     return;
 
 #ifdef DEBUG_TRACE
-    printf("@%lu ack addr:%lu\n",global_time, top->drtomem_pfreq_paddr);
+    printf("@%lu pfreq ack addr:%lu\n",global_time, top->drtomem_pfreq_paddr);
 #endif
-  OutputPacket o = out_list.back();
-  if (top->drtomem_pfreq_paddr != o.addr) {
-    printf("ERROR: expected addr:%lu but ack is %lu\n",o.addr,top->drtomem_pfreq_paddr);
+  OutputPacket_drtomem_pfreq o1 = out_list_pfreq.back();
+  if (top->drtomem_pfreq_paddr != o1.addr) {
+    printf("ERROR: expected addr:%lu but ack is %lu\n",o1.addr,top->drtomem_pfreq_paddr);
     error_found(top);
   }
 
-  out_list.pop_back();
+  out_list_pfreq.pop_back();
+  
+}
+
+void try_recv_packet_req(Vdirectory_bank_wp *top) {
+
+  //req
+  if (top->drtomem_req_valid && out_list_req.empty()) {
+    printf("ERROR: unexpected req ack addr:%lu\n",top->drtomem_req_paddr);
+    error_found(top);
+    return;
+  }
+
+  if (top->drtomem_req_retry)
+    return;
+
+  if (!top->drtomem_req_valid)
+    return;
+
+  if (out_list_req.empty())
+    return;
+
+#ifdef DEBUG_TRACE
+    printf("@%lu req ack addr:%lu\n",global_time, top->drtomem_req_paddr);
+#endif
+  OutputPacket_drtomem_req o2 = out_list_req.back();
+  if (top->drtomem_req_paddr != o2.addr) {
+    printf("ERROR: expected addr:%lu but ack is %lu\n",o2.addr,top->drtomem_req_paddr);
+    error_found(top);
+  }
+
+  out_list_req.pop_back();
 }
 
 
@@ -174,6 +266,13 @@ int main(int argc, char **argv, char **env) {
   //-------------------------------------------------------
   top->reset = 0;
   top->drtomem_pfreq_retry = 1;
+  top->drtomem_req_retry = 1;
+  top->drtomem_pfreq_valid = 0;
+  top->drtomem_req_valid = 0;
+  
+  top->l2todr_req_nid = 0;
+  top->l2todr_req_l2id = 0;
+  top->l2todr_req_cmd = 0;
   //First test: only test a single set of signals like the l2 to dr or even prefetch
   //Associate retry signal with one I am testing.... prefetch it is.
   advance_clock(top,1);
@@ -187,19 +286,33 @@ int main(int argc, char **argv, char **env) {
     try_send_packet(top);
     advance_half_clock(top);
     try_recv_packet(top);
+    try_recv_packet_req(top);
     advance_half_clock(top);
 
-    if (((rand() & 0x3)==0) && inp_list.size() < 3 ) {
-      InputPacket i;
+    if (((rand() & 0x3)==0) && inp_list_pfreq.size() < 3 ) {
+      InputPacket_l2todr_pfreq i;
 
       if (rand() % 3)
         i.addr = rand() & 0x0001FFFFFFFFFFFF;
-      else if (!inp_list.empty())
-        i.addr = inp_list.front().addr;
+      else if (!inp_list_pfreq.empty())
+        i.addr = inp_list_pfreq.front().addr;
       else
         i.addr = rand() & 0x00000000FFFFFFFF;
 
-      inp_list.push_front(i);
+      inp_list_pfreq.push_front(i);
+    }
+    
+    if (((rand() & 0x3)==0) && inp_list_req.size() < 3 ) {
+      InputPacket_l2todr_req i;
+
+      if (rand() % 3)
+        i.addr = rand() & 0x0001FFFFFFFFFFFF;
+      else if (!inp_list_req.empty())
+        i.addr = inp_list_req.front().addr;
+      else
+        i.addr = rand() & 0x00000000FFFFFFFF;
+
+      inp_list_req.push_front(i);
     }
   }
 #endif
