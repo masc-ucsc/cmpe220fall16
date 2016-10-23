@@ -8,6 +8,11 @@
 // are enough. If a new SBPTR checkpoint create arrives, the TLB can
 // invalidate all the associated TLB entries (and notify the L1 accordingly)
 //
+//
+// The hpaddr is a way to identify a L2TLB entry. It is also a pseudo-hah of
+// the paddr. When a L2TLB entry is displaced, the dctlb gets a snoop.
+// This means that when a hpaddr gets removed, it has to dissapear from
+// the L1 cache
 
 module dctlb(
   /* verilator lint_off UNUSED */
