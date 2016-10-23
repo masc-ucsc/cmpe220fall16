@@ -29,14 +29,14 @@ typedef struct packed {
 // {{{1 l2tlbtodctlb_snoop
 typedef struct packed {
   TLB_reqid_type    rid;
-  SC_hpaddr_type    hpaddr;
+  TLB_hpaddr_type   hpaddr;
 } I_l2tlbtodctlb_snoop_type;
 // 1}}}
 
 // {{{1 l2tlbtodctlb_ack
 typedef struct packed {
   TLB_reqid_type    rid;
-  SC_hpaddr_type    hpaddr; // hash paddr 
+  TLB_hpaddr_type   hpaddr; // hash paddr 
   SC_ppaddr_type    ppaddr; // predicted PADDR
 
   SC_dctlbe_type    dctlbe; // ack
@@ -50,7 +50,7 @@ typedef struct packed {
   logic             disp_req; // True of disp from dcTLB (A/D bits)
   logic             disp_A;
   logic             disp_D;
-  SC_hpaddr_type    disp_hpaddr; // hash paddr 
+  TLB_hpaddr_type   disp_hpaddr; // hash paddr 
 
   SC_laddr_type     laddr; // Not during disp, just req
   SC_sptbr_type     sptbr; // Not during disp, just req
@@ -83,7 +83,7 @@ typedef struct packed {
 typedef struct packed {
   CORE_reqid_type   coreid;
 
-  SC_hpaddr_type    hpaddr; // hash paddr (only one hash cached at L1)
+  TLB_hpaddr_type   hpaddr; // hash paddr (only one hash cached at L1)
   SC_ppaddr_type    ppaddr; // predicted PADDR
 } I_dctlbtol1_fwd_type;
 // 1}}}
@@ -91,7 +91,7 @@ typedef struct packed {
 // {{{1 dctlbtol1_cmd
 typedef struct packed {
   logic             flush;
-  SC_hpaddr_type    hpaddr;
+  TLB_hpaddr_type   hpaddr;
 } I_dctlbtol1_cmd_type;
 // 1}}}
 

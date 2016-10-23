@@ -43,6 +43,7 @@
 // claddr: Logical cache aligned address (lower bits not used -> 0)
 
 // TLB
+`define TLB_HPADDRBITS 9 // hash PADDR used by DCTLB
 `define TLB_REQIDBITS  2
 `define TLB_REQIDS     (1<<`TLB_REQBITS)
 
@@ -50,7 +51,6 @@
 // SV39 from RISCV (bits 39 to 63 musts be equal to bit 38)
 `define SC_LADDRBITS   39
 `define SC_PPADDRBITS   3 // predicted lower paddr bits [n:12]
-`define SC_HPADDRBITS   7 // hash PADDR used by DCTLB
 `define SC_IMMBITS     12
 
 `define SC_PCSIGNBITS  13

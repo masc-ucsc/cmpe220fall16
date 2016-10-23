@@ -10,7 +10,6 @@ typedef logic [`SC_SCMDBITS-1:0]     SC_snack_type;  // SNOOP and ack (snack) co
 typedef logic [`SC_DCMDBITS-1:0]     SC_dcmd_type;  // displace DC to L2 or L2 to L3
 
 typedef logic [`SC_PPADDRBITS-1:0]   SC_ppaddr_type;
-typedef logic [`SC_HPADDRBITS-1:0]   SC_hpaddr_type;
 typedef logic [`SC_PADDRBITS-1:0]    SC_paddr_type;
 typedef logic [`SC_LADDRBITS-1:0]    SC_laddr_type;
 typedef logic [`SC_IMMBITS-1:0]      SC_imm_type;
@@ -21,6 +20,8 @@ typedef logic [`SC_PCSIGNBITS-1:0]   SC_pcsign_type;
 typedef logic [`SC_FAULTBITS-1:0]    SC_fault_type;
 
 typedef logic [`DR_REQIDBITS-1:0]    DR_reqid_type;
+
+typedef logic [`TLB_HPADDRBITS-1:0]  TLB_hpaddr_type;
 typedef logic [`TLB_REQIDBITS-1:0]   TLB_reqid_type;
 
 typedef logic [`SC_ROBIDBITS-1:0]    SC_robid_type;
