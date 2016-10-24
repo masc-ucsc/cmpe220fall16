@@ -65,15 +65,6 @@ struct OutputPacket {
   uint8_t pf_dcreq2_sptbr;
   uint8_t pf_dcreq3_laddr;
   uint8_t pf_dcreq3_sptbr;
-
-  uint8_t pf_l2req0_laddr;
-  uint8_t pf_l2req0_sptbr;
-  uint8_t pf_l2req1_laddr;
-  uint8_t pf_l2req1_sptbr;
-  uint8_t pf_l2req2_laddr;
-  uint8_t pf_l2req2_sptbr;
-  uint8_t pf_l2req3_laddr;
-  uint8_t pf_l2req3_sptbr;
 };
 
 double sc_time_stamp() {
@@ -90,10 +81,6 @@ void try_send_packet(Vpfengine_wp *top) {
   top->pftodc_req1_retry = (rand()&0xF)==0;
   top->pftodc_req2_retry = (rand()&0xF)==0;
   top->pftodc_req3_retry = (rand()&0xF)==0;
-  top->pftol2_req0_retry = (rand()&0xF)==0;
-  top->pftol2_req1_retry = (rand()&0xF)==0;
-  top->pftol2_req2_retry = (rand()&0xF)==0;
-  top->pftol2_req3_retry = (rand()&0xF)==0;
 
   if (!top->pfgtopfe_op_retry) {
     top->pfgtopfe_op_pcsign = rand();
@@ -166,30 +153,6 @@ void try_recv_packet(Vpfengine_wp *top) {
     return;
   }
 
-  if (top->pftol2_req0_valid && out_list.empty()) {
-    printf("ERROR: unexpected prefetch:%x\n", top->pftol2_req0_laddr);
-    error_found(top);
-    return;
-  }
-
-  if (top->pftol2_req1_valid && out_list.empty()) {
-    printf("ERROR: unexpected prefetch:%x\n", top->pftol2_req1_laddr);
-    error_found(top);
-    return;
-  }
-
-  if (top->pftol2_req2_valid && out_list.empty()) {
-    printf("ERROR: unexpected prefetch:%x\n", top->pftol2_req2_laddr);
-    error_found(top);
-    return;
-  }
-
-  if (top->pftol2_req3_valid && out_list.empty()) {
-    printf("ERROR: unexpected prefetch:%x\n", top->pftol2_req3_laddr);
-    error_found(top);
-    return;
-  }
-
   if (top->pftodc_req0_retry)
     return;
 
@@ -201,19 +164,7 @@ void try_recv_packet(Vpfengine_wp *top) {
 
   if (top->pftodc_req3_retry)
     return;
-
-  if (top->pftol2_req0_retry)
-    return;
-
-  if (top->pftol2_req1_retry)
-    return;
   
-  if (top->pftol2_req2_retry)
-    return;
-
-  if (top->pftol2_req3_retry)
-    return;
-
   if (!top->pftodc_req0_valid)
     return;
 
@@ -226,22 +177,11 @@ void try_recv_packet(Vpfengine_wp *top) {
   if (!top->pftodc_req3_valid)
     return;
 
-  if (!top->pftol2_req0_valid)
-    return;
-
-  if (!top->pftol2_req1_valid)
-        return;
-
-  if (!top->pftol2_req2_valid)
-        return;
-
-  if (!top->pftol2_req3_valid)
-        return;
-
   if (out_list.empty())
     return;
 
 #ifdef DEBUG_TRACE
+
     if (top->pftodc_req0_valid)
       printf("@%lld prefetch_addr:%x\n",global_time, top->pftodc_req0_laddr);
 
@@ -254,17 +194,6 @@ void try_recv_packet(Vpfengine_wp *top) {
     if (top->pftodc_req3_valid)
       printf("@%lld prefetch_addr:%x\n",global_time, top->pftodc_req3_laddr);
 
-    if (top->pftol2_req0_valid)
-      printf("@%lld prefetch_addr:%x\n",global_time, top->pftol2_req0_laddr);
-
-    if (top->pftol2_req1_valid)
-      printf("@%lld prefetch_addr:%x\n",global_time, top->pftol2_req1_laddr);
-
-    if (top->pftol2_req2_valid)
-      printf("@%lld prefetch_addr:%x\n",global_time, top->pftol2_req2_laddr);
-
-    if (top->pftol2_req3_valid)
-      printf("@%lld prefetch_addr:%x\n",global_time, top->pftol2_req3_laddr);
 #endif
   OutputPacket o = out_list.back();
 
@@ -303,10 +232,6 @@ int main(int argc, char **argv, char **env) {
   top->pftodc_req1_retry = 1;
   top->pftodc_req2_retry = 1;
   top->pftodc_req3_retry = 1;
-  top->pftol2_req0_retry = 1;
-  top->pftol2_req1_retry = 1;
-  top->pftol2_req2_retry = 1;
-  top->pftol2_req3_retry = 1;
 
   advance_clock(top,1);
 

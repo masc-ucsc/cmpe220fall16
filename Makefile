@@ -52,8 +52,7 @@ pfengine_wp:
 run_pfengine_wp: pfengine_wp
 	./obj_dir/Vpfengine_wp
 
-# New TLB interface, testbench must be reworked
-#REGLIST+=pfengine_wp
+REGLIST+=pfengine_wp
 ###########################
 directory_bank_wp:
 	verilator --assert --debug-check -I./rtl --Wall --cc --trace --top-module directory_bank_wp ./tests/directory_bank_wp.v ./rtl/directory_bank.v ./rtl/fflop.v ./rtl/flop_r.v --exe tests/directory_bank_wp_tb.cpp -CFLAGS -DTRACE=1

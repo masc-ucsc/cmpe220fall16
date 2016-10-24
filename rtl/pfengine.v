@@ -55,7 +55,7 @@ module pfengine(
 
 
 //fflop between pfgtopfe_op to pfengine logic
-/* verilator lint_off WIDTH */
+//* verilator lint_off WIDTH */
   fflop #(.Size($bits(I_pfgtopfe_op_type))) ff_pfgtopfe_pfe (
     .clk      (clk),
     .reset    (reset),
@@ -69,14 +69,14 @@ module pfengine(
     .qRetry   (pfgtopfe_op_next_retry)
   );
  
-  `ifdef CHANGE_INTERFACE
+//  `ifdef CHANGE_INTERFACE
 
   logic                 pftodc_req0_prev_retry;
   logic                 pftodc_req0_prev_valid;
-  I_pftocache_req_type  pftodc_req0_prev;
+  I_pfetol1tlb_req_type pftodc_req0_prev;
 
-//fflop between pfengine logic to pftodc_req0
-  fflop #(.Size($bits(I_pftocache_req_type))) ff_pftodc_req0_dc (
+//fflop between pfengine logic to d-cache tlb (pftodc_req0)
+  fflop #(.Size($bits(I_pfetol1tlb_req_type))) ff_pftodc_req0_dc (
     .clk      (clk),
     .reset    (reset),
 
@@ -92,10 +92,10 @@ module pfengine(
 
   logic                 pftodc_req1_prev_retry;
   logic                 pftodc_req1_prev_valid;
-  I_pftocache_req_type  pftodc_req1_prev;
+  I_pfetol1tlb_req_type pftodc_req1_prev;
 
 //fflop between pfengine logic to pftodc_req1
-  fflop #(.Size($bits(I_pftocache_req_type))) ff_pftodc_req1_dc (
+  fflop #(.Size($bits(I_pfetol1tlb_req_type))) ff_pftodc_req1_dc (
     .clk      (clk),
     .reset    (reset),
 
@@ -110,10 +110,10 @@ module pfengine(
 
   logic                 pftodc_req2_prev_retry;
   logic                 pftodc_req2_prev_valid;
-  I_pftocache_req_type  pftodc_req2_prev;
+  I_pfetol1tlb_req_type pftodc_req2_prev;
 
 //fflop between pfengine logic to pftodc_req2
-  fflop #(.Size($bits(I_pftocache_req_type))) ff_pftodc_req2_dc (
+  fflop #(.Size($bits(I_pfetol1tlb_req_type))) ff_pftodc_req2_dc (
     .clk      (clk),
     .reset    (reset),
 
@@ -129,10 +129,10 @@ module pfengine(
   
   logic                 pftodc_req3_prev_retry;
   logic                 pftodc_req3_prev_valid;
-  I_pftocache_req_type  pftodc_req3_prev;
+  I_pfetol1tlb_req_type  pftodc_req3_prev;
 
 //fflop between pfengine logic to pftodc_req3
-  fflop #(.Size($bits(I_pftocache_req_type))) ff_pftodc_req3_dc (
+  fflop #(.Size($bits(I_pfetol1tlb_req_type))) ff_pftodc_req3_dc (
     .clk      (clk),
     .reset    (reset),
 
@@ -144,79 +144,6 @@ module pfengine(
     .qValid   (pftodc_req3_valid),
     .qRetry   (pftodc_req3_retry)
   );
-
-  logic                 pftol2_req0_prev_retry;
-  logic                 pftol2_req0_prev_valid;
-  I_pftocache_req_type  pftol2_req0_prev;
-
-//fflop between pfengine logic to pftol2_req0
-  fflop #(.Size($bits(I_pftocache_req_type))) ff_pftol2_req0_l2 (
-    .clk      (clk),
-    .reset    (reset),
-
-    .din      (pftol2_req0_prev),
-    .dinValid (pftol2_req0_prev_valid),
-    .dinRetry (pftol2_req0_prev_retry),
-
-    .q        (pftol2_req0),
-    .qValid   (pftol2_req0_valid),
-    .qRetry   (pftol2_req0_retry)
-  );
-
-  logic                 pftol2_req1_prev_retry;
-  logic                 pftol2_req1_prev_valid;
-  I_pftocache_req_type  pftol2_req1_prev;
-
-//fflop between pfengine logic to pftol2_req1
-  fflop #(.Size($bits(I_pftocache_req_type))) ff_pftol2_req1_l2 (
-    .clk      (clk),
-    .reset    (reset),
-
-    .din      (pftol2_req1_prev),
-    .dinValid (pftol2_req1_prev_valid),
-    .dinRetry (pftol2_req1_prev_retry),
-
-    .q        (pftol2_req1),
-    .qValid   (pftol2_req1_valid),
-    .qRetry   (pftol2_req1_retry)
-  );
-
-  logic                 pftol2_req2_prev_retry;
-  logic                 pftol2_req2_prev_valid;
-  I_pftocache_req_type  pftol2_req2_prev;
-
-//fflop between pfengine logic to pftol2_req2
-  fflop #(.Size($bits(I_pftocache_req_type))) ff_pftol2_req2_l2 (
-    .clk      (clk),
-    .reset    (reset),
-
-    .din      (pftol2_req2_prev),
-    .dinValid (pftol2_req2_prev_valid),
-    .dinRetry (pftol2_req2_prev_retry),
-
-    .q        (pftol2_req2),
-    .qValid   (pftol2_req2_valid),
-    .qRetry   (pftol2_req2_retry)
-  );
-
-  logic                 pftol2_req3_prev_retry;
-  logic                 pftol2_req3_prev_valid;
-  I_pftocache_req_type  pftol2_req3_prev;
-
-//fflop between pfengine logic to pftol2_req3
-  fflop #(.Size($bits(I_pftocache_req_type))) ff_pftol2_req3_l2 (
-    .clk      (clk),
-    .reset    (reset),
-
-    .din      (pftol2_req3_prev),
-    .dinValid (pftol2_req3_prev_valid),
-    .dinRetry (pftol2_req3_prev_retry),
-
-    .q        (pftol2_req3),
-    .qValid   (pftol2_req3_valid),
-    .qRetry   (pftol2_req3_retry)
-  );
-
 
   PF_cache_stats_type   pf0_dcstats_next;     
 
@@ -336,7 +263,7 @@ module pfengine(
     .q        (pf_l2stats)
   );
 
-`endif
+//`endif
 
 /* donotdothis lint_off WIDTH */
 
