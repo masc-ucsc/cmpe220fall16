@@ -3,88 +3,155 @@
 
 // {{{1 l1tol2_req
 typedef struct packed {
-  L1_reqid_type     dcid;
-
+  L1_reqid_type     l1id;
   SC_cmd_type       cmd;
 
   SC_pcsign_type    pcsign;
-  SC_laddr_type     laddr;
-  SC_sptbr_type     sptbr;
-  logic             user; // user mode or supervisor mode
+  // The paddr comes from the *l2tlb_fwd
+  SC_ppaddr_type    ppaddr; // predicted PADDR
 } I_l1tol2_req_type;
+// 1}}}
+
+// {{{1 l1tol2tlb_req (req|disp use this)
+typedef struct packed {
+  L1_reqid_type     l1id;
+
+  logic             prefetch; // prefetch, ignore l1id
+
+  SC_poffset_type   poffset;  // L1 does only 4KB pages, This is the page offset needed to compute the paddr using the hpaddr
+  TLB_hpaddr_type   hpaddr; // hash paddr (only one hash cached at L1)
+} I_l1tol2tlb_req_type;
 // 1}}}
 
 // {{{1 l2tol1_snack
 typedef struct packed {
-  L1_reqid_type     dcid;  // !=0 ACK, == 0 snoop
+  L1_reqid_type     l1id;  // !=0 ACK, == 0 snoop
   L2_reqid_type     l2id;  // ==0 ACK, != 0 snoop
 
   SC_snack_type     snack; // Snoop or ACK
   SC_line_type      line;
-  SC_paddr_type     paddr; // paddr translation for the laddr in the miss
-  SC_dctlbe_type    dctlbe;
+
+  SC_poffset_type   poffset;
+  TLB_hpaddr_type   hpaddr; 
 } I_l2tol1_snack_type;
 // 1}}}
 
-// {{{1 l1todctlb_snoop
+// {{{1 l2tlbtol1tlb_snoop
 typedef struct packed {
-  L2_reqid_type     l2id;  // ==0 ACK, != 0 snoop
-
-  SC_laddr_type     laddr;
-  SC_sptbr_type     sptbr;
-  logic             user; // user mode or supervisor mode
-
-  SC_snack_type     snack; // Snoop or ACK
-  SC_paddr_type     paddr; // paddr translation for the laddr in the miss
-  SC_dctlbe_type    dctlbe;
-} I_l1todctlb_snoop_type;
+  TLB_reqid_type    rid;
+  TLB_hpaddr_type   hpaddr;
+} I_l2tlbtol1tlb_snoop_type;
 // 1}}}
 
-// {{{1 l1tol1tb_req
+// {{{1 l2tlbtol1tlb_ack
+typedef struct packed {
+  TLB_reqid_type    rid;
+  TLB_hpaddr_type   hpaddr; // hash paddr 
+  SC_ppaddr_type    ppaddr; // predicted PADDR
+
+  SC_dctlbe_type    dctlbe; // ack
+} I_l2tlbtol1tlb_ack_type;
+// 1}}}
+
+// {{{1 l1tlbtol2tlb_req 
+typedef struct packed {
+  TLB_reqid_type    rid;
+
+  logic             disp_req; // True of disp from dcTLB (A/D bits)
+  logic             disp_A;
+  logic             disp_D;
+  TLB_hpaddr_type   disp_hpaddr; // hash paddr 
+
+  SC_laddr_type     laddr; // Not during disp, just req
+  SC_sptbr_type     sptbr; // Not during disp, just req
+
+} I_l1tlbtol2tlb_req_type;
+// 1}}}
+
+// {{{1 l1tlbtol2tlb_sack 
+typedef struct packed {
+  TLB_reqid_type    rid;
+} I_l1tlbtol2tlb_sack_type;
+// 1}}}
+
+// {{{1 coretodcl1tb_ld
 typedef struct packed {
   DC_ckpid_type     ckpid;
 
+  CORE_reqid_type   coreid;
+
+  CORE_lop_type     lop;
+  logic             pnr; // core knows it is non-cacheable, perform anyway
+
   SC_laddr_type     laddr;
+  SC_imm_type       imm;   // address is laddr+imm
   SC_sptbr_type     sptbr;
   logic             user; // user mode or supervisor mode
-} I_l1todctlb_req_type;
+} I_coretodctlb_ld_type;
 // 1}}}
 
-// {{{1 l2tol2tb_req
+// {{{1 coretoic_pc
 typedef struct packed {
+  CORE_reqid_type   coreid;
+
+  SC_poffset_type   poffset;
+} I_coretoic_pc_type;
+// 1}}}
+
+// {{{1 coretoictlb_pc
+typedef struct packed {
+  CORE_reqid_type   coreid;
+
   SC_laddr_type     laddr;
   SC_sptbr_type     sptbr;
+} I_coretoictlb_pc_type;
+// 1}}}
+
+// {{{1 coretodcl1tb_st
+typedef struct packed {
+  DC_ckpid_type     ckpid;
+
+  CORE_reqid_type   coreid;
+
+  CORE_mop_type     mop;
+  logic             pnr; // core knows it is non-cacheable, perform anyway
+
+  SC_laddr_type     laddr;
+  SC_imm_type       imm;   // address is laddr+imm
+  SC_sptbr_type     sptbr;
   logic             user; // user mode or supervisor mode
-} I_l2tol2tlb_req_type;
+} I_coretodctlb_st_type;
 // 1}}}
 
-// {{{1 dctlbtol1_ack
+// {{{1 l1tlbtol1_fwd
 typedef struct packed {
-  logic             miss;
-  SC_dctlb_idx_type l1idx;
-  SC_paddr_type     paddr; // paddr translation for the laddr in the miss
-} I_dctlbtol1_ack_type;
+  CORE_reqid_type   coreid;
+  logic             prefetch; // prefetch, ignore coreid
+
+  SC_fault_type     fault;
+  TLB_hpaddr_type   hpaddr; // hash paddr (only one hash cached at L1)
+
+  SC_ppaddr_type    ppaddr; // predicted PADDR
+} I_l1tlbtol1_fwd_type;
 // 1}}}
 
-// {{{1 l2tlbtol2_ack
-typedef struct packed {
-  logic             miss;
-  SC_paddr_type     paddr; // paddr translation for the laddr in the miss
-} I_l2tlbtol2_ack_type;
-// 1}}}
-
-// {{{1 dctlbtol1_cmd
+// {{{1 l1tlbtol1_cmd
 typedef struct packed {
   logic             flush;
-  SC_dctlb_idx_type l1idx;
-} I_dctlbtol1_cmd_type;
+  TLB_hpaddr_type   hpaddr;
+} I_l1tlbtol1_cmd_type;
 // 1}}}
 
-// {{{1 l1todctlb_cmd
+// {{{1 l2tlbtol2_fwd
 typedef struct packed {
-  DC_ckpid_type     ckpid;
-  CORE_mop_type     mop;
-} I_l1todctlb_cmd_type;
+  L1_reqid_type     l1id; 
+  logic             prefetch; // prefetch, ignore l1id
+
+  SC_fault_type     fault;
+  TLB_hpaddr_type   hpaddr; // hash paddr (only one hash cached at L1)
+
+  SC_paddr_type     paddr; // paddr translation for the laddr in the miss
+} I_l2tlbtol2_fwd_type;
 // 1}}}
 
 // {{{1 l1tol2_disp 
@@ -96,7 +163,8 @@ typedef struct packed {
   SC_dcmd_type      dcmd;
 
   SC_line_type      line;
-  SC_paddr_type     paddr;
+
+  SC_ppaddr_type    ppaddr; // predicted PADDR
 } I_l1tol2_disp_type;
 // 1}}}
 
@@ -170,17 +238,16 @@ typedef struct packed {
   logic             pnr; // core knows it is non-cacheable, perform anyway
 
   SC_pcsign_type    pcsign;
-  SC_laddr_type     laddr;
+
+  SC_poffset_type   poffset;
   SC_imm_type       imm;   // address is laddr+imm
-  SC_sptbr_type     sptbr;
-  logic             user; // user mode or supervisor mode
 } I_coretodc_ld_type;
 // 1}}}
 
 // {{{1 dctocore_ld
 typedef struct packed {
   CORE_reqid_type   coreid;
-  SC_abort_type     aborted; // load not performed due to XXX
+  SC_fault_type     fault; // load not performed due to XXX
 
   SC_line_type      data; // 1byte to 64bytes for vector
 } I_dctocore_ld_type;
@@ -188,7 +255,9 @@ typedef struct packed {
 
 // {{{1 I_ictocore_type
 typedef struct packed {
-  SC_abort_type     aborted; // load not performed due to XXX
+  CORE_reqid_type   coreid;
+
+  SC_fault_type     fault; // load not performed due to XXX
 
   IC_fwidth_type    data; // 1byte to 64bytes for vector
 } I_ictocore_type;
@@ -203,17 +272,17 @@ typedef struct packed {
   logic             pnr; // core allows to be non-cacheable/device, perform anyway
 
   SC_pcsign_type    pcsign;
-  SC_laddr_type     laddr;
+
+  SC_poffset_type   poffset;
   SC_imm_type       imm;   // address is laddr+imm
-  SC_sptbr_type     sptbr;
-  logic             user; // user mode or supervisor mode
+
   SC_line_type      data; // 1byte to 64bytes for vector
 } I_coretodc_std_type;
 // 1}}}
 
 // {{{1 dctocore_std_ack
 typedef struct packed {
-  SC_abort_type     aborted; // load not performed due to XXX
+  SC_fault_type     fault; // load not performed due to XXX
 
   CORE_reqid_type   coreid;
 } I_dctocore_std_ack_type;
@@ -247,6 +316,8 @@ typedef struct packed {
 
   PF_delta_type     d; // Delta from the DVTAGE or delta predictor
   PF_weigth_type    w; // delta confidence (higher better)
+  PF_delta_type     d2; // Delta from the DVTAGE or delta predictor
+  PF_weigth_type    w2; // delta confidence (higher better)
 
   SC_pcsign_type    pcsign;
   SC_laddr_type     laddr; // Base Address
@@ -255,20 +326,13 @@ typedef struct packed {
 } I_pfgtopfe_op_type;
 // 1}}}
 
-// {{{1 pftocache_req
+// {{{1 pfetol1tlb_req
 typedef struct packed {
-  SC_laddr_type     laddr;
-  SC_sptbr_type     sptbr;
-  logic             user; // user mode or supervisor mode
-} I_pftocache_req_type;
-// 1}}}
+  logic             l2;   // true if prefetch is to forward l2 only
 
-// {{{1 l1tol2_pfreq
-typedef struct packed {
   SC_laddr_type     laddr;
   SC_sptbr_type     sptbr;
-  logic             user; // user mode or supervisor mode
-} I_l1tol2_pfreq_type;
+} I_pfetol1tlb_req_type;
 // 1}}}
 
 // {{{1 l2todr_pfreq

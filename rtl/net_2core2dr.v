@@ -14,7 +14,7 @@ module net_2core2dr(
    input                           clk
   ,input                           reset
 
-  // c0 core L2D and L2I
+  // c0 core L2I
   ,input  logic                    c0_l2itodr_req_valid
   ,output logic                    c0_l2itodr_req_retry
   ,input  I_l2todr_req_type        c0_l2itodr_req
@@ -39,7 +39,28 @@ module net_2core2dr(
   ,output logic                    c0_l2itodr_pfreq_retry
   ,input  I_l2todr_pfreq_type      c0_l2itodr_pfreq
 
-  // L2D_0
+  // c0 core L2I TLB
+  ,input  logic                    c0_l2ittodr_req_valid
+  ,output logic                    c0_l2ittodr_req_retry
+  ,input  I_l2todr_req_type        c0_l2ittodr_req
+
+  ,output logic                    c0_drtol2it_snack_valid
+  ,input  logic                    c0_drtol2it_snack_retry
+  ,output I_drtol2_snack_type      c0_drtol2it_snack
+
+  ,output                          c0_l2ittodr_snoop_ack_valid
+  ,input                           c0_l2ittodr_snoop_ack_retry
+  ,output I_l2snoop_ack_type       c0_l2ittodr_snoop_ack
+
+  ,input  logic                    c0_l2ittodr_disp_valid
+  ,output logic                    c0_l2ittodr_disp_retry
+  ,input  I_l2todr_disp_type       c0_l2ittodr_disp
+
+  ,input  logic                    c0_drtol2it_dack_valid
+  ,output logic                    c0_drtol2it_dack_retry
+  ,input  I_drtol2_dack_type       c0_drtol2it_dack
+
+  // c0 core L2D
   ,input  logic                    c0_l2d_0todr_req_valid
   ,output logic                    c0_l2d_0todr_req_retry
   ,input  I_l2todr_req_type        c0_l2d_0todr_req
@@ -64,84 +85,32 @@ module net_2core2dr(
   ,output logic                    c0_l2d_0todr_pfreq_retry
   ,input  I_l2todr_pfreq_type      c0_l2d_0todr_pfreq
 
-  // L2D_1
-  ,input  logic                    c0_l2d_1todr_req_valid
-  ,output logic                    c0_l2d_1todr_req_retry
-  ,input  I_l2todr_req_type        c0_l2d_1todr_req
+  // c0 core L2D TLB
+  ,input  logic                    c0_l2dt_0todr_req_valid
+  ,output logic                    c0_l2dt_0todr_req_retry
+  ,input  I_l2todr_req_type        c0_l2dt_0todr_req
 
-  ,output logic                    c0_drtol2d_1_snack_valid
-  ,input  logic                    c0_drtol2d_1_snack_retry
-  ,output I_drtol2_snack_type      c0_drtol2d_1_snack
+  ,output logic                    c0_drtol2dt_0_snack_valid
+  ,input  logic                    c0_drtol2dt_0_snack_retry
+  ,output I_drtol2_snack_type      c0_drtol2dt_0_snack
 
-  ,output                          c0_l2d_1todr_snoop_ack_valid
-  ,input                           c0_l2d_1todr_snoop_ack_retry
-  ,output I_l2snoop_ack_type       c0_l2d_1todr_snoop_ack
+  ,output                          c0_l2dt_0todr_snoop_ack_valid
+  ,input                           c0_l2dt_0todr_snoop_ack_retry
+  ,output I_l2snoop_ack_type       c0_l2dt_0todr_snoop_ack
 
-  ,input  logic                    c0_l2d_1todr_disp_valid
-  ,output logic                    c0_l2d_1todr_disp_retry
-  ,input  I_l2todr_disp_type       c0_l2d_1todr_disp
+  ,input  logic                    c0_l2dt_0todr_disp_valid
+  ,output logic                    c0_l2dt_0todr_disp_retry
+  ,input  I_l2todr_disp_type       c0_l2dt_0todr_disp
 
-  ,input  logic                    c0_drtol2d_1_dack_valid
-  ,output logic                    c0_drtol2d_1_dack_retry
-  ,input  I_drtol2_dack_type       c0_drtol2d_1_dack
+  ,input  logic                    c0_drtol2dt_0_dack_valid
+  ,output logic                    c0_drtol2dt_0_dack_retry
+  ,input  I_drtol2_dack_type       c0_drtol2dt_0_dack
 
-  ,input  logic                    c0_l2d_1todr_pfreq_valid
-  ,output logic                    c0_l2d_1todr_pfreq_retry
-  ,input  I_l2todr_pfreq_type      c0_l2d_1todr_pfreq
+  ,input  logic                    c0_l2dt_0todr_pfreq_valid
+  ,output logic                    c0_l2dt_0todr_pfreq_retry
+  ,input  I_l2todr_pfreq_type      c0_l2dt_0todr_pfreq
 
-`ifdef SC_4PIPE
-  // l2d_2
-  ,input  logic                    c0_l2d_2todr_req_valid
-  ,output logic                    c0_l2d_2todr_req_retry
-  ,input  I_l2todr_req_type        c0_l2d_2todr_req
-
-  ,output logic                    c0_drtol2d_2_snack_valid
-  ,input  logic                    c0_drtol2d_2_snack_retry
-  ,output I_drtol2_snack_type      c0_drtol2d_2_snack
-
-  ,output                          c0_l2d_2todr_snoop_ack_valid
-  ,input                           c0_l2d_2todr_snoop_ack_retry
-  ,output I_l2snoop_ack_type       c0_l2d_2todr_snoop_ack
-
-  ,input  logic                    c0_l2d_2todr_disp_valid
-  ,output logic                    c0_l2d_2todr_disp_retry
-  ,input  I_l2todr_disp_type       c0_l2d_2todr_disp
-
-  ,input  logic                    c0_drtol2d_2_dack_valid
-  ,output logic                    c0_drtol2d_2_dack_retry
-  ,input  I_drtol2_dack_type       c0_drtol2d_2_dack
-
-  ,input  logic                    c0_l2d_2todr_pfreq_valid
-  ,output logic                    c0_l2d_2todr_pfreq_retry
-  ,input  I_l2todr_pfreq_type      c0_l2d_2todr_pfreq
-
-  // l2d_3
-  ,input  logic                    c0_l2d_3todr_req_valid
-  ,output logic                    c0_l2d_3todr_req_retry
-  ,input  I_l2todr_req_type        c0_l2d_3todr_req
-
-  ,output logic                    c0_drtol2d_3_snack_valid
-  ,input  logic                    c0_drtol2d_3_snack_retry
-  ,output I_drtol2_snack_type      c0_drtol2d_3_snack
-
-  ,output                          c0_l2d_3todr_snoop_ack_valid
-  ,input                           c0_l2d_3todr_snoop_ack_retry
-  ,output I_l2snoop_ack_type       c0_l2d_3todr_snoop_ack
-
-  ,input  logic                    c0_l2d_3todr_disp_valid
-  ,output logic                    c0_l2d_3todr_disp_retry
-  ,input  I_l2todr_disp_type       c0_l2d_3todr_disp
-
-  ,input  logic                    c0_drtol2d_3_dack_valid
-  ,output logic                    c0_drtol2d_3_dack_retry
-  ,input  I_drtol2_dack_type       c0_drtol2d_3_dack
-
-  ,input  logic                    c0_l2d_3todr_pfreq_valid
-  ,output logic                    c0_l2d_3todr_pfreq_retry
-  ,input  I_l2todr_pfreq_type      c0_l2d_3todr_pfreq
-`endif
-
-  // c1 core L2D and L2I
+  // c1 core L2I
   ,input  logic                    c1_l2itodr_req_valid
   ,output logic                    c1_l2itodr_req_retry
   ,input  I_l2todr_req_type        c1_l2itodr_req
@@ -166,7 +135,28 @@ module net_2core2dr(
   ,output logic                    c1_l2itodr_pfreq_retry
   ,input  I_l2todr_pfreq_type      c1_l2itodr_pfreq
 
-  // L2D_0
+  // c1 core L2I TLB
+  ,input  logic                    c1_l2ittodr_req_valid
+  ,output logic                    c1_l2ittodr_req_retry
+  ,input  I_l2todr_req_type        c1_l2ittodr_req
+
+  ,output logic                    c1_drtol2it_snack_valid
+  ,input  logic                    c1_drtol2it_snack_retry
+  ,output I_drtol2_snack_type      c1_drtol2it_snack
+
+  ,output                          c1_l2ittodr_snoop_ack_valid
+  ,input                           c1_l2ittodr_snoop_ack_retry
+  ,output I_l2snoop_ack_type       c1_l2ittodr_snoop_ack
+
+  ,input  logic                    c1_l2ittodr_disp_valid
+  ,output logic                    c1_l2ittodr_disp_retry
+  ,input  I_l2todr_disp_type       c1_l2ittodr_disp
+
+  ,input  logic                    c1_drtol2it_dack_valid
+  ,output logic                    c1_drtol2it_dack_retry
+  ,input  I_drtol2_dack_type       c1_drtol2it_dack
+
+  // c1 core L2D
   ,input  logic                    c1_l2d_0todr_req_valid
   ,output logic                    c1_l2d_0todr_req_retry
   ,input  I_l2todr_req_type        c1_l2d_0todr_req
@@ -191,83 +181,26 @@ module net_2core2dr(
   ,output logic                    c1_l2d_0todr_pfreq_retry
   ,input  I_l2todr_pfreq_type      c1_l2d_0todr_pfreq
 
-  // L2D_1
-  ,input  logic                    c1_l2d_1todr_req_valid
-  ,output logic                    c1_l2d_1todr_req_retry
-  ,input  I_l2todr_req_type        c1_l2d_1todr_req
+  // c1 core L2D TLB
+  ,input  logic                    c1_l2dt_0todr_req_valid
+  ,output logic                    c1_l2dt_0todr_req_retry
+  ,input  I_l2todr_req_type        c1_l2dt_0todr_req
 
-  ,output logic                    c1_drtol2d_1_snack_valid
-  ,input  logic                    c1_drtol2d_1_snack_retry
-  ,output I_drtol2_snack_type      c1_drtol2d_1_snack
+  ,output logic                    c1_drtol2dt_0_snack_valid
+  ,input  logic                    c1_drtol2dt_0_snack_retry
+  ,output I_drtol2_snack_type      c1_drtol2dt_0_snack
 
-  ,output                          c1_l2d_1todr_snoop_ack_valid
-  ,input                           c1_l2d_1todr_snoop_ack_retry
-  ,output I_l2snoop_ack_type       c1_l2d_1todr_snoop_ack
+  ,output                          c1_l2dt_0todr_snoop_ack_valid
+  ,input                           c1_l2dt_0todr_snoop_ack_retry
+  ,output I_l2snoop_ack_type       c1_l2dt_0todr_snoop_ack
 
-  ,input  logic                    c1_l2d_1todr_disp_valid
-  ,output logic                    c1_l2d_1todr_disp_retry
-  ,input  I_l2todr_disp_type       c1_l2d_1todr_disp
+  ,input  logic                    c1_l2dt_0todr_disp_valid
+  ,output logic                    c1_l2dt_0todr_disp_retry
+  ,input  I_l2todr_disp_type       c1_l2dt_0todr_disp
 
-  ,input  logic                    c1_drtol2d_1_dack_valid
-  ,output logic                    c1_drtol2d_1_dack_retry
-  ,input  I_drtol2_dack_type       c1_drtol2d_1_dack
-
-  ,input  logic                    c1_l2d_1todr_pfreq_valid
-  ,output logic                    c1_l2d_1todr_pfreq_retry
-  ,input  I_l2todr_pfreq_type      c1_l2d_1todr_pfreq
-
-`ifdef SC_4PIPE
-  // l2d_2
-  ,input  logic                    c1_l2d_2todr_req_valid
-  ,output logic                    c1_l2d_2todr_req_retry
-  ,input  I_l2todr_req_type        c1_l2d_2todr_req
-
-  ,output logic                    c1_drtol2d_2_snack_valid
-  ,input  logic                    c1_drtol2d_2_snack_retry
-  ,output I_drtol2_snack_type      c1_drtol2d_2_snack
-
-  ,output                          c1_l2d_2todr_snoop_ack_valid
-  ,input                           c1_l2d_2todr_snoop_ack_retry
-  ,output I_l2snoop_ack_type       c1_l2d_2todr_snoop_ack
-
-  ,input  logic                    c1_l2d_2todr_disp_valid
-  ,output logic                    c1_l2d_2todr_disp_retry
-  ,input  I_l2todr_disp_type       c1_l2d_2todr_disp
-
-  ,input  logic                    c1_drtol2d_2_dack_valid
-  ,output logic                    c1_drtol2d_2_dack_retry
-  ,input  I_drtol2_dack_type       c1_drtol2d_2_dack
-
-  ,input  logic                    c1_l2d_2todr_pfreq_valid
-  ,output logic                    c1_l2d_2todr_pfreq_retry
-  ,input  I_l2todr_pfreq_type      c1_l2d_2todr_pfreq
-
-  // l2d_3
-  ,input  logic                    c1_l2d_3todr_req_valid
-  ,output logic                    c1_l2d_3todr_req_retry
-  ,input  I_l2todr_req_type        c1_l2d_3todr_req
-
-  ,output logic                    c1_drtol2d_3_snack_valid
-  ,input  logic                    c1_drtol2d_3_snack_retry
-  ,output I_drtol2_snack_type      c1_drtol2d_3_snack
-
-  ,output                          c1_l2d_3todr_snoop_ack_valid
-  ,input                           c1_l2d_3todr_snoop_ack_retry
-  ,output I_l2snoop_ack_type       c1_l2d_3todr_snoop_ack
-
-  ,input  logic                    c1_l2d_3todr_disp_valid
-  ,output logic                    c1_l2d_3todr_disp_retry
-  ,input  I_l2todr_disp_type       c1_l2d_3todr_disp
-
-  ,input  logic                    c1_drtol2d_3_dack_valid
-  ,output logic                    c1_drtol2d_3_dack_retry
-  ,input  I_drtol2_dack_type       c1_drtol2d_3_dack
-
-  ,input  logic                    c1_l2d_3todr_pfreq_valid
-  ,output logic                    c1_l2d_3todr_pfreq_retry
-  ,input  I_l2todr_pfreq_type      c1_l2d_3todr_pfreq
-`endif
-
+  ,input  logic                    c1_drtol2dt_0_dack_valid
+  ,output logic                    c1_drtol2dt_0_dack_retry
+  ,input  I_drtol2_dack_type       c1_drtol2dt_0_dack
 
    // directory 0
   ,input                           l2todr0_req_valid

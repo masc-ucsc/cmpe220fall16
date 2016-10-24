@@ -28,7 +28,7 @@ module integration_2core2dr(
     ,output logic               core0_ictocore_valid
     ,input  logic               core0_ictocore_retry
     //  ,output I_ictocore_type      core0_ictocore              
-    ,output SC_abort_type       core0_ictocore_aborted
+    ,output SC_fault_type       core0_ictocore_fault
     ,output IC_fwidth_type      core0_ictocore_data
 
    // dcache core 0, slice 0
@@ -46,7 +46,7 @@ module integration_2core2dr(
     ,input  logic               core0_slice0_dctocore_ld_retry
     //  ,output  I_dctocore_ld_type      core0_slice0_dctocore_ld           
     ,output CORE_reqid_type     core0_slice0_dctocore_ld_coreid
-    ,output SC_abort_type       core0_slice0_dctocore_ld_aborted
+    ,output SC_fault_type       core0_slice0_dctocore_ld_fault
     ,output SC_line_type        core0_slice0_dctocore_ld_data
     ,input  logic               core0_slice0_coretodc_std_valid
     ,output logic               core0_slice0_coretodc_std_retry
@@ -62,7 +62,7 @@ module integration_2core2dr(
     ,output logic               core0_slice0_dctocore_std_ack_valid
     ,input  logic               core0_slice0_dctocore_std_ack_retry
     //  ,output  I_dctocore_std_ack_type core0_slice0_dctocore_std_ack      
-    ,output SC_abort_type       core0_slice0_dctocore_std_ack_aborted
+    ,output SC_fault_type       core0_slice0_dctocore_std_ack_fault
     ,output CORE_reqid_type     core0_slice0_dctocore_std_ack_coreid
 
    // dcache core 0, slice 1
@@ -80,7 +80,7 @@ module integration_2core2dr(
     ,input  logic               core0_slice1_dctocore_ld_retry
     //  ,output  I_dctocore_ld_type      core0_slice1_dctocore_ld           
     ,output CORE_reqid_type     core0_slice1_dctocore_ld_coreid
-    ,output SC_abort_type       core0_slice1_dctocore_ld_aborted
+    ,output SC_fault_type       core0_slice1_dctocore_ld_fault
     ,output SC_line_type        core0_slice1_dctocore_ld_data
     ,input  logic               core0_slice1_coretodc_std_valid
     ,output logic               core0_slice1_coretodc_std_retry
@@ -96,7 +96,7 @@ module integration_2core2dr(
     ,output logic               core0_slice1_dctocore_std_ack_valid
     ,input  logic               core0_slice1_dctocore_std_ack_retry
     //  ,output  I_dctocore_std_ack_type core0_slice1_dctocore_std_ack      
-    ,output SC_abort_type       core0_slice1_dctocore_std_ack_aborted
+    ,output SC_fault_type       core0_slice1_dctocore_std_ack_fault
     ,output CORE_reqid_type     core0_slice1_dctocore_std_ack_coreid
 
 
@@ -116,7 +116,7 @@ module integration_2core2dr(
     ,input  logic               core0_slice2_dctocore_ld_retry
     //  ,output  I_dctocore_ld_type      core0_slice2_dctocore_ld           
     ,output CORE_reqid_type     core0_slice2_dctocore_ld_coreid
-    ,output SC_abort_type       core0_slice2_dctocore_ld_aborted
+    ,output SC_fault_type       core0_slice2_dctocore_ld_fault
     ,output SC_line_type        core0_slice2_dctocore_ld_data
     ,input  logic               core0_slice2_coretodc_std_valid
     ,output logic               core0_slice2_coretodc_std_retry
@@ -132,7 +132,7 @@ module integration_2core2dr(
     ,output logic               core0_slice2_dctocore_std_ack_valid
     ,input  logic               core0_slice2_dctocore_std_ack_retry
     //  ,output  I_dctocore_std_ack_type core0_slice2_dctocore_std_ack      
-    ,output SC_abort_type       core0_slice2_dctocore_std_ack_aborted
+    ,output SC_fault_type       core0_slice2_dctocore_std_ack_fault
     ,output CORE_reqid_type     core0_slice2_dctocore_std_ack_coreid
 
    // dcache core 0, slice 3
@@ -150,7 +150,7 @@ module integration_2core2dr(
     ,input  logic               core0_slice3_dctocore_ld_retry
     //  ,output  I_dctocore_ld_type      core0_slice3_dctocore_ld           
     ,output CORE_reqid_type     core0_slice3_dctocore_ld_coreid
-    ,output SC_abort_type       core0_slice3_dctocore_ld_aborted
+    ,output SC_fault_type       core0_slice3_dctocore_ld_fault
     ,output SC_line_type        core0_slice3_dctocore_ld_data
     ,input  logic               core0_slice3_coretodc_std_valid
     ,output logic               core0_slice3_coretodc_std_retry
@@ -166,7 +166,7 @@ module integration_2core2dr(
     ,output logic               core0_slice3_dctocore_std_ack_valid
     ,input  logic               core0_slice3_dctocore_std_ack_retry
     //  ,output  I_dctocore_std_ack_type core0_slice3_dctocore_std_ack      
-    ,output SC_abort_type       core0_slice3_dctocore_std_ack_aborted
+    ,output SC_fault_type       core0_slice3_dctocore_std_ack_fault
     ,output CORE_reqid_type     core0_slice3_dctocore_std_ack_coreid
 
 `endif
@@ -192,7 +192,7 @@ module integration_2core2dr(
     ,output logic               core1_ictocore_valid
     ,input  logic               core1_ictocore_retry
     //  ,output I_ictocore_type      core1_ictocore              
-    ,output SC_abort_type       core1_ictocore_aborted
+    ,output SC_fault_type       core1_ictocore_fault
     ,output IC_fwidth_type      core1_ictocore_data
 
    // dcache core 1, slice 0
@@ -210,7 +210,7 @@ module integration_2core2dr(
     ,input  logic               core1_slice0_dctocore_ld_retry
     //  ,output  I_dctocore_ld_type      core1_slice0_dctocore_ld           
     ,output CORE_reqid_type     core1_slice0_dctocore_ld_coreid
-    ,output SC_abort_type       core1_slice0_dctocore_ld_aborted
+    ,output SC_fault_type       core1_slice0_dctocore_ld_fault
     ,output SC_line_type        core1_slice0_dctocore_ld_data
     ,input  logic               core1_slice0_coretodc_std_valid
     ,output logic               core1_slice0_coretodc_std_retry
@@ -226,7 +226,7 @@ module integration_2core2dr(
     ,output logic               core1_slice0_dctocore_std_ack_valid
     ,input  logic               core1_slice0_dctocore_std_ack_retry
     //  ,output  I_dctocore_std_ack_type core1_slice0_dctocore_std_ack      
-    ,output SC_abort_type       core1_slice0_dctocore_std_ack_aborted
+    ,output SC_fault_type       core1_slice0_dctocore_std_ack_fault
     ,output CORE_reqid_type     core1_slice0_dctocore_std_ack_coreid
 
    // dcache core 1, slice 1
@@ -244,7 +244,7 @@ module integration_2core2dr(
     ,input  logic               core1_slice1_dctocore_ld_retry
     //  ,output  I_dctocore_ld_type      core1_slice1_dctocore_ld           
     ,output CORE_reqid_type     core1_slice1_dctocore_ld_coreid
-    ,output SC_abort_type       core1_slice1_dctocore_ld_aborted
+    ,output SC_fault_type       core1_slice1_dctocore_ld_fault
     ,output SC_line_type        core1_slice1_dctocore_ld_data
     ,input  logic               core1_slice1_coretodc_std_valid
     ,output logic               core1_slice1_coretodc_std_retry
@@ -260,7 +260,7 @@ module integration_2core2dr(
     ,output logic               core1_slice1_dctocore_std_ack_valid
     ,input  logic               core1_slice1_dctocore_std_ack_retry
     //  ,output  I_dctocore_std_ack_type core1_slice1_dctocore_std_ack      
-    ,output SC_abort_type       core1_slice1_dctocore_std_ack_aborted
+    ,output SC_fault_type       core1_slice1_dctocore_std_ack_fault
     ,output CORE_reqid_type     core1_slice1_dctocore_std_ack_coreid
 
 
@@ -280,7 +280,7 @@ module integration_2core2dr(
     ,input  logic               core1_slice2_dctocore_ld_retry
     //  ,output  I_dctocore_ld_type      core1_slice2_dctocore_ld           
     ,output CORE_reqid_type     core1_slice2_dctocore_ld_coreid
-    ,output SC_abort_type       core1_slice2_dctocore_ld_aborted
+    ,output SC_fault_type       core1_slice2_dctocore_ld_fault
     ,output SC_line_type        core1_slice2_dctocore_ld_data
     ,input  logic               core1_slice2_coretodc_std_valid
     ,output logic               core1_slice2_coretodc_std_retry
@@ -296,7 +296,7 @@ module integration_2core2dr(
     ,output logic               core1_slice2_dctocore_std_ack_valid
     ,input  logic               core1_slice2_dctocore_std_ack_retry
     //  ,output  I_dctocore_std_ack_type core1_slice2_dctocore_std_ack      
-    ,output SC_abort_type       core1_slice2_dctocore_std_ack_aborted
+    ,output SC_fault_type       core1_slice2_dctocore_std_ack_fault
     ,output CORE_reqid_type     core1_slice2_dctocore_std_ack_coreid
 
    // dcache core 1, slice 3
@@ -314,7 +314,7 @@ module integration_2core2dr(
     ,input  logic               core1_slice3_dctocore_ld_retry
     //  ,output  I_dctocore_ld_type      core1_slice3_dctocore_ld           
     ,output CORE_reqid_type     core1_slice3_dctocore_ld_coreid
-    ,output SC_abort_type       core1_slice3_dctocore_ld_aborted
+    ,output SC_fault_type       core1_slice3_dctocore_ld_fault
     ,output SC_line_type        core1_slice3_dctocore_ld_data
     ,input  logic               core1_slice3_coretodc_std_valid
     ,output logic               core1_slice3_coretodc_std_retry
@@ -330,7 +330,7 @@ module integration_2core2dr(
     ,output logic               core1_slice3_dctocore_std_ack_valid
     ,input  logic               core1_slice3_dctocore_std_ack_retry
     //  ,output  I_dctocore_std_ack_type core1_slice3_dctocore_std_ack      
-    ,output SC_abort_type       core1_slice3_dctocore_std_ack_aborted
+    ,output SC_fault_type       core1_slice3_dctocore_std_ack_fault
     ,output CORE_reqid_type     core1_slice3_dctocore_std_ack_coreid
 
 `endif
@@ -402,7 +402,7 @@ module integration_2core2dr(
 
 
     I_ictocore_type core0_ictocore;
-    assign core0_ictocore_aborted = core0_ictocore.aborted;
+    assign core0_ictocore_fault = core0_ictocore.fault;
     assign core0_ictocore_data = core0_ictocore.data;
 
     I_coretodc_ld_type core0_slice0_coretodc_ld;
@@ -416,7 +416,7 @@ module integration_2core2dr(
 
     I_dctocore_ld_type core0_slice0_dctocore_ld;
     assign core0_slice0_dctocore_ld_coreid = core0_slice0_dctocore_ld.coreid;
-    assign core0_slice0_dctocore_ld_aborted = core0_slice0_dctocore_ld.aborted;
+    assign core0_slice0_dctocore_ld_fault = core0_slice0_dctocore_ld.fault;
     assign core0_slice0_dctocore_ld_data = core0_slice0_dctocore_ld.data;
 
     I_coretodc_std_type core0_slice0_coretodc_std;
@@ -430,7 +430,7 @@ module integration_2core2dr(
     assign core0_slice0_coretodc_std.data = core0_slice0_coretodc_std_data;
 
     I_dctocore_std_ack_type core0_slice0_dctocore_std_ack;
-    assign core0_slice0_dctocore_std_ack_aborted = core0_slice0_dctocore_std_ack.aborted;
+    assign core0_slice0_dctocore_std_ack_fault = core0_slice0_dctocore_std_ack.fault;
     assign core0_slice0_dctocore_std_ack_coreid = core0_slice0_dctocore_std_ack.coreid;
 
     I_coretodc_ld_type core0_slice1_coretodc_ld;
@@ -444,7 +444,7 @@ module integration_2core2dr(
 
     I_dctocore_ld_type core0_slice1_dctocore_ld;
     assign core0_slice1_dctocore_ld_coreid = core0_slice1_dctocore_ld.coreid;
-    assign core0_slice1_dctocore_ld_aborted = core0_slice1_dctocore_ld.aborted;
+    assign core0_slice1_dctocore_ld_fault = core0_slice1_dctocore_ld.fault;
     assign core0_slice1_dctocore_ld_data = core0_slice1_dctocore_ld.data;
 
     I_coretodc_std_type core0_slice1_coretodc_std;
@@ -458,7 +458,7 @@ module integration_2core2dr(
     assign core0_slice1_coretodc_std.data = core0_slice1_coretodc_std_data;
 
     I_dctocore_std_ack_type core0_slice1_dctocore_std_ack;
-    assign core0_slice1_dctocore_std_ack_aborted = core0_slice1_dctocore_std_ack.aborted;
+    assign core0_slice1_dctocore_std_ack_fault = core0_slice1_dctocore_std_ack.fault;
     assign core0_slice1_dctocore_std_ack_coreid = core0_slice1_dctocore_std_ack.coreid;
 
 
@@ -476,7 +476,7 @@ module integration_2core2dr(
 
     I_dctocore_ld_type core0_slice2_dctocore_ld;
     assign core0_slice2_dctocore_ld_coreid = core0_slice2_dctocore_ld.coreid;
-    assign core0_slice2_dctocore_ld_aborted = core0_slice2_dctocore_ld.aborted;
+    assign core0_slice2_dctocore_ld_fault = core0_slice2_dctocore_ld.fault;
     assign core0_slice2_dctocore_ld_data = core0_slice2_dctocore_ld.data;
 
     I_coretodc_std_type core0_slice2_coretodc_std;
@@ -490,7 +490,7 @@ module integration_2core2dr(
     assign core0_slice2_coretodc_std.data = core0_slice2_coretodc_std_data;
 
     I_dctocore_std_ack_type core0_slice2_dctocore_std_ack;
-    assign core0_slice2_dctocore_std_ack_aborted = core0_slice2_dctocore_std_ack.aborted;
+    assign core0_slice2_dctocore_std_ack_fault = core0_slice2_dctocore_std_ack.fault;
     assign core0_slice2_dctocore_std_ack_coreid = core0_slice2_dctocore_std_ack.coreid;
 
     I_coretodc_ld_type core0_slice3_coretodc_ld;
@@ -504,7 +504,7 @@ module integration_2core2dr(
 
     I_dctocore_ld_type core0_slice3_dctocore_ld;
     assign core0_slice3_dctocore_ld_coreid = core0_slice3_dctocore_ld.coreid;
-    assign core0_slice3_dctocore_ld_aborted = core0_slice3_dctocore_ld.aborted;
+    assign core0_slice3_dctocore_ld_fault = core0_slice3_dctocore_ld.fault;
     assign core0_slice3_dctocore_ld_data = core0_slice3_dctocore_ld.data;
 
     I_coretodc_std_type core0_slice3_coretodc_std;
@@ -518,7 +518,7 @@ module integration_2core2dr(
     assign core0_slice3_coretodc_std.data = core0_slice3_coretodc_std_data;
 
     I_dctocore_std_ack_type core0_slice3_dctocore_std_ack;
-    assign core0_slice3_dctocore_std_ack_aborted = core0_slice3_dctocore_std_ack.aborted;
+    assign core0_slice3_dctocore_std_ack_fault = core0_slice3_dctocore_std_ack.fault;
     assign core0_slice3_dctocore_std_ack_coreid = core0_slice3_dctocore_std_ack.coreid;
 
 
@@ -533,7 +533,7 @@ module integration_2core2dr(
     assign core0_pfgtopfe_op.sptbr = core0_pfgtopfe_op_sptbr;
 
     I_ictocore_type core1_ictocore;
-    assign core1_ictocore_aborted = core1_ictocore.aborted;
+    assign core1_ictocore_fault = core1_ictocore.fault;
     assign core1_ictocore_data = core1_ictocore.data;
 
     I_coretodc_ld_type core1_slice0_coretodc_ld;
@@ -547,7 +547,7 @@ module integration_2core2dr(
 
     I_dctocore_ld_type core1_slice0_dctocore_ld;
     assign core1_slice0_dctocore_ld_coreid = core1_slice0_dctocore_ld.coreid;
-    assign core1_slice0_dctocore_ld_aborted = core1_slice0_dctocore_ld.aborted;
+    assign core1_slice0_dctocore_ld_fault = core1_slice0_dctocore_ld.fault;
     assign core1_slice0_dctocore_ld_data = core1_slice0_dctocore_ld.data;
 
     I_coretodc_std_type core1_slice0_coretodc_std;
@@ -561,7 +561,7 @@ module integration_2core2dr(
     assign core1_slice0_coretodc_std.data = core1_slice0_coretodc_std_data;
 
     I_dctocore_std_ack_type core1_slice0_dctocore_std_ack;
-    assign core1_slice0_dctocore_std_ack_aborted = core1_slice0_dctocore_std_ack.aborted;
+    assign core1_slice0_dctocore_std_ack_fault = core1_slice0_dctocore_std_ack.fault;
     assign core1_slice0_dctocore_std_ack_coreid = core1_slice0_dctocore_std_ack.coreid;
 
     I_coretodc_ld_type core1_slice1_coretodc_ld;
@@ -575,7 +575,7 @@ module integration_2core2dr(
 
     I_dctocore_ld_type core1_slice1_dctocore_ld;
     assign core1_slice1_dctocore_ld_coreid = core1_slice1_dctocore_ld.coreid;
-    assign core1_slice1_dctocore_ld_aborted = core1_slice1_dctocore_ld.aborted;
+    assign core1_slice1_dctocore_ld_fault = core1_slice1_dctocore_ld.fault;
     assign core1_slice1_dctocore_ld_data = core1_slice1_dctocore_ld.data;
 
     I_coretodc_std_type core1_slice1_coretodc_std;
@@ -589,7 +589,7 @@ module integration_2core2dr(
     assign core1_slice1_coretodc_std.data = core1_slice1_coretodc_std_data;
 
     I_dctocore_std_ack_type core1_slice1_dctocore_std_ack;
-    assign core1_slice1_dctocore_std_ack_aborted = core1_slice1_dctocore_std_ack.aborted;
+    assign core1_slice1_dctocore_std_ack_fault = core1_slice1_dctocore_std_ack.fault;
     assign core1_slice1_dctocore_std_ack_coreid = core1_slice1_dctocore_std_ack.coreid;
 
 
@@ -607,7 +607,7 @@ module integration_2core2dr(
 
     I_dctocore_ld_type core1_slice2_dctocore_ld;
     assign core1_slice2_dctocore_ld_coreid = core1_slice2_dctocore_ld.coreid;
-    assign core1_slice2_dctocore_ld_aborted = core1_slice2_dctocore_ld.aborted;
+    assign core1_slice2_dctocore_ld_fault = core1_slice2_dctocore_ld.fault;
     assign core1_slice2_dctocore_ld_data = core1_slice2_dctocore_ld.data;
 
     I_coretodc_std_type core1_slice2_coretodc_std;
@@ -621,7 +621,7 @@ module integration_2core2dr(
     assign core1_slice2_coretodc_std.data = core1_slice2_coretodc_std_data;
 
     I_dctocore_std_ack_type core1_slice2_dctocore_std_ack;
-    assign core1_slice2_dctocore_std_ack_aborted = core1_slice2_dctocore_std_ack.aborted;
+    assign core1_slice2_dctocore_std_ack_fault = core1_slice2_dctocore_std_ack.fault;
     assign core1_slice2_dctocore_std_ack_coreid = core1_slice2_dctocore_std_ack.coreid;
 
     I_coretodc_ld_type core1_slice3_coretodc_ld;
@@ -635,7 +635,7 @@ module integration_2core2dr(
 
     I_dctocore_ld_type core1_slice3_dctocore_ld;
     assign core1_slice3_dctocore_ld_coreid = core1_slice3_dctocore_ld.coreid;
-    assign core1_slice3_dctocore_ld_aborted = core1_slice3_dctocore_ld.aborted;
+    assign core1_slice3_dctocore_ld_fault = core1_slice3_dctocore_ld.fault;
     assign core1_slice3_dctocore_ld_data = core1_slice3_dctocore_ld.data;
 
     I_coretodc_std_type core1_slice3_coretodc_std;
@@ -649,7 +649,7 @@ module integration_2core2dr(
     assign core1_slice3_coretodc_std.data = core1_slice3_coretodc_std_data;
 
     I_dctocore_std_ack_type core1_slice3_dctocore_std_ack;
-    assign core1_slice3_dctocore_std_ack_aborted = core1_slice3_dctocore_std_ack.aborted;
+    assign core1_slice3_dctocore_std_ack_fault = core1_slice3_dctocore_std_ack.fault;
     assign core1_slice3_dctocore_std_ack_coreid = core1_slice3_dctocore_std_ack.coreid;
 
 

@@ -28,7 +28,7 @@
 
 // DR
 `define DR_REQIDBITS  6
-`define DR_REQIDS     (1<<`DR_REQBITS)
+`define DR_REQIDS     (1<<`DR_REQIDBITS)
 
 // max number of checkpoints
 `define DC_CKPBITS     4
@@ -42,9 +42,17 @@
 // laddr: Logical Address
 // claddr: Logical cache aligned address (lower bits not used -> 0)
 
+// TLB
+// The hpaddr is a way to identify a L2TLB entry. It is also a pseudo-hah of
+// the paddr. When a L2TLB entry is displaced, the dctlb gets a snoop.
+`define TLB_HPADDRBITS 11 // hash PADDR used by DCTLB
+`define TLB_REQIDBITS  2
+`define TLB_REQIDS     (1<<`TLB_REQBITS)
+
 `define SC_PADDRBITS   50
 // SV39 from RISCV (bits 39 to 63 musts be equal to bit 38)
 `define SC_LADDRBITS   39
+`define SC_PPADDRBITS   3 // predicted lower paddr bits [n:12]
 `define SC_IMMBITS     12
 
 `define SC_PCSIGNBITS  13
@@ -66,8 +74,9 @@
 `define SC_PAGESIZE_4MB    2'b10
 `define SC_PAGESIZE_4GB    2'b11
 
-`define SC_DCTLB_INDEXBITS 7
+`define SC_DCTLB_INDEXBITS 5
 `define SC_DCTLB_ENTRIES    (1<<(`SC_DCTLB_INDEXBITS))
+
 
 `define SC_L2TLB_FASTINDEXBITS 4 // Any size, FLOPS just recently used pages
 

@@ -1,7 +1,7 @@
 
 // This module is instantiated inside the l2cache
 //
-// The DCTLB has to track at least 4 SPBTRs at once, but no need to have
+// The l1TLB has to track at least 4 SPBTRs at once, but no need to have
 // unlimited. This means that just 4 flops translating SBPTR to valid indexes
 // are enough. If a new SBPTR checkpoint create arrives, the TLB can
 // invalidate all the associated TLB entries (and notify the L1 accordingly)
@@ -12,14 +12,32 @@ module l2tlb(
    input                           clk
   ,input                           reset
 
-  ,input                           l2tol2tlb_req_valid
-  ,output                          l2tol2tlb_req_retry
-  ,input  I_l2tol2tlb_req_type     l2tol2tlb_req
+  // L2TLB listens the same L1 request (but no ack). Response sent to L2
+  ,input                           l1tol2tlb_req_valid
+  ,output                          l1tol2tlb_req_retry
+  ,input  I_l1tol2tlb_req_type     l1tol2tlb_req
 
-  ,output                          l2tlbtol2_ack_valid
-  ,input                           l2tlbtol2_ack_retry
-  ,output I_l2tlbtol2_ack_type     l2tlbtol2_ack
+  ,output                          l2tlbtol2_fwd_valid
+  ,input                           l2tlbtol2_fwd_retry
+  ,output I_l2tlbtol2_fwd_type     l2tlbtol2_fwd
 
+  // l1TLB and L2TLB interface
+  ,output                          l2tlbtol1tlb_snoop_valid
+  ,input                           l2tlbtol1tlb_snoop_retry
+  ,output I_l2tlbtol1tlb_snoop_type l2tlbtol1tlb_snoop
+
+  ,output                          l2tlbtol1tlb_ack_valid
+  ,input                           l2tlbtol1tlb_ack_retry
+  ,output I_l2tlbtol1tlb_ack_type  l2tlbtol1tlb_ack
+
+  ,input                           l1tlbtol2tlb_req_valid
+  ,output                          l1tlbtol2tlb_req_retry
+  ,input  I_l1tlbtol2tlb_req_type  l1tlbtol2tlb_req
+
+  ,input                           l1tlbtol2tlb_sack_valid
+  ,output                          l1tlbtol2tlb_sack_retry
+  ,input  I_l1tlbtol2tlb_sack_type l1tlbtol2tlb_sack
+  
   //---------------------------
   // Directory interface (l2 has to arbitrate between L2 and L2TLB
   // messages based on nodeid. Even nodeid is L2, odd is L2TLB)

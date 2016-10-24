@@ -7,6 +7,7 @@
 
 
 `include "scmem.vh"
+
 module top_2core2dr(
   /* verilator lint_off UNUSED */
   /* verilator lint_off UNDRIVEN */
@@ -201,6 +202,8 @@ module top_2core2dr(
 
 );
 
+
+`ifdef TO_PATCH_NEW_AGGREGATOR
 
   wire core0_slice0_l1tol2_req_valid      ;
   wire core0_slice0_l1tol2_req_retry      ;
@@ -2047,6 +2050,7 @@ module top_2core2dr(
     ,.l2todr1_snoop_ack      (dr1_l2todr_snoop_ack      )
 
   );
+`endif
 
   /* verilator lint_on UNUSED */
   /* verilator lint_on UNDRIVEN */

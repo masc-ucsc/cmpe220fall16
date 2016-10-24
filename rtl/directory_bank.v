@@ -14,8 +14,10 @@
 // Parameter for the # of entry to remember: 4,8,16
 // 
 // For replacement use HawkEye or RRIP
+/* verilator lint_off WIDTH */
 /* verilator lint_off UNUSED */
 /* verilator lint_off UNDRIVEN */
+/* verilator lint_off UNOPT */
 module directory_bank(
    input                           clk
   ,input                           reset
@@ -26,7 +28,7 @@ module directory_bank(
   ,input  I_l2todr_pfreq_type      l2todr_pfreq       // NOTE: pfreq does not have ack if dropped
 
   ,input                           l2todr_req_valid
-  ,output                          l2todr_req_retry
+  ,output logic                    l2todr_req_retry
   ,input  I_l2todr_req_type        l2todr_req
 
   ,output                          drtol2_snack_valid
@@ -48,7 +50,7 @@ module directory_bank(
   // Memory interface
   // If nobody has the data, send request to memory
 
-  ,output                          drtomem_req_valid
+  ,output logic                    drtomem_req_valid
   ,input                           drtomem_req_retry
   ,output I_drtomem_req_type       drtomem_req
 
@@ -65,16 +67,33 @@ module directory_bank(
   ,output I_drtomem_pfreq_type     drtomem_pfreq
 
   );
-
-I_l2todr_req_type        drff_pfreq;
-  //assign drtomem_pfreq.paddr = drff_pfreq.paddr;
+  
+  
+  
+  //This is the new valid caused by the fork operation on l2todr_req
+  logic l2todr_req_fork_valid;
+  
+  always_comb begin
+    l2todr_req_fork_valid = !l2todr_req_retry && l2todr_req_valid;
+  end
+  
+  //This OR is because of a Fork operation on the l2todr request. The Fork consists of a fflop that
+  //holds the l2todr request temporarily and an fflop that determines a DRID to be assigned to this request.
+  //Also included is drid_valid which is a boolean which indicates if there is an available drid or not
+  always_comb begin
+    l2todr_req_retry = l2_req_retry | drid_req_retry | ~drid_valid;
+  end
+  
+  
+  I_l2todr_req_type        drff_pfreq;
+  assign drtomem_pfreq.paddr = drff_pfreq.paddr;
   
   //fflop for pfreq (prefetch request)
   //currently, only the address of the prefetch is used and passed through to the memory (for pass through test)
   //I do not know what to us the rest of the signals for and am not sure why main memory only has an address input
   //for its prefetch request type. If you know the answer, feel free to comment in my Directory good doc about it.
-  /* verilator lint_off WIDTH */
-  fflop #(.Size(49)) ff0 (
+  
+  fflop #(.Size(50)) ff0 (
     .clk      (clk),
     .reset    (reset),
 
@@ -91,23 +110,48 @@ I_l2todr_req_type        drff_pfreq;
   I_l2todr_req_type          drff_req;
   assign drtomem_req.paddr = drff_req.paddr;
   assign drtomem_req.cmd =   drff_req.cmd;
-  assign drtomem_req.drid =  6'b0;
+  assign drtomem_req.drid =  drid_ack;
   //connections left unused from l2todr_req: nid, l2id.
   //These values should be sent back on the ack, drtol2_snack, but they are currently not.
   //Also, drid should be a value rather than 0 to check the memack value to determine which L2 to return the ack to.
   
+  //Signals that connect the DRID and l2request signals to drtomem signals
+  logic inp_join_valid;
+  logic inp_join_retry;
+  
+  logic l2todr_req_ff_valid; //v1
+  logic l2todr_req_ff_retry; //r1
+  
+  logic drid_storage_req_valid;   //v3
+  logic drid_storage_req_retry;   //r3
+  
+  logic drid_ack_valid; //v2
+  logic drid_ack_retry; //r2
+  
+  //drtomem_req_valid v4
+  //drtomem_req_retry r4
+  assign inp_join_valid = drid_ack_valid && l2todr_req_ff_valid;
+  assign inp_join_retry = drid_storage_req_retry || drtomem_req_retry;
+  assign drtomem_req_valid = inp_join_valid && !(inp_join_retry);
+  assign drid_storage_req_valid = drtomem_req_valid;
+  assign l2todr_req_ff_retry = inp_join_retry || (!inp_join_valid && l2todr_req_ff_valid);
+  assign drid_ack_retry = inp_join_retry || (!inp_join_valid && drid_ack_valid);
+  
+  //Creating another retry signal because this fflop is the result of a fork of l2todr_req_retry
+  //Sorry about poor naming.
+  logic l2_req_retry;
   //fflop for l2todr_req (l2 request)
-  fflop #(.Size(63)) ff1 (
+  fflop #(.Size(64)) ff1 (
     .clk      (clk),
     .reset    (reset),
 
     .din      (l2todr_req),
-    .dinValid (l2todr_req_valid),
-    .dinRetry (l2todr_req_retry),
+    .dinValid (l2todr_req_fork_valid),
+    .dinRetry (l2_req_retry),
 
     .q        (drff_req),
-    .qValid   (drtomem_req_valid),
-    .qRetry   (drtomem_req_retry)
+    .qValid   (l2todr_req_ff_valid),
+    .qRetry   (l2todr_req_ff_retry)
   );
   
   I_memtodr_ack_type      drff_snack;
@@ -129,7 +173,7 @@ I_l2todr_req_type        drff_pfreq;
   //connections to drtol2_snack not complete. There is an assumption in this passthrough that
   //the acks are returned in order.
   //bit size of fflop is incorrect
-  fflop #(.Size(523)) ff2 (
+  fflop #(.Size(524)) ff2 (
     .clk      (clk),
     .reset    (reset),
 
@@ -155,7 +199,7 @@ I_l2todr_req_type        drff_pfreq;
   //connections to drtomem_wb not complete. There is an assumption in this passthrough that the acks are returned in order.
   //The directory should also return an ack which is associated with this write back.
   //bit size of fflop is incorrect
-  fflop #(.Size(589)) ff3 (
+  fflop #(.Size(590)) ff3 (
     .clk      (clk),
     .reset    (reset),
 
@@ -234,6 +278,126 @@ I_l2todr_req_type        drff_pfreq;
   
   //The main Question: Will this run? I think yes but poorly since the passthrough does not remember node IDs or L2 request IDs and does 
   //not generate DR IDs
+  
 
+  //Adding some temporary code here
+  logic [`DR_REQIDS-1:0] drid_valid_vector;
+  logic [`DR_REQIDS-1:0] drid_valid_vector_next;
+  
+  logic drid_release;
+  assign drid_release = 1'b0; //unused for now
+  
+  logic [`DR_REQIDBITS-1:0] drid_ack_addr; //unused as well
+  
+  always_comb begin
+    drid_valid_vector_next = drid_valid_vector;
+    //To avoid a retry issue I would include a check against ~retry but note that the signal
+    //drid_req_valid contains l2todr_req_fork_valid which contains a !retry, so adding it here
+    //would be redundant. Could probably add for clarity and hope it gets taken out when optimized.
+    
+    if(drid_req_valid) begin
+        drid_valid_vector_next[drid_valid_encoder] = 1'b0;
+    end
+    
+    if(drid_release) begin
+      drid_valid_vector_next[drid_ack_addr] = 1'b1;
+    end
+    
+  end
+  
+  //should probably change this is an fflop
+  //That way, the valids can come from inputs
+  flop_r #(.Size(`DR_REQIDS), .Reset_Value({`DR_REQIDS{1'b1}})) drid_vector_flop_r (
+    .clk      (clk)
+   ,.reset    (reset)
+   ,.din      (drid_valid_vector_next)
+   ,.q        (drid_valid_vector)
+  );
+  
+  //The naming scheme is as follows: the req is a request for a DRID and the ack is an acknowledgement returning a drid
+  logic [`DR_REQIDBITS-1:0] drid_ack;
+  logic drid_req_valid;
+  logic drid_req_retry;
+
+  
+  //Note this is not the final valid.
+  assign drid_req_valid = l2todr_req_fork_valid;
+  
+  //this fflop holds the drid that will be sent to main memory on a drtomem request
+  //The drid_req input refers to the next drid that will be assigned. This value from the Priority encoder
+  //which selects a valid DRID based on a valid vector.
+  //The valid signal comes from an AND of the Priority Encoder valid and the valid from the memory request.
+  //Optimization: I could probably use a shared fluid flop for this and the l2todr request which would simplify
+  //the handshake immensely.
+  fflop #(.Size(`DR_REQIDBITS)) drid_fflop (
+    .clk      (clk),
+    .reset    (reset),
+
+    .din      (drid_valid_encoder),
+    .dinValid (drid_req_valid),
+    .dinRetry (drid_req_retry),
+
+    .q        (drid_ack),
+    .qValid   (drid_ack_valid),
+    .qRetry   (drid_ack_retry)
+  );
+  
+  //Storage unused for now.
+  logic [10:0] drid_storage;
+  logic drid_storage_ack_valid;
+  logic drid_storage_ack_retry;
+  
+  
+  
+  ram_1port_fast 
+   #(.Width(11), .Size(`DR_REQIDS), .Forward(1))
+  ram_drid_storage ( 
+    .clk         (clk)
+   ,.reset       (reset)
+
+   ,.req_valid   (drid_storage_req_valid)
+   ,.req_retry   (drid_storage_req_retry)
+   ,.req_we      (drid_storage_req_valid) //basically, there are no read right now. temporary
+   ,.req_pos     (drid_ack)
+   ,.req_data    ({drff_req.nid,drff_req.l2id})
+
+   ,.ack_valid   (drid_storage_ack_valid)
+   ,.ack_retry   (drid_storage_ack_retry)
+   ,.ack_data    (drid_storage)
+ );
+ 
+ localparam MAX_DRID_VALUE = `DR_REQIDS-1;
+ 
+ logic [`DR_REQIDBITS-1:0] drid_valid_encoder;
+ logic drid_valid;
+ always_comb begin 
+    //Yes, I know the while loop looks bad, and I agree. The while loop is to allow for parametrization, but this scheme may
+    //affect synthesis and may be forced to change.    
+    //This for loop implements a priority encoder. It uses a 64 bit vector input which holds
+    //a valid bit for every possible DRID. This encoder looks at the bit vector and determines a 
+    //valid DRID which can be used for a memory request. The encoder is likely huge based on seeing examples
+    //for small priority encoders.
+    //The benefits of this scheme are that it does an arbitration of which DRID should be used and it does it quickly.
+    //The obvious downsides it the gate count is large. However, we only need one of these.
+    
+    //This code was adapted from https://github.com/AmeerAbdelhadi/Indirectly-Indexed-2D-Binary-Content-Addressable-Memory-BCAM/blob/master/pe_bhv.v
+    drid_valid_encoder = {`DR_REQIDBITS{1'b0}};
+    //drid_valid_encoder = 1'b1; //temporary declaration
+    drid_valid = 1'b0;
+    while ((!drid_valid) && (drid_valid_encoder != MAX_DRID_VALUE)) begin
+      drid_valid_encoder = drid_valid_encoder + 1 ;
+      drid_valid = drid_valid_vector[drid_valid_encoder];
+    end
+ end
+ 
+ //Explanation of when to remember identifications:
+ //1) The main time we have to remember is during an L2 request. This will include an NID and an L2ID. We need to request a DRID and store
+ //   the values in the fast SRAM. The DRID is then passed to main memory. Main memory will send an ack using the DRID. We want to ack back
+ //   to the L2 using NID and L2ID, so we locate these values using the DRID. At this point, the DRID can be released to be used by another request.
+ //2) The other case where we might want to store an NID and an L2ID is when an L2 performs a displacement. A DRID alocation is not needed here because
+ //   main memory will not ack on a write back. In the passthrough case, we can immediately ack back to the L2 when main memory takes in the write back
+ //   using the NID and L2ID is gave us for the request. Two ways to implement this is to assign a DRID and store the information. However, it probably
+ //   only required a fflop because the writebacks will be in order.
+  
 endmodule
 

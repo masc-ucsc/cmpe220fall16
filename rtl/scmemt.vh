@@ -9,16 +9,21 @@ typedef logic [`SC_CMDBITS-1:0]      SC_cmd_type;   // request command (L1 -> L2
 typedef logic [`SC_SCMDBITS-1:0]     SC_snack_type;  // SNOOP and ack (snack) commands
 typedef logic [`SC_DCMDBITS-1:0]     SC_dcmd_type;  // displace DC to L2 or L2 to L3
 
+typedef logic [`SC_PPADDRBITS-1:0]   SC_ppaddr_type;
 typedef logic [`SC_PADDRBITS-1:0]    SC_paddr_type;
 typedef logic [`SC_LADDRBITS-1:0]    SC_laddr_type;
+typedef logic [12-1:0]               SC_poffset_type;
 typedef logic [`SC_IMMBITS-1:0]      SC_imm_type;
 typedef logic [`SC_SBPTRBITS-1:0]    SC_sptbr_type; // Thread ID for TLB or uTLB
 typedef logic [`SC_PAGESIZEBITS-1:0] SC_pagesize_type;
 typedef logic [`SC_PCSIGNBITS-1:0]   SC_pcsign_type;
 
-typedef logic [`SC_ABORTBITS-1:0]    SC_abort_type;
+typedef logic [`SC_FAULTBITS-1:0]    SC_fault_type;
 
 typedef logic [`DR_REQIDBITS-1:0]    DR_reqid_type;
+
+typedef logic [`TLB_HPADDRBITS-1:0]  TLB_hpaddr_type;
+typedef logic [`TLB_REQIDBITS-1:0]   TLB_reqid_type;
 
 typedef logic [`SC_ROBIDBITS-1:0]    SC_robid_type;
 

@@ -261,14 +261,31 @@ module dcache_pipe(
 
   //---------------------------
   // core Prefetch interface
-  ,input                           pftocache_req_valid
-  ,output                          pftocache_req_retry
-  ,input  I_pftocache_req_type     pftocache_req
-
   ,output PF_cache_stats_type      cachetopf_stats
 
   //---------------------------
+  // TLB interface
+ 
+  // TLB interface LD
+  ,input                           l1tlbtol1_fwd0_valid
+  ,output                          l1tlbtol1_fwd0_retry
+  ,input  I_l1tlbtol1_fwd_type     l1tlbtol1_fwd0
+  // TLB interface STD
+  ,input                           l1tlbtol1_fwd1_valid
+  ,output                          l1tlbtol1_fwd1_retry
+  ,input  I_l1tlbtol1_fwd_type     l1tlbtol1_fwd1
+
+  // Notify the L1 that the index of the TLB is gone
+  ,input                           l1tlbtol1_cmd_valid
+  ,output                          l1tlbtol1_cmd_retry
+  ,input  I_l1tlbtol1_cmd_type     l1tlbtol1_cmd
+
+  //---------------------------
   // L2 interface (same for IC and DC)
+  ,output                          l1tol2tlb_req_valid
+  ,input                           l1tol2tlb_req_retry
+  ,output I_l1tol2tlb_req_type     l1tol2tlb_req
+
   ,output                          l1tol2_req_valid
   ,input                           l1tol2_req_retry
   ,output I_l1tol2_req_type        l1tol2_req
@@ -288,10 +305,6 @@ module dcache_pipe(
   ,input                           l2tol1_dack_valid
   ,output                          l2tol1_dack_retry
   ,input  I_l2tol1_dack_type       l2tol1_dack
-
-  ,output                          l1tol2_pfreq_valid
-  ,input                           l1tol2_pfreq_retry
-  ,output I_pftocache_req_type     l1tol2_pfreq
 
   /* verilator lint_on UNUSED */
   /* verilator lint_on UNDRIVEN */
