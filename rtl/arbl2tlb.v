@@ -5,16 +5,19 @@
 // WHen a request comes to the L2, the arbitrer broadcast the message to all
 // the TLBs, or when it goes to the cache it sends it only to the approviate
 // cache looking at the address.
+//
+// For each core, there are two aggregators. One for TLBs and another for
+// dcaches
 
 `include "scmem.vh"
 
-module arbitrer(
+module arbl2tlb(
   /* verilator lint_off UNUSED */
   /* verilator lint_off UNDRIVEN */
    input                           clk
   ,input                           reset
 
-  // L2D_0
+  // L2D_0 DATA
   ,input  logic                    l2d_0todr_req_valid
   ,output logic                    l2d_0todr_req_retry
   ,input  I_l2todr_req_type        l2d_0todr_req
@@ -65,7 +68,7 @@ module arbitrer(
   ,input  I_l2todr_pfreq_type      l2d_1todr_pfreq
 
 `ifdef SC_4PIPE
-  // l2d_2
+  // l2d_2 DATA
   ,input  logic                    l2d_2todr_req_valid
   ,output logic                    l2d_2todr_req_retry
   ,input  I_l2todr_req_type        l2d_2todr_req
@@ -90,7 +93,7 @@ module arbitrer(
   ,output logic                    l2d_2todr_pfreq_retry
   ,input  I_l2todr_pfreq_type      l2d_2todr_pfreq
 
-  // l2d_3
+  // l2d_3 DATA
   ,input  logic                    l2d_3todr_req_valid
   ,output logic                    l2d_3todr_req_retry
   ,input  I_l2todr_req_type        l2d_3todr_req
