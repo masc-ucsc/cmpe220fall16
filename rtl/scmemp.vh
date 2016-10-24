@@ -28,7 +28,7 @@
 
 // DR
 `define DR_REQIDBITS  6
-`define DR_REQIDS     (1<<`DR_REQBITS)
+`define DR_REQIDS     (1<<`DR_REQIDBITS)
 
 // max number of checkpoints
 `define DC_CKPBITS     4
