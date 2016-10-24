@@ -44,6 +44,8 @@
 ****************************************************************************/
 
 `define FLOP_RETRY_USE_FLOPS 1
+`define USE_SELF_W2R1 1
+
 module fflop
   #(parameter Size=1)
     (input                     clk
@@ -58,6 +60,57 @@ module fflop
      ,output logic             qValid
      );
 
+`ifdef USE_SELF_W2R1
+  // uses W2R1 implementation from
+  // http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.99.9778&rep=rep1&type=pdf
+
+  // {{{1 SELF IMPLEMENTATION
+
+  logic [Size-1:0] a_reg, b_reg;
+  logic sel;
+
+  logic c1, c2;
+  logic e0, e1;
+
+  always @ (posedge clk) begin
+    if(e1) begin
+      a_reg <= din;
+    end
+
+    if(e0) begin
+      if(sel) begin
+        b_reg <= a_reg;
+      end else begin
+        b_reg <= din;
+      end
+    end
+  end
+
+  always @ (*) begin
+    q <= b_reg;
+  end
+
+  always @ (*) begin
+    c1 <= dinRetry | dinValid;
+    c2 <= qRetry & qValid;
+  end
+
+
+  always @ (posedge clk) begin
+    dinRetry <= c1 & c2; 
+    qValid <= c1 | c2;
+  end
+
+  always @ (*) begin
+    e0  <= ~c2;
+    e1  <= sel & ~c2;
+    sel <= dinRetry;
+  end
+
+  // 1}}}
+
+
+`else
   // {{{1 Private variable priv_*i, failure, and shadowq declaration
   // Output private signals
   logic [Size-1:0] shadowq;
@@ -195,5 +248,7 @@ module fflop
    priv_dinRetry = shadowValid | reset;
   end
   // 1}}}
+
+`endif
 
 endmodule 
