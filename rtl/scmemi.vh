@@ -94,8 +94,7 @@ typedef struct packed {
 typedef struct packed {
   CORE_reqid_type   coreid;
 
-  SC_laddr_type     laddr;
-  SC_sptbr_type     sptbr;
+  SC_poffset_type   poffset;
 } I_coretoic_pc_type;
 // 1}}}
 
@@ -234,7 +233,7 @@ typedef struct packed {
   logic             pnr; // core knows it is non-cacheable, perform anyway
 
   SC_pcsign_type    pcsign;
-  SC_laddr_type     laddr;
+  SC_poffset_type   poffset;
   SC_imm_type       imm;   // address is laddr+imm
 } I_coretodc_ld_type;
 // 1}}}
@@ -267,7 +266,7 @@ typedef struct packed {
   logic             pnr; // core allows to be non-cacheable/device, perform anyway
 
   SC_pcsign_type    pcsign;
-  SC_laddr_type     laddr;
+  SC_poffset_type   poffset;
   SC_imm_type       imm;   // address is laddr+imm
 
   SC_line_type      data; // 1byte to 64bytes for vector
