@@ -93,21 +93,11 @@ module l2cache_pipe(
   ,input                           l2tol1_dack_retry
   ,output I_l2tol1_dack_type       l2tol1_dack
 
-  ,input                           l1tol2_pfreq_valid
-  ,output                          l1tol2_pfreq_retry // always false
-  ,input  I_pftocache_req_type     l1tol2_pfreq
-
   //---------------------------
   // L2TLB interface
   ,input                           l2tlbtol2_fwd_valid
   ,output                          l2tlbtol2_fwd_retry
   ,input  I_l2tlbtol2_fwd_type     l2tlbtol2_fwd
-  //---------------------------
-  // core Prefetch interface
-
-  ,input                           pftol2_pfreq_valid
-  ,output                          pftol2_pfreq_retry // always false
-  ,input  I_pftocache_req_type     pftol2_pfreq 
 
   ,output PF_cache_stats_type      cachetopf_stats
 

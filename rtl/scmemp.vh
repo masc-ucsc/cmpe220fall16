@@ -43,7 +43,9 @@
 // claddr: Logical cache aligned address (lower bits not used -> 0)
 
 // TLB
-`define TLB_HPADDRBITS 9 // hash PADDR used by DCTLB
+// The hpaddr is a way to identify a L2TLB entry. It is also a pseudo-hah of
+// the paddr. When a L2TLB entry is displaced, the dctlb gets a snoop.
+`define TLB_HPADDRBITS 11 // hash PADDR used by DCTLB
 `define TLB_REQIDBITS  2
 `define TLB_REQIDS     (1<<`TLB_REQBITS)
 

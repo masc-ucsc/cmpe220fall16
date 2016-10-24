@@ -12,10 +12,7 @@
 // In a 16 instruction fetch, we just need one bank (64bytes wide).
 //
 // 4 or 16 instruction fetch (4 or 8 way core)
-//
 
-
-//test comment
 
 module icache(
   /* verilator lint_off UNUSED */
@@ -23,7 +20,37 @@ module icache(
    input                           clk
   ,input                           reset
 
-  // l2cache_pipe interface (same as DC, but no disp/dack)
+  //---------------------------
+  // core interface
+  ,input                           coretoic_pc_valid
+  ,output                          coretoic_pc_retry
+  ,input  I_coretoic_pc_type       coretoic_pc // Bit 0 is always zero
+
+  ,output                          ictocore_valid
+  ,input                           ictocore_retry
+  ,output I_ictocore_type          ictocore
+
+  //---------------------------
+  // TLB interface
+  ,input                           l1tlbtol1_fwd_valid
+  ,output                          l1tlbtol1_fwd_retry
+  ,input  I_l1tlbtol1_fwd_type     l1tlbtol1_fwd
+
+  // Notify the L1 that the index of the TLB is gone
+  ,input                           l1tlbtol1_cmd_valid
+  ,output                          l1tlbtol1_cmd_retry
+  ,input  I_l1tlbtol1_cmd_type     l1tlbtol1_cmd
+
+  //---------------------------
+  // core Prefetch interface
+  ,output PF_cache_stats_type      cachetopf_stats
+
+  //---------------------------
+  // L2 interface (same as DC, but no disp/dack)
+  ,output                          l1tol2tlb_req_valid
+  ,input                           l1tol2tlb_req_retry
+  ,output I_l1tol2tlb_req_type     l1tol2tlb_req
+
   ,output                          l1tol2_req_valid
   ,input                           l1tol2_req_retry
   ,output I_l1tol2_req_type        l1tol2_req
@@ -36,18 +63,6 @@ module icache(
   ,input                           l1tol2_snoop_ack_retry
   ,output I_l2snoop_ack_type       l1tol2_snoop_ack
 
-  ,output                          l1tol2_pfreq_valid
-  ,input                           l1tol2_pfreq_retry
-  ,output I_pftocache_req_type     l1tol2_pfreq
-
-  // core interface
-  ,input                           coretoic_valid
-  ,output                          coretoic_retry
-  ,input  SC_laddr_type            coretoic_pc // Bit 0 is always zero
-
-  ,output                          ictocore_valid
-  ,input                           ictocore_retry
-  ,output I_ictocore_type          ictocore
   /* verilator lint_on UNUSED */
   /* verilator lint_on UNDRIVEN */
 );

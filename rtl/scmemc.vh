@@ -97,10 +97,6 @@
 `define SC_SCMD_TS          5'b11001 // toggle to share, but not writeback unless dirty
 `define SC_SCMD_PE          5'b11010 // prefetch triggered cache line push with E state
 `define SC_SCMD_PS          5'b11011 // prefetch triggered cache line push with S state
-`define SC_SCMD_TLBI4K      5'b11100 // TLB Invalidate paddr 4K page
-`define SC_SCMD_TLBI2M      5'b11101 // TLB Invalidate paddr 2M page
-`define SC_SCMD_TLBI4M      5'b11110 // TLB Invalidate paddr 4M page
-`define SC_SCMD_TLBI1G      5'b11111 // TLB Invalidate paddr 1G page
 
 // Displace command DC -> L2 and L2 -> DR 
 `define SC_DCMDBITS      3
@@ -108,8 +104,6 @@
 `define SC_DCMD_WE       3'b001 // Line got write-back & kept exclusive
 `define SC_DCMD_I        3'b010 // Line got invalidated (no disp)
 `define SC_DCMD_NC       3'b100 // non-cacheable write going down
-`define SC_DCMD_TLBWB    3'b100 // TLB disp writeback (mostly to update D/A bits). If D/A bits unchanged, no TLBWB
-`define SC_DCMD_TLBINV   3'b101 // TLB disp writeback, no D/A update
 
 `define SC_FAULTBITS       3
 `define SC_FAULT_NONE      3'b000  // No FAULT generated

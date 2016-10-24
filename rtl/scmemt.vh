@@ -12,6 +12,7 @@ typedef logic [`SC_DCMDBITS-1:0]     SC_dcmd_type;  // displace DC to L2 or L2 t
 typedef logic [`SC_PPADDRBITS-1:0]   SC_ppaddr_type;
 typedef logic [`SC_PADDRBITS-1:0]    SC_paddr_type;
 typedef logic [`SC_LADDRBITS-1:0]    SC_laddr_type;
+typedef logic [12-1:0]               SC_poffset_type;
 typedef logic [`SC_IMMBITS-1:0]      SC_imm_type;
 typedef logic [`SC_SBPTRBITS-1:0]    SC_sptbr_type; // Thread ID for TLB or uTLB
 typedef logic [`SC_PAGESIZEBITS-1:0] SC_pagesize_type;
