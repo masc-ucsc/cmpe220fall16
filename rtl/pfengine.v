@@ -7,46 +7,29 @@
 module pfengine(
   /* verilator lint_off UNUSED */
  /* verilator lint_off UNDRIVEN */
-   input  clk
-  ,input  reset
+   input                           clk
+  ,input                           reset
 
   ,input  logic                    pfgtopfe_op_valid
   ,output logic                    pfgtopfe_op_retry
-  ,input I_pfgtopfe_op_type        pfgtopfe_op
+  ,input  I_pfgtopfe_op_type       pfgtopfe_op
 
   ,output logic                    pftodc_req0_valid
   ,input  logic                    pftodc_req0_retry
-  ,output I_pftocache_req_type     pftodc_req0
-
-  ,output logic                    pftol2_req0_valid
-  ,input  logic                    pftol2_req0_retry
-  ,output I_pftocache_req_type     pftol2_req0
-
+  ,output I_pfetol1tlb_req_type    pftodc_req0
 
   ,output logic                    pftodc_req1_valid
   ,input  logic                    pftodc_req1_retry
-  ,output I_pftocache_req_type     pftodc_req1
-
-  ,output logic                    pftol2_req1_valid
-  ,input  logic                    pftol2_req1_retry
-  ,output I_pftocache_req_type     pftol2_req1
+  ,output I_pfetol1tlb_req_type    pftodc_req1
 
 `ifdef SC_4PIPE
   ,output logic                    pftodc_req2_valid
   ,input  logic                    pftodc_req2_retry
-  ,output I_pftocache_req_type     pftodc_req2
+  ,output I_pfetol1tlb_req_type    pftodc_req2
 
   ,output logic                    pftodc_req3_valid
   ,input  logic                    pftodc_req3_retry
-  ,output I_pftocache_req_type     pftodc_req3
-
-  ,output logic                    pftol2_req2_valid
-  ,input  logic                    pftol2_req2_retry
-  ,output I_pftocache_req_type     pftol2_req2
-
-  ,output logic                    pftol2_req3_valid
-  ,input  logic                    pftol2_req3_retry
-  ,output I_pftocache_req_type     pftol2_req3
+  ,output I_pfetol1tlb_req_type    pftodc_req3
 `endif
 
   ,output PF_cache_stats_type      pf_dcstats  // No fluid, just flop state
@@ -86,6 +69,7 @@ module pfengine(
     .qRetry   (pfgtopfe_op_next_retry)
   );
  
+  `ifdef CHANGE_INTERFACE
 
   logic                 pftodc_req0_prev_retry;
   logic                 pftodc_req0_prev_valid;
@@ -352,9 +336,9 @@ module pfengine(
     .q        (pf_l2stats)
   );
 
+`endif
 
-/* verilator lint_off WIDTH */
-
+/* donotdothis lint_off WIDTH */
 
 endmodule
 

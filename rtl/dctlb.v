@@ -20,47 +20,51 @@ module dctlb(
   ,input                           reset
 
   // ld core interface
-  ,input                           coretodctlb_req0_valid
-  ,output                          coretodctlb_req0_retry
-  ,input  I_coretodctlb_req_type   coretodctlb_req0
+  ,input                           coretodctlb_ld_valid
+  ,output                          coretodctlb_ld_retry
+  ,input  I_coretodctlb_ld_type    coretodctlb_ld
 
   // st core interface
-  ,input                           coretodctlb_req1_valid
-  ,output                          coretodctlb_req1_retry
-  ,input  I_coretodctlb_req_type   coretodctlb_req1
+  ,input                           coretodctlb_st_valid
+  ,output                          coretodctlb_st_retry
+  ,input  I_coretodctlb_st_type    coretodctlb_st
+
+  // prefetch request (uses the st/ld fwd port opportunistically)
+  ,input                           pfetol1tlb_req_valid
+  ,output                          pfetol1tlb_req_retry
+  ,input  I_pfetol1tlb_req_type    pfetol1tlb_req
 
   // forward ld core interface
-  ,output                          dctlbtol1_fwd0_valid
-  ,input                           dctlbtol1_fwd0_retry
-  ,output I_dctlbtol1_fwd_type     dctlbtol1_fwd0
+  ,output                          l1tlbtol1_fwd0_valid
+  ,input                           l1tlbtol1_fwd0_retry
+  ,output I_l1tlbtol1_fwd_type     l1tlbtol1_fwd0
 
   // forward st core interface
-  ,output                          dctlbtol1_fwd1_valid
-  ,input                           dctlbtol1_fwd1_retry
-  ,output I_dctlbtol1_fwd_type     dctlbtol1_fwd1
+  ,output                          l1tlbtol1_fwd1_valid
+  ,input                           l1tlbtol1_fwd1_retry
+  ,output I_l1tlbtol1_fwd_type     l1tlbtol1_fwd1
 
   // Notify the L1 that the index of the TLB is gone
-  ,output                          dctlbtol1_cmd_valid
-  ,input                           dctlbtol1_cmd_retry
-  ,output I_dctlbtol1_cmd_type     dctlbtol1_cmd
+  ,output                          l1tlbtol1_cmd_valid
+  ,input                           l1tlbtol1_cmd_retry
+  ,output I_l1tlbtol1_cmd_type     l1tlbtol1_cmd
 
   // Interface with the L2 TLB
-  ,input                           l2tlbtodctlb_snoop_valid
-  ,output                          l2tlbtodctlb_snoop_retry
-  ,input I_l2tlbtodctlb_snoop_type l2tlbtodctlb_snoop
+  ,input                           l2tlbtol1tlb_snoop_valid
+  ,output                          l2tlbtol1tlb_snoop_retry
+  ,input I_l2tlbtol1tlb_snoop_type l2tlbtol1tlb_snoop
 
-  ,input                           l2tlbtodctlb_ack_valid
-  ,output                          l2tlbtodctlb_ack_retry
-  ,input I_l2tlbtodctlb_ack_type   l2tlbtodctlb_ack
+  ,input                           l2tlbtol1tlb_ack_valid
+  ,output                          l2tlbtol1tlb_ack_retry
+  ,input I_l2tlbtol1tlb_ack_type   l2tlbtol1tlb_ack
 
-  ,output                          dctlbtol2tlb_req_valid
-  ,input                           dctlbtol2tlb_req_retry
-  ,output I_dctlbtol2tlb_req_type  dctlbtol2tlb_req
+  ,output                          l1tlbtol2tlb_req_valid
+  ,input                           l1tlbtol2tlb_req_retry
+  ,output I_l1tlbtol2tlb_req_type  l1tlbtol2tlb_req
 
-  ,output                          dctlbtol2tlb_sack_valid
-  ,input                           dctlbtol2tlb_sack_retry
-  ,output I_dctlbtol2tlb_sack_type dctlbtol2tlb_sack
-
+  ,output                          l1tlbtol2tlb_sack_valid
+  ,input                           l1tlbtol2tlb_sack_retry
+  ,output I_l1tlbtol2tlb_sack_type l1tlbtol2tlb_sack
   /* verilator lint_on UNUSED */
 );
 
