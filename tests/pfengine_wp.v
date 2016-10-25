@@ -7,8 +7,8 @@ module pfengine_wp (
 
   ,input  logic                    pfgtopfe_op_valid
   ,output logic                    pfgtopfe_op_retry
-  ,input PF_delta_type             pfgtopfe_op_d
-  ,input PF_weigth_type            pfgtopfe_op_w
+  ,input PF_delta_type             pfgtopfe_op_d1
+  ,input PF_weigth_type            pfgtopfe_op_w1
   ,input PF_delta_type             pfgtopfe_op_d2
   ,input PF_weigth_type            pfgtopfe_op_w2
   ,input SC_pcsign_type            pfgtopfe_op_pcsign
@@ -156,8 +156,8 @@ module pfengine_wp (
 
   ,.pfgtopfe_op_valid       (pfgtopfe_op_valid)
   ,.pfgtopfe_op_retry       (pfgtopfe_op_retry)
-  ,.pfgtopfe_op             ({pfgtopfe_op_d
-                             ,pfgtopfe_op_w
+  ,.pfgtopfe_op             ({pfgtopfe_op_d1
+                             ,pfgtopfe_op_w1
                              ,pfgtopfe_op_d2
                              ,pfgtopfe_op_w2
                              ,pfgtopfe_op_pcsign

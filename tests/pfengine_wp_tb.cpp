@@ -49,21 +49,24 @@ void sim_finish(bool pass) {
 }
 
 struct InputPacket {
-  uint8_t  pf_d;
-  uint8_t  pf_w;
+  uint8_t  pf_d1;
+  uint8_t  pf_w1;
+  uint8_t  pf_d2;
+  uint8_t  pf_w2;
   uint8_t  pf_pcsign;
-  uint8_t  pf_laddr;
+  uint64_t  pf_laddr;
   uint8_t  pf_sptbr;
+  uint8_t  pf_user;
 };
 
 struct OutputPacket {
-  uint8_t pf_dcreq0_laddr;
+  uint64_t pf_dcreq0_laddr;
   uint8_t pf_dcreq0_sptbr;
-  uint8_t pf_dcreq1_laddr;
+  uint64_t pf_dcreq1_laddr;
   uint8_t pf_dcreq1_sptbr;
-  uint8_t pf_dcreq2_laddr;
+  uint64_t pf_dcreq2_laddr;
   uint8_t pf_dcreq2_sptbr;
-  uint8_t pf_dcreq3_laddr;
+  uint64_t pf_dcreq3_laddr;
   uint8_t pf_dcreq3_sptbr;
 };
 
@@ -96,14 +99,14 @@ void try_send_packet(Vpfengine_wp *top) {
       fprintf(stderr,"ERROR: Internal error, could not be empty input\n");
     }
     InputPacket inp = inp_list.back();
-    top->pfgtopfe_op_d      = inp.pf_d;
-    top->pfgtopfe_op_w      = inp.pf_w;
+    top->pfgtopfe_op_d1      = inp.pf_d1;
+    top->pfgtopfe_op_w1      = inp.pf_w1;
     top->pfgtopfe_op_pcsign = inp.pf_pcsign;
     top->pfgtopfe_op_laddr  = inp.pf_laddr;
     //top->pfgtopfe_op_sptbr  = inp.pf_sptbr;
 
 #ifdef DEBUG_TRACE
-    printf("@%lld delta:%x weight:%x laddr:%x pcsign:%x \n",global_time, inp.pf_d, inp.pf_w, inp.pf_laddr, inp.pf_pcsign);
+    printf("@%lld delta:%x weight:%x laddr:%x pcsign:%x \n",global_time, inp.pf_d1, inp.pf_w1, inp.pf_laddr, inp.pf_pcsign);
 #endif
 
     OutputPacket out;
@@ -244,8 +247,8 @@ int main(int argc, char **argv, char **env) {
 
     if (((rand() & 0x3)==0) && inp_list.size() < 3 ) {
       InputPacket i;
-      i.pf_d      = 0;
-      i.pf_w      = 1;
+      i.pf_d1      = 0;
+      i.pf_w1      = 1;
       i.pf_laddr  = rand() & 0xFF;
       i.pf_pcsign = rand() & 0xFFFF;
       inp_list.push_front(i);
