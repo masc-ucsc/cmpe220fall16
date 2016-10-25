@@ -72,24 +72,33 @@ module fflop
   logic c1, c2;
   logic e0;
   //logic e1;
+  logic shadowValid;
 
   always_comb begin
     c1 = dinRetry | dinValid;
     c2 = qRetry & qValid;
   end
 
+  always @(negedge clk) begin
+    if (reset) begin
+      shadowValid <= 0;
+    end else begin
+      shadowValid <= (c1 & c2);
+    end
+  end
+
   always @(posedge clk) begin
     if(reset) begin
-      dinRetry <= 'b0; 
-      qValid <= 'b0;
+      dinRetry <= 'b1; 
+      qValid   <= 'b0;
     end else begin
-      dinRetry <= c1 & c2; 
-      qValid <= c1 | c2;
+      dinRetry <= shadowValid; 
+      qValid   <= shadowValid | dinValid | c2;
     end
   end
 
   always_comb begin
-    if (dinRetry) begin
+    if (shadowValid) begin
       q_next =  a_reg;
     end else begin
       q_next =  din;
