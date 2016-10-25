@@ -70,7 +70,8 @@ module fflop
   logic [Size-1:0] q_next;
 
   logic c1, c2;
-  logic e0, e1;
+  logic e0;
+  //logic e1;
 
   always_comb begin
     c1 = dinRetry | dinValid;
@@ -97,14 +98,14 @@ module fflop
 
   always_comb begin
     e0  = ~c2;
-    e1  = dinRetry & ~c2;
+    //e1  = dinRetry & ~c2;
   end
 
   //data path
   always @(posedge clk) begin
     if (reset) begin
       a_reg <= 'b0; // Not needed, but verilator does not like x
-    end else if (e1) begin
+    end else begin
       a_reg <= din;
     end
   end

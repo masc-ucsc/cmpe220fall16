@@ -11,7 +11,7 @@ lint:
 REGLIST:=
 ###########################
 join_fadd:
-	verilator --assert --debug-check -I./rtl --Wall --cc --trace ./rtl/join_fadd.v ./rtl/fflop.v --exe tests/join_fadd_tb.cpp -CFLAGS -DTRACE=1
+	verilator --assert --debug-check -I./rtl --Wall --cc --trace ./rtl/join_fadd.v ./rtl/fflop.v --exe tests/join_fadd_tb.cpp -CFLAGS "-DTRACE=1 -DVL_DEBUG"
 	make -C obj_dir/ -f Vjoin_fadd.mk Vjoin_fadd
 
 run_join_fadd: join_fadd
