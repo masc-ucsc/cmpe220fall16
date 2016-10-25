@@ -85,7 +85,9 @@ module directory_bank(
   end
   
   
-  I_l2todr_req_type        drff_pfreq;
+  //The fflop below uses type I_l2todr_pfreq_type as its input and output. While I_drtomem_pfreq_type is basically the same struct,
+  //I divided the fflop output and assignment so there would not be any conflicts.
+  I_l2todr_pfreq_type        drff_pfreq;
   assign drtomem_pfreq.paddr = drff_pfreq.paddr;
   
   //fflop for pfreq (prefetch request)
@@ -93,7 +95,7 @@ module directory_bank(
   //I do not know what to us the rest of the signals for and am not sure why main memory only has an address input
   //for its prefetch request type. If you know the answer, feel free to comment in my Directory good doc about it.
   
-  fflop #(.Size(50)) ff0 (
+  fflop #(.Size($bits(I_l2todr_pfreq_type))) ff0 (
     .clk      (clk),
     .reset    (reset),
 
@@ -101,7 +103,7 @@ module directory_bank(
     .dinValid (l2todr_pfreq_valid),
     .dinRetry (l2todr_pfreq_retry),
 
-    .q        (drtomem_pfreq),
+    .q        (drff_pfreq),
     .qValid   (drtomem_pfreq_valid),
     .qRetry   (drtomem_pfreq_retry)
   );
