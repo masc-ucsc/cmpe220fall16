@@ -20,6 +20,7 @@ void advance_half_clock(Vjoin_fadd *top) {
   top->eval();
   top->clk = !top->clk;
   top->eval();
+  top->eval();
 
   global_time++;
   if (Verilated::gotFinish())  
@@ -61,6 +62,8 @@ struct InputPacketB {
 struct OutputPacket {
   int nset ;
   int sum;
+  int inp_a;
+  int inp_b;
 };
 
 double sc_time_stamp() {
@@ -147,7 +150,7 @@ void try_recv_packet(Vjoin_fadd *top) {
 #endif
   OutputPacket o = out_list.back();
   if (top->sum != o.sum) {
-    printf("ERROR: expected %d but sum is %d\n",o.sum,top->sum);
+    printf("ERROR: expected %d but sum is %d (%d+%d)\n",o.sum,top->sum,o.inp_a,o.inp_b);
     error_found(top);
   }
 
@@ -163,7 +166,11 @@ int main(int argc, char **argv, char **env) {
   Vjoin_fadd* top = new Vjoin_fadd;
 
   int t = (int)time(0);
+#if 1
+  srand(1477403302);
+#else
   srand(t);
+#endif
   printf("My RAND Seed is %d\n",t);
 
 #ifdef TRACE
@@ -207,6 +214,8 @@ int main(int argc, char **argv, char **env) {
 
       OutputPacket o;
       o.sum = (ia.inp_a + ib.inp_b) & 0xFF;
+      o.inp_a = ia.inp_a;
+      o.inp_b = ib.inp_b;
 
       out_list.push_front(o);
     }

@@ -66,7 +66,7 @@ module fflop
 
   // {{{1 SELF IMPLEMENTATION
 
-  logic [Size-1:0] a_reg, b_reg;
+  logic [Size-1:0] a_reg;
   logic sel;
 
   logic c1, c2;
@@ -87,29 +87,31 @@ module fflop
     end
   end
 
-  always @ (*) begin
+  always_comb begin
     e0  = ~c2;
     e1  = dinRetry & ~c2;
     sel = dinRetry;
   end
 
   //data path
-  always @ (posedge clk) begin
-    if(e1) begin
+  always @(posedge clk) begin
+    if (reset) begin
+      a_reg <= 'b0; // Not needed, but verilator does not like x
+    end else if (e1) begin
       a_reg <= din;
-    end
-
-    if(e0) begin
-      if(sel) begin
-        b_reg <= a_reg;
-      end else begin
-        b_reg <= din;
-      end
     end
   end
 
-  always @ (*) begin
-    q = b_reg;
+  always @(posedge clk) begin
+    if (reset) begin
+      q <= 'b0; // Not needed, but verilator does not like x
+    end else if(e0) begin
+      if(sel) begin
+        q <= a_reg;
+      end else begin
+        q <= din;
+      end
+    end
   end
 
   // 1}}}
