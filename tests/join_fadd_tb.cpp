@@ -74,7 +74,16 @@ std::list<InputPacketB>  inpb_list;
 std::list<OutputPacket> out_list;
 
 void try_send_packet(Vjoin_fadd *top) {
-  top->sumRetry = (rand()&0xF)==0; // randomly, one every 8 packets
+  static int set_retry_for = 0;
+  if ((rand()&0xF)==0 && set_retry_for == 0) {
+    set_retry_for = rand()&0x1F;
+  }
+  if (set_retry_for) {
+    set_retry_for--;
+    top->sumRetry = 1;
+  }else{
+    top->sumRetry = (rand()&0xF)==0; // randomly, one every 8 packets
+  }
 
   if (!top->inp_aRetry) {
     top->inp_a = rand();
@@ -197,7 +206,7 @@ int main(int argc, char **argv, char **env) {
   advance_clock(top,1);
 
 #if 1
-  for(int i =0;i<1024;i++) {
+  for(int i =0;i<10240;i++) {
     try_send_packet(top);
     advance_half_clock(top);
     try_recv_packet(top);
