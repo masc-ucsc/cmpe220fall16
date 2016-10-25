@@ -67,17 +67,17 @@ module fflop
   // {{{1 SELF IMPLEMENTATION
 
   logic [Size-1:0] a_reg;
-  logic sel;
+  logic [Size-1:0] q_next;
 
   logic c1, c2;
   logic e0, e1;
 
-  always @ (*) begin
+  always_comb begin
     c1 = dinRetry | dinValid;
     c2 = qRetry & qValid;
   end
 
-  always @ (posedge clk) begin
+  always @(posedge clk) begin
     if(reset) begin
       dinRetry <= 'b0; 
       qValid <= 'b0;
@@ -88,9 +88,16 @@ module fflop
   end
 
   always_comb begin
+    if (dinRetry) begin
+      q_next =  a_reg;
+    end else begin
+      q_next =  din;
+    end
+  end
+
+  always_comb begin
     e0  = ~c2;
     e1  = dinRetry & ~c2;
-    sel = dinRetry;
   end
 
   //data path
@@ -106,11 +113,7 @@ module fflop
     if (reset) begin
       q <= 'b0; // Not needed, but verilator does not like x
     end else if(e0) begin
-      if(sel) begin
-        q <= a_reg;
-      end else begin
-        q <= din;
-      end
+      q <= q_next;
     end
   end
 
