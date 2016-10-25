@@ -72,6 +72,28 @@ module fflop
   logic c1, c2;
   logic e0, e1;
 
+  always @ (*) begin
+    c1 = dinRetry | dinValid;
+    c2 = qRetry & qValid;
+  end
+
+  always @ (posedge clk) begin
+    if(reset) begin
+      dinRetry <= 'b0; 
+      qValid <= 'b0;
+    end else begin
+      dinRetry <= c1 & c2; 
+      qValid <= c1 | c2;
+    end
+  end
+
+  always @ (*) begin
+    e0  = ~c2;
+    e1  = dinRetry & ~c2;
+    sel = dinRetry;
+  end
+
+  //data path
   always @ (posedge clk) begin
     if(e1) begin
       a_reg <= din;
@@ -87,28 +109,10 @@ module fflop
   end
 
   always @ (*) begin
-    q <= b_reg;
-  end
-
-  always @ (*) begin
-    c1 <= dinRetry | dinValid;
-    c2 <= qRetry & qValid;
-  end
-
-
-  always @ (posedge clk) begin
-    dinRetry <= c1 & c2; 
-    qValid <= c1 | c2;
-  end
-
-  always @ (*) begin
-    e0  <= ~c2;
-    e1  <= sel & ~c2;
-    sel <= dinRetry;
+    q = b_reg;
   end
 
   // 1}}}
-
 
 `else
   // {{{1 Private variable priv_*i, failure, and shadowq declaration
