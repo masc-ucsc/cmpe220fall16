@@ -17,24 +17,9 @@ void advance_half_clock(Vjoin_fadd *top) {
   tfp->dump(global_time);
 #endif
 
-  if (top->clk) {
-    printf("1. posedge begin\n");
-  }else{
-    printf("1. negedge begin\n");
-  }
   top->eval();
   top->clk = !top->clk;
-  if (top->clk) {
-    printf("2. posedge begin\n");
-  }else{
-    printf("2. negedge begin\n");
-  }
   top->eval();
-  if (top->clk) {
-    printf("3. posedge begin\n");
-  }else{
-    printf("3. negedge begin\n");
-  }
 
   global_time++;
   if (Verilated::gotFinish())  
