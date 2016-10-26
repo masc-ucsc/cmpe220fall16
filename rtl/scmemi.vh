@@ -314,15 +314,13 @@ typedef struct packed {
   // laddr: addr
   // prefetches: addr+123,addr+2*123,addr+3*123
 
-  PF_delta_type     d1; // Delta from the DVTAGE or delta predictor
-  PF_weigth_type    w1; // delta confidence (higher better)
-  PF_delta_type     d2; // Delta from the DVTAGE or delta predictor
-  PF_weigth_type    w2; // delta confidence (higher better)
+  PF_delta_type     delta; // Delta from the DVTAGE or delta predictor
+  PF_weigth_type    w1; // L1: delta confidence (higher better)
+  PF_weigth_type    w2; // L2: delta confidence (higher better)
 
   SC_pcsign_type    pcsign;
   SC_laddr_type     laddr; // Base Address
   SC_sptbr_type     sptbr;
-  logic             user; // user mode or supervisor mode
 } I_pfgtopfe_op_type;
 // 1}}}
 
