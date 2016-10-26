@@ -61,7 +61,7 @@ directory_bank_wp:
 run_directory_bank_wp: directory_bank_wp
 	./obj_dir/Vdirectory_bank_wp
 
-REGLIST+=directory_bank_wp
+#REGLIST+=directory_bank_wp
 ###########################
 integration_2core2dr:
 	verilator --assert --debug-check -I./rtl --Wall --cc --trace --top-module integration_2core2dr ./tests/integration_2core2dr.v ./rtl/top_2core2dr.v ./rtl/fflop.v --exe tests/integration_2core2dr_tests.cpp -CFLAGS -DTRACE=1

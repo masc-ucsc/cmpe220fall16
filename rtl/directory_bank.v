@@ -12,6 +12,10 @@
 // If prefetch queue is full, drop oldest 
 //
 // Parameter for the # of entry to remember: 4,8,16
+//
+// The prefetches go to the mem, if they come back (no guarantee), the
+// nodeid/address indicates to what core to forward the request. The Ack is
+// passed as a ACK_P* to the L2 node
 // 
 // For replacement use HawkEye or RRIP
 /* verilator lint_off WIDTH */
@@ -43,9 +47,9 @@ module directory_bank(
   ,input                           drtol2_dack_retry
   ,output I_drtol2_dack_type       drtol2_dack
 
-  ,output                          l2todr_snoop_ack_valid
-  ,input                           l2todr_snoop_ack_retry
-  ,output I_drsnoop_ack_type       l2todr_snoop_ack
+  ,input                           l2todr_snoop_ack_valid
+  ,output                          l2todr_snoop_ack_retry
+  ,input  I_drsnoop_ack_type       l2todr_snoop_ack
 
   // Memory interface
   // If nobody has the data, send request to memory

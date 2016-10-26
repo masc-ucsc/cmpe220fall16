@@ -335,6 +335,7 @@ typedef struct packed {
 
 // {{{1 l2todr_pfreq
 typedef struct packed {
+  SC_nodeid_type    nid; 
   SC_paddr_type     paddr;
 } I_l2todr_pfreq_type;
 // 1}}}
@@ -388,7 +389,10 @@ typedef struct packed {
 
 // {{{1 memtodr_ack
 typedef struct packed {
-  DR_reqid_type     drid;
+  DR_reqid_type     drid; // invalid entry for prefetch
+
+  SC_nodeid_type    nid; 
+  SC_paddr_type     paddr;
 
   SC_snack_type     ack; // only ACK for mem
   SC_line_type      line;
