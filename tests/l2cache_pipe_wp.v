@@ -23,20 +23,20 @@ module l2cache_pipe_wp(
     output                                l2tol1_snack_valid,
     input                                 l2tol1_snack_retry,
       // Dispatching
-    output  L1_reqid_type                 l2tol1_snack_dcid,
-    output  L2_reqid_type                 l2tol1_snack_l2id,
-    output  SC_snack_type                 l2tol1_snack_snack,
+    output  L1_reqid_type                 l2tol1_snack_dcid, // 5
+    output  L2_reqid_type                 l2tol1_snack_l2id, // 6
+    output  SC_snack_type                 l2tol1_snack_snack, // 5
         // output  SC_line_type             l2tol1_snack_line,
-    output  logic [63:0]                  l2tol1_snack_line7,
+    output  logic [63:0]                  l2tol1_snack_line7, // 64
     output  logic [63:0]                  l2tol1_snack_line6,
     output  logic [63:0]                  l2tol1_snack_line5,
     output  logic [63:0]                  l2tol1_snack_line4,
     output  logic [63:0]                  l2tol1_snack_line3,
     output  logic [63:0]                  l2tol1_snack_line2,
     output  logic [63:0]                  l2tol1_snack_line1,
-    output  logic [63:0]                  l2tol1_snack_line0,
-    output  SC_paddr_type                 l2tol1_snack_paddr,
-    output  SC_dctlbe_type                l2tol1_snack_dctlbe,
+    output  logic [63:0]                  l2tol1_snack_line0, 
+    output  SC_paddr_type                 l2tol1_snack_paddr, // 50
+    output  SC_dctlbe_type                l2tol1_snack_dctlbe, // 5
     
     // input I_l2snoop_ack_type             l2snoop_ack,
     input                                 l1tol2_snoop_ack_valid,
@@ -69,22 +69,17 @@ module l2cache_pipe_wp(
       // Dispatching
     output  L1_reqid_type                 l2tol1_dack_l1id,
     
-    // input  I_pftocache_req_type          pftocache_req,
-    input                                 l1tol2_pfreq_valid,
-    output                                l1tol2_pfreq_retry,
-      // Dispatching
-    input   SC_laddr_type                 l1tol2_pfreq_laddr,
-    input   SC_sptbr_type                 l1tol2_pfreq_sptbr,
-
     // --------------------------------
-    // core Prefetch interface
+    // L2TLB interface
 
-    // input  I_pftocache_req_type          pftol2_pfreq,
-    input                                 pftol2_pfreq_valid,
-    output                                pftol2_pfreq_retry,
+    // input  I_l2tlbtol2_fwd_type          pftol2_pfreq,
+    input                                 l2tlbtol2_fwd_valid,
+    output                                l2tlbtol2_fwd_retry,
       // Dispatching
-    input   SC_laddr_type                 pftol2_pfreq_laddr,
-    input   SC_sptbr_type                 pftol2_pfreq_sptbr,
+    input   L1_reqid_type                 l2tlbtol2_fwd_l1id,
+    input   SC_fault_type                 l2tlbtol2_fwd_fault,
+    input   TLB_hpaddr_type               l2tlbtol2_fwd_hpaddr,
+    input   SC_paddr_type                 l2tlbtol2_fwd_paddr,
         
     // output  PF_cache_stats_type          cachetopf_stats,
     output  logic [6:0]                   cachetopf_stats_nhitmissd,
@@ -112,12 +107,12 @@ module l2cache_pipe_wp(
     input                                 drtol2_snack_valid,
     output                                drtol2_snack_retry,
       // Dispatching
-    input   SC_nodeid_type                drtol2_snack_nid, 
-    input   L2_reqid_type                 drtol2_snack_l2id,
-    input   DR_reqid_type                 drtol2_snack_drid,
-    input   SC_snack_type                 drtol2_snack_snack,
+    input   SC_nodeid_type                drtol2_snack_nid, // 5
+    input   L2_reqid_type                 drtol2_snack_l2id, // 6
+    input   DR_reqid_type                 drtol2_snack_drid, // 6
+    input   SC_snack_type                 drtol2_snack_snack, // 5
         // input  SC_line_type              drtol2_snack_line,
-    input   logic [63:0]                  drtol2_snack_line7,
+    input   logic [63:0]                  drtol2_snack_line7, // 64
     input   logic [63:0]                  drtol2_snack_line6,
     input   logic [63:0]                  drtol2_snack_line5,
     input   logic [63:0]                  drtol2_snack_line4,
@@ -125,7 +120,7 @@ module l2cache_pipe_wp(
     input   logic [63:0]                  drtol2_snack_line2,
     input   logic [63:0]                  drtol2_snack_line1,
     input   logic [63:0]                  drtol2_snack_line0,
-    input   SC_paddr_type                 drtol2_snack_paddr,
+    input   SC_paddr_type                 drtol2_snack_paddr, // 50
 
     // output I_l2snoop_ack_type            l2todr_snoop_ack,
     output                                l2todr_snoop_ack_valid,
@@ -159,7 +154,7 @@ module l2cache_pipe_wp(
     input   SC_nodeid_type                drtol2_dack_nid, 
     input   L2_reqid_type                 drtol2_dack_l2id,
 
-    // output I_pftocache_req_type          l2todr_pdreq,
+    // output I_l2todr_pfreq_type          l2todr_pfreq,
     output                                l2todr_pfreq_valid,
     input                                 l2todr_pfreq_retry,
       // Dispatching
@@ -221,15 +216,12 @@ module l2cache_pipe_wp(
         .l2tol1_dack_retry(l2tol1_dack_retry),
         .l2tol1_dack(      l2tol1_dack_l1id),
 
-        .l1tol2_pfreq_valid(l1tol2_pfreq_valid),
-        .l1tol2_pfreq_retry(l1tol2_pfreq_retry),
-        .l1tol2_pfreq({     l1tol2_pfreq_laddr,
-                            l1tol2_pfreq_sptbr}),
-
-        .pftol2_pfreq_valid(pftol2_pfreq_valid),
-        .pftol2_pfreq_retry(pftol2_pfreq_retry),
-        .pftol2_pfreq({     pftol2_pfreq_laddr,
-                            pftol2_pfreq_sptbr}),
+        .l2tlbtol2_fwd_valid(l2tlbtol2_fwd_valid),
+        .l2tlbtol2_fwd_retry(l2tlbtol2_fwd_retry),
+        .l2tlbtol2_fwd({     l2tlbtol2_fwd_l1id,
+                             l2tlbtol2_fwd_fault,
+                             l2tlbtol2_fwd_hpaddr,
+                             l2tlbtol2_fwd_paddr}),
 
         .cachetopf_stats({  cachetopf_stats_nhitmissd,
                             cachetopf_stats_nhitmissp,
