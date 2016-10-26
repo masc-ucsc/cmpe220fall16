@@ -7,14 +7,12 @@ module pfengine_wp (
 
   ,input  logic                    pfgtopfe_op_valid
   ,output logic                    pfgtopfe_op_retry
-  ,input PF_delta_type             pfgtopfe_op_d1
+  ,input PF_delta_type             pfgtopfe_op_delta
   ,input PF_weigth_type            pfgtopfe_op_w1
-  ,input PF_delta_type             pfgtopfe_op_d2
   ,input PF_weigth_type            pfgtopfe_op_w2
   ,input SC_pcsign_type            pfgtopfe_op_pcsign
   ,input SC_laddr_type             pfgtopfe_op_laddr
   ,input SC_sptbr_type             pfgtopfe_op_sptbr
-  ,logic                           pfgtopfe_op_user
 
   ,output logic                    pftodc_req0_valid
   ,input  logic                    pftodc_req0_retry
@@ -156,14 +154,12 @@ module pfengine_wp (
 
   ,.pfgtopfe_op_valid       (pfgtopfe_op_valid)
   ,.pfgtopfe_op_retry       (pfgtopfe_op_retry)
-  ,.pfgtopfe_op             ({pfgtopfe_op_d1
+  ,.pfgtopfe_op             ({pfgtopfe_op_delta
                              ,pfgtopfe_op_w1
-                             ,pfgtopfe_op_d2
                              ,pfgtopfe_op_w2
                              ,pfgtopfe_op_pcsign
                              ,pfgtopfe_op_laddr
-                             ,pfgtopfe_op_sptbr
-                             ,pfgtopfe_op_user})
+                             ,pfgtopfe_op_sptbr})
 
   ,.pftodc_req0_valid       (pftodc_req0_valid)
   ,.pftodc_req0_retry       (pftodc_req0_retry)
