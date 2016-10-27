@@ -13,17 +13,16 @@ module l2cache_pipe_wp(
     input                                 l1tol2_req_valid,
     output                                l1tol2_req_retry,
       // Dispatching
-    input   L1_reqid_type                 l1tol2_req_dcid, // 5 bit
+    input   L1_reqid_type                 l1tol2_req_l1id, // 5 bit
     input   SC_cmd_type                   l1tol2_req_cmd, // 3 bit
     input   SC_pcsign_type                l1tol2_req_pcsign, // 13 bit
-    input   SC_laddr_type                 l1tol2_req_laddr, // 39 bit
-    input   SC_sptbr_type                 l1tol2_req_sptbr, // 38 bit
+    input   SC_ppaddr_type                l1tol2_req_ppaddr, // 3 bit
     
     // output I_l2tol1_snack_type           l2tol1_snack,
     output                                l2tol1_snack_valid,
     input                                 l2tol1_snack_retry,
       // Dispatching
-    output  L1_reqid_type                 l2tol1_snack_dcid, // 5
+    output  L1_reqid_type                 l2tol1_snack_l1id, // 5
     output  L2_reqid_type                 l2tol1_snack_l2id, // 6
     output  SC_snack_type                 l2tol1_snack_snack, // 5
         // output  SC_line_type             l2tol1_snack_line,
@@ -35,23 +34,23 @@ module l2cache_pipe_wp(
     output  logic [63:0]                  l2tol1_snack_line2,
     output  logic [63:0]                  l2tol1_snack_line1,
     output  logic [63:0]                  l2tol1_snack_line0, 
-    output  SC_paddr_type                 l2tol1_snack_paddr, // 50
-    output  SC_dctlbe_type                l2tol1_snack_dctlbe, // 5
+    output  SC_poffset_type               l2tol1_snack_poffset, // 12
+    output  TLB_hpaddr_type               l2tol1_snack_hpaddr, // 11
     
     // input I_l2snoop_ack_type             l2snoop_ack,
     input                                 l1tol2_snoop_ack_valid,
     output                                l1tol2_snoop_ack_retry,
       // Dispatching
-    input   L2_reqid_type                 l1tol2_snoop_ack_l2id,
+    input   L2_reqid_type                 l1tol2_snoop_ack_l2id, // 6
     
     // input I_l1tol2_disp_type             l1tol2_disp,
     input                                 l1tol2_disp_valid,
     output                                l1tol2_disp_retry,
       // Dispatching
-    input   L1_reqid_type                 l1tol2_disp_l1id,
-    input   L2_reqid_type                 l1tol2_disp_l2id,
-    input   SC_disp_mask_type             l1tol2_disp_mask,
-    input   SC_dcmd_type                  l1tol2_disp_dcmd,
+    input   L1_reqid_type                 l1tol2_disp_l1id, // 5
+    input   L2_reqid_type                 l1tol2_disp_l2id, // 6
+    input   SC_disp_mask_type             l1tol2_disp_mask, // 64
+    input   SC_dcmd_type                  l1tol2_disp_dcmd, // 3
          // input   SC_line_type            l1tol2_disp_line,
     input   logic [63:0]                  l1tol2_disp_line7,
     input   logic [63:0]                  l1tol2_disp_line6,
@@ -61,13 +60,13 @@ module l2cache_pipe_wp(
     input   logic [63:0]                  l1tol2_disp_line2,
     input   logic [63:0]                  l1tol2_disp_line1,
     input   logic [63:0]                  l1tol2_disp_line0,
-    input   SC_paddr_type                 l1tol2_disp_paddr,
+    input   SC_ppaddr_type                l1tol2_disp_ppaddr, // 3
     
     // output I_l2tol1_dack_type            l2tol1_dack,
     output                                l2tol1_dack_valid,
     input                                 l2tol1_dack_retry,
       // Dispatching
-    output  L1_reqid_type                 l2tol1_dack_l1id,
+    output  L1_reqid_type                 l2tol1_dack_l1id, // 5
     
     // --------------------------------
     // L2TLB interface
@@ -76,10 +75,10 @@ module l2cache_pipe_wp(
     input                                 l2tlbtol2_fwd_valid,
     output                                l2tlbtol2_fwd_retry,
       // Dispatching
-    input   L1_reqid_type                 l2tlbtol2_fwd_l1id,
-    input   SC_fault_type                 l2tlbtol2_fwd_fault,
-    input   TLB_hpaddr_type               l2tlbtol2_fwd_hpaddr,
-    input   SC_paddr_type                 l2tlbtol2_fwd_paddr,
+    input   L1_reqid_type                 l2tlbtol2_fwd_l1id, // 5
+    input   SC_fault_type                 l2tlbtol2_fwd_fault, // 3
+    input   TLB_hpaddr_type               l2tlbtol2_fwd_hpaddr, // 11
+    input   SC_paddr_type                 l2tlbtol2_fwd_paddr, // 50
         
     // output  PF_cache_stats_type          cachetopf_stats,
     output  logic [6:0]                   cachetopf_stats_nhitmissd,
@@ -101,7 +100,7 @@ module l2cache_pipe_wp(
     output  SC_nodeid_type                l2todr_req_nid, // 5 bit
     output  L2_reqid_type                 l2todr_req_l2id, // 6 bit
     output  SC_cmd_type                   l2todr_req_cmd, // 3 bit
-    output  SC_paddr_type                 l2todr_req_paddr, // 49 bit
+    output  SC_paddr_type                 l2todr_req_paddr, // 50 bit
 
     // input  I_drtol2_snack_type           drtol2_snack,
     input                                 drtol2_snack_valid,
@@ -125,17 +124,17 @@ module l2cache_pipe_wp(
     // output I_l2snoop_ack_type            l2todr_snoop_ack,
     output                                l2todr_snoop_ack_valid,
     input                                 l2todr_snoop_ack_retry,
-    output  L2_reqid_type                 l2todr_snoop_ack_l2id,
+    output  L2_reqid_type                 l2todr_snoop_ack_l2id, // 6
 
     // output I_l2todr_disp_type            l2todr_disp,
     output                                l2todr_disp_valid,
     input                                 l2todr_disp_retry,
       // Dispatching
-    output  SC_nodeid_type                l2todr_disp_nid, 
-    output  L2_reqid_type                 l2todr_disp_l2id,
-    output  DR_reqid_type                 l2todr_disp_drid,
-    output  SC_disp_mask_type             l2todr_disp_mask,
-    output  SC_dcmd_type                  l2todr_disp_dcmd,
+    output  SC_nodeid_type                l2todr_disp_nid, // 5
+    output  L2_reqid_type                 l2todr_disp_l2id, // 6
+    output  DR_reqid_type                 l2todr_disp_drid, // 6
+    output  SC_disp_mask_type             l2todr_disp_mask, // 64
+    output  SC_dcmd_type                  l2todr_disp_dcmd, // 3
         // SC_line_type                     l2todr_disp_line,
     output  logic [63:0]                  l2todr_disp_line7,
     output  logic [63:0]                  l2todr_disp_line6,
@@ -151,14 +150,15 @@ module l2cache_pipe_wp(
     input                                 drtol2_dack_valid,
     output                                drtol2_dack_retry,
       // Dispatching
-    input   SC_nodeid_type                drtol2_dack_nid, 
-    input   L2_reqid_type                 drtol2_dack_l2id,
+    input   SC_nodeid_type                drtol2_dack_nid, // 5
+    input   L2_reqid_type                 drtol2_dack_l2id, // 6
 
     // output I_l2todr_pfreq_type          l2todr_pfreq,
     output                                l2todr_pfreq_valid,
     input                                 l2todr_pfreq_retry,
       // Dispatching
-    output  SC_paddr_type                 l2todr_pfreq_paddr
+    output  SC_paddr_type                 l2todr_pfreq_paddr, // 50
+    output  SC_nodeid_type                l2todr_pfreq_nid // 5
 
 );
 
@@ -170,15 +170,14 @@ module l2cache_pipe_wp(
     // L2s interface
       .l1tol2_req_valid(l1tol2_req_valid),
       .l1tol2_req_retry(l1tol2_req_retry),
-      .l1tol2_req({     l1tol2_req_dcid,
+      .l1tol2_req({     l1tol2_req_l1id,
                         l1tol2_req_cmd,
                         l1tol2_req_pcsign,
-                        l1tol2_req_laddr,
-                        l1tol2_req_sptbr}),
+                        l1tol2_req_ppaddr}),
       
       .l2tol1_snack_valid(l2tol1_snack_valid),
       .l2tol1_snack_retry(l2tol1_snack_retry),
-      .l2tol1_snack({     l2tol1_snack_dcid,
+      .l2tol1_snack({     l2tol1_snack_l1id,
                           l2tol1_snack_l2id,
                           l2tol1_snack_snack,
                           l2tol1_snack_line7,
@@ -189,8 +188,8 @@ module l2cache_pipe_wp(
                           l2tol1_snack_line2,
                           l2tol1_snack_line1,
                           l2tol1_snack_line0,
-                          l2tol1_snack_paddr,
-                          l2tol1_snack_dctlbe}),
+                          l2tol1_snack_poffset,
+                          l2tol1_snack_hpaddr}),
 
        .l1tol2_snoop_ack_valid(l1tol2_snoop_ack_valid),
        .l1tol2_snoop_ack_retry(l1tol2_snoop_ack_retry),
@@ -210,7 +209,7 @@ module l2cache_pipe_wp(
                           l1tol2_disp_line2,
                           l1tol2_disp_line1,
                           l1tol2_disp_line0,
-                          l1tol2_disp_paddr}),
+                          l1tol2_disp_ppaddr}),
 
         .l2tol1_dack_valid(l2tol1_dack_valid),
         .l2tol1_dack_retry(l2tol1_dack_retry),
@@ -283,7 +282,8 @@ module l2cache_pipe_wp(
 
          .l2todr_pfreq_valid(l2todr_pfreq_valid),
          .l2todr_pfreq_retry(l2todr_pfreq_retry),
-         .l2todr_pfreq( {   l2todr_pfreq_paddr})
+         .l2todr_pfreq( {    l2todr_pfreq_nid,
+                             l2todr_pfreq_paddr})
 
       );
 
