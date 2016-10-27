@@ -1,4 +1,5 @@
-
+//This testbench is used to test the fork_fflop module. That module takes a fflop input and forks the value
+//and forks it into two separate fflops. This testbench gives inputs and checks if both outputs match the input.
 #include "Vfork_fflop.h"
 #include "verilated.h"
 #include "verilated_vcd_c.h"
@@ -9,7 +10,6 @@
 
 #define DEBUG_TRACE 1
 
-//#define TEST_FAILURE_CASE 1
 
 vluint64_t global_time = 0;
 VerilatedVcdC* tfp = 0;
@@ -74,37 +74,6 @@ std::list<OutputPacketB> outb_list;
 
 void try_send_packet(Vfork_fflop *top) {
   
-#ifdef TEST_FAILURE_CASE
-  // static int valid_count_a = 0;
-  // static int valid_count_b = 0;
-  // if (valid_count_a == 1 && valid_count_b == 1) { //set retry when valid has been HIGH for at least one cycle
-    // top->sumRetry = 1;
-  // }else{
-    // top->sumRetry = 0;                            //otherwise keep it LOW
-  // }
-
-  // if (!top->inp_aRetry) {
-    // top->inp_a = rand();
-    // if (inpa_list.empty()) { //set valid LOW when nothing to send
-      // top->inp_aValid = 0;
-      // valid_count_a = 0;      //Set count to 0 if valid is LOW
-    // }else{
-      // top->inp_aValid = 1;
-      // valid_count_a++;        //increment otherwise
-    // }
-  // }
-
-  // if (!top->inp_bRetry) {
-    // top->inp_b = rand();
-    // if (inpb_list.empty()) { //set valid LOW when nothing to send
-      // top->inp_bValid = 0;
-      // valid_count_b = 0;     //Set count to 0 if valid is LOW
-    // }else{
-      // top->inp_bValid = 1;
-      // valid_count_b++;       //increment otherwise
-    // }
-  // }
-#else
   static int set_a_retry_for = 0;
   if ((rand()&0xF)==0 && set_a_retry_for == 0) {
     set_a_retry_for = rand()&0x1F;
@@ -135,8 +104,6 @@ void try_send_packet(Vfork_fflop *top) {
       top->inp_Valid = 1;
     }
   }
-
-#endif
 
 
   if (top->inp_Valid && !top->inp_Retry) {
@@ -265,43 +232,6 @@ int main(int argc, char **argv, char **env) {
     try_recv_packet_b(top);
     advance_half_clock(top);
 
-#ifdef TEST_FAILURE_CASE
-    //In the failure case, we are removing all elements from the list and maintaining the valid signal as HIGH
-    //When that occurs, this will re-populate the lists with three elements. It may be possible there is an error
-    //in my test which is why I added the error conditions below.
-    // if (((rand() & 0x3)==0) && inpa_list.size() == 0 && inpb_list.size() == 0 ) {
-      // InputPacketA ia;
-      // InputPacketB ib;
-      // ia.inp_a = rand() & 0xFF;
-      // ib.inp_b = rand() & 0xFF;
-      
-      // //Push the values to the list three times to have valid signals that remain HIGH for multiple cycles.
-      // inpa_list.push_front(ia);
-      // inpb_list.push_front(ib);
-      // inpa_list.push_front(ia);
-      // inpb_list.push_front(ib);
-      // inpa_list.push_front(ia);
-      // inpb_list.push_front(ib);
-
-      // OutputPacket o;
-      // o.sum = (ia.inp_a + ib.inp_b) & 0xFF;
-      // o.inp_a = ia.inp_a;
-      // o.inp_b = ib.inp_b;
-
-      // out_list.push_front(o);
-      // out_list.push_front(o);
-      // out_list.push_front(o);
-    // } else if (inpa_list.size() != 0 && inpb_list.size() == 0) {
-      // printf("ERROR: Something wrong with error test. Lists size mismatch.");
-      // error_found(top);
-    // } else if (inpa_list.size() == 0 && inpb_list.size() != 0) {
-      // printf("ERROR: Something wrong with error test. Lists size mismatch.");
-      // error_found(top);
-    // }
-    // //advance_clock(top,1);
-  // }
-    
-#else
     if (((rand() & 0x3)==0) && inp_list.size() < 3 ) {
       InputPacket i;
       i.inp = rand() & 0xFF;
@@ -317,8 +247,7 @@ int main(int argc, char **argv, char **env) {
     }
     //advance_clock(top,1);
   }
-  
-#endif
+
 #endif
 
   sim_finish(true);
