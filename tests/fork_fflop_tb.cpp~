@@ -1,0 +1,326 @@
+
+#include "Vfork_fflop.h"
+#include "verilated.h"
+#include "verilated_vcd_c.h"
+
+#include <list>
+
+#include <time.h>
+
+#define DEBUG_TRACE 1
+
+//#define TEST_FAILURE_CASE 1
+
+vluint64_t global_time = 0;
+VerilatedVcdC* tfp = 0;
+
+void advance_half_clock(Vfork_fflop *top) {
+#ifdef TRACE
+  tfp->dump(global_time);
+#endif
+
+  top->eval();
+  top->clk = !top->clk;
+  top->eval();
+
+  global_time++;
+  if (Verilated::gotFinish())  
+    exit(0);
+}
+
+void advance_clock(Vfork_fflop *top, int nclocks=1) {
+
+  for( int i=0;i<nclocks;i++) {
+    for (int clk=0; clk<2; clk++) {
+      advance_half_clock(top);
+    }
+  }
+}
+
+void sim_finish(bool pass) {
+#ifdef TRACE
+  tfp->close();
+#endif
+
+#if 1
+  if (pass)
+    printf("\nTB:PASS\n");
+  else
+    printf("\nTB:FAILED\n");
+#endif
+
+  exit(0);
+}
+
+struct InputPacket {
+  int inp;
+};
+
+struct OutputPacketA {
+  int out_a;
+};
+
+struct OutputPacketB {
+  int out_b;
+};
+
+double sc_time_stamp() {
+  return 0;
+}
+
+std::list<InputPacket>  inp_list;
+std::list<OutputPacketA>  outa_list;
+std::list<OutputPacketB> outb_list;
+
+void try_send_packet(Vfork_fflop *top) {
+  
+#ifdef TEST_FAILURE_CASE
+  // static int valid_count_a = 0;
+  // static int valid_count_b = 0;
+  // if (valid_count_a == 1 && valid_count_b == 1) { //set retry when valid has been HIGH for at least one cycle
+    // top->sumRetry = 1;
+  // }else{
+    // top->sumRetry = 0;                            //otherwise keep it LOW
+  // }
+
+  // if (!top->inp_aRetry) {
+    // top->inp_a = rand();
+    // if (inpa_list.empty()) { //set valid LOW when nothing to send
+      // top->inp_aValid = 0;
+      // valid_count_a = 0;      //Set count to 0 if valid is LOW
+    // }else{
+      // top->inp_aValid = 1;
+      // valid_count_a++;        //increment otherwise
+    // }
+  // }
+
+  // if (!top->inp_bRetry) {
+    // top->inp_b = rand();
+    // if (inpb_list.empty()) { //set valid LOW when nothing to send
+      // top->inp_bValid = 0;
+      // valid_count_b = 0;     //Set count to 0 if valid is LOW
+    // }else{
+      // top->inp_bValid = 1;
+      // valid_count_b++;       //increment otherwise
+    // }
+  // }
+#else
+  static int set_a_retry_for = 0;
+  if ((rand()&0xF)==0 && set_a_retry_for == 0) {
+    set_a_retry_for = rand()&0x1F;
+  }
+  if (set_a_retry_for) {
+    set_a_retry_for--;
+    top->out_aRetry = 1;
+  }else{
+    top->out_aRetry = (rand()&0xF)==0; // randomly, one every 8 packets
+  }
+  
+  static int set_b_retry_for = 0;
+  if ((rand()&0xF)==0 && set_b_retry_for == 0) {
+    set_b_retry_for = rand()&0x1F;
+  }
+  if (set_b_retry_for) {
+    set_b_retry_for--;
+    top->out_bRetry = 1;
+  }else{
+    top->out_bRetry = (rand()&0xF)==0; // randomly, one every 8 packets
+  }
+
+  if (!top->inp_Retry) {
+    top->inp = rand();
+    if (inp_list.empty() || (rand() & 0x3)) { // Once every 4
+      top->inp_Valid = 0;
+    }else{
+      top->inp_Valid = 1;
+    }
+  }
+
+#endif
+
+
+  if (top->inp_Valid && !top->inp_Retry) {
+    if (inp_list.empty()) {
+      fprintf(stderr,"ERROR: Internal error, could not be empty inp\n");
+    }
+    InputPacket inp = inp_list.back();
+    top->inp = inp.inp;
+#ifdef DEBUG_TRACE
+    printf("@%lld inp=%d\n",global_time, inp.inp);
+#endif
+    inp_list.pop_back();
+  }
+
+
+}
+
+void error_found(Vfork_fflop *top) {
+  advance_half_clock(top);
+  advance_half_clock(top);
+  sim_finish(false);
+}
+
+void try_recv_packet_a(Vfork_fflop *top) {
+
+  if (top->out_aValid && outa_list.empty()) {
+    printf("ERROR: unexpected result %d\n",top->out_a);
+    error_found(top);
+    return;
+  }
+
+  if (top->out_aRetry)
+    return;
+
+  if (!top->out_aValid)
+    return;
+
+  if (outa_list.empty())
+    return;
+
+#ifdef DEBUG_TRACE
+    printf("@%lld sum=%d\n",global_time, top->out_a);
+#endif
+  OutputPacketA o = outa_list.back();
+  if (top->out_a != o.out_a) {
+    printf("ERROR: expected %d but data is %d\n",o.out_a, top->out_a);
+    error_found(top);
+  }
+
+  outa_list.pop_back();
+}
+
+void try_recv_packet_b(Vfork_fflop *top) {
+
+  if (top->out_bValid && outb_list.empty()) {
+    printf("ERROR: unexpected result %d\n",top->out_b);
+    error_found(top);
+    return;
+  }
+
+  if (top->out_bRetry)
+    return;
+
+  if (!top->out_bValid)
+    return;
+
+  if (outb_list.empty())
+    return;
+
+#ifdef DEBUG_TRACE
+    printf("@%lld sum=%d\n",global_time, top->out_b);
+#endif
+  OutputPacketB o = outb_list.back();
+  if (top->out_b != o.out_b) {
+    printf("ERROR: expected %d but data is %d\n",o.out_b, top->out_b);
+    error_found(top);
+  }
+
+  outb_list.pop_back();
+}
+
+
+int main(int argc, char **argv, char **env) {
+  int i;
+  int clk;
+  Verilated::commandArgs(argc, argv);
+  // init top verilog instance
+  Vfork_fflop* top = new Vfork_fflop;
+
+  int t = (int)time(0);
+#if 0
+  srand(1477403302);
+#else
+  srand(t);
+#endif
+  printf("My RAND Seed is %d\n",t);
+
+#ifdef TRACE
+  // init trace dump
+  Verilated::traceEverOn(true);
+  tfp = new VerilatedVcdC;
+
+  top->trace(tfp, 99);
+  tfp->open("output.vcd");
+#endif
+
+  // initialize simulation inputs
+  top->clk = 1;
+  top->reset = 1;
+
+  advance_clock(top,4); // May be larger as required by reset state machines
+  //-------------------------------------------------------
+  top->reset = 0;
+  top->inp = 1;
+  top->inp_Valid = 0;
+  top->out_aRetry = 1;
+  top->out_bRetry = 1;
+
+  advance_clock(top,1);
+
+#if 1
+  for(int i =0;i<10240;i++) {
+    try_send_packet(top);
+    advance_half_clock(top);
+    try_recv_packet_a(top);
+    try_recv_packet_b(top);
+    advance_half_clock(top);
+
+#ifdef TEST_FAILURE_CASE
+    //In the failure case, we are removing all elements from the list and maintaining the valid signal as HIGH
+    //When that occurs, this will re-populate the lists with three elements. It may be possible there is an error
+    //in my test which is why I added the error conditions below.
+    // if (((rand() & 0x3)==0) && inpa_list.size() == 0 && inpb_list.size() == 0 ) {
+      // InputPacketA ia;
+      // InputPacketB ib;
+      // ia.inp_a = rand() & 0xFF;
+      // ib.inp_b = rand() & 0xFF;
+      
+      // //Push the values to the list three times to have valid signals that remain HIGH for multiple cycles.
+      // inpa_list.push_front(ia);
+      // inpb_list.push_front(ib);
+      // inpa_list.push_front(ia);
+      // inpb_list.push_front(ib);
+      // inpa_list.push_front(ia);
+      // inpb_list.push_front(ib);
+
+      // OutputPacket o;
+      // o.sum = (ia.inp_a + ib.inp_b) & 0xFF;
+      // o.inp_a = ia.inp_a;
+      // o.inp_b = ib.inp_b;
+
+      // out_list.push_front(o);
+      // out_list.push_front(o);
+      // out_list.push_front(o);
+    // } else if (inpa_list.size() != 0 && inpb_list.size() == 0) {
+      // printf("ERROR: Something wrong with error test. Lists size mismatch.");
+      // error_found(top);
+    // } else if (inpa_list.size() == 0 && inpb_list.size() != 0) {
+      // printf("ERROR: Something wrong with error test. Lists size mismatch.");
+      // error_found(top);
+    // }
+    // //advance_clock(top,1);
+  // }
+    
+#else
+    if (((rand() & 0x3)==0) && inp_list.size() < 3 ) {
+      InputPacket i;
+      i.inp = rand() & 0xFF;
+      inp_list.push_front(i);
+
+      OutputPacketA oa;
+      OutputPacketB ob;
+      oa.out_a = i.inp;
+      ob.out_b = i.inp;
+
+      outa_list.push_front(oa);
+      outb_list.push_front(ob);
+    }
+    //advance_clock(top,1);
+  }
+  
+#endif
+#endif
+
+  sim_finish(true);
+}
+

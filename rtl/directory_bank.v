@@ -93,6 +93,7 @@ module directory_bank(
   //I divided the fflop output and assignment so there would not be any conflicts.
   I_l2todr_pfreq_type        drff_pfreq;
   assign drtomem_pfreq.paddr = drff_pfreq.paddr;
+  assign drtomem_pfreq.nid = drff_pfreq.nid;
   
   //fflop for pfreq (prefetch request)
   //currently, only the address of the prefetch is used and passed through to the memory (for pass through test)

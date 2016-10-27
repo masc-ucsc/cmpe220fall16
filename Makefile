@@ -19,6 +19,15 @@ run_join_fadd: join_fadd
 
 REGLIST+=join_fadd
 ###########################
+fork_fflop:
+	verilator --assert --debug-check -I./rtl --Wall --cc --trace ./rtl/fork_fflop.v ./rtl/fflop.v --exe tests/fork_fflop_tb.cpp -CFLAGS "-DTRACE=1 -DVL_DEBUG"
+	make -C obj_dir/ -f Vfork_fflop.mk Vfork_fflop
+
+run_fork_fflop: fork_fflop
+	./obj_dir/Vfork_fflop
+
+#REGLIST+=fork_fflop
+###########################
 l2:
 	verilator --assert --debug-check -I./rtl --Wall --cc --trace --top-module l2cache_pipe_wp ./tests/l2cache_pipe_wp.v ./rtl/fflop.v --exe ./tests/l2cache_pipe_wp_tb.cpp -CFLAGS -DTRACE=1 #--exe tests/ram_1port_fast_wp_tb.cpp -CFLAGS -DTRACE=1
 	make -C obj_dir/ -f Vl2cache_pipe_wp.mk Vl2cache_pipe_wp

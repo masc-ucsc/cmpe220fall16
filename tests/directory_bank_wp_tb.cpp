@@ -10,12 +10,17 @@
 #define DEBUG_TRACE 1
 
 //Set which sets you want to run
-#define TEST_PFREQ 1
-//#define TEST_REQ 1
+//#define TEST_PFREQ 1
+#define TEST_REQ 1
 //#define TEST_ACK 1
+
+#define TEST_REQ_FAILURE 1
 
 vluint64_t global_time = 0;
 VerilatedVcdC* tfp = 0;
+
+//Used for testing failure state
+int valid_count = 0;
 
 //Below is code from other tb
 void advance_half_clock(Vdirectory_bank_wp *top) {
@@ -141,17 +146,24 @@ void try_send_packet(Vdirectory_bank_wp *top) {
   }
   
   //req
-  top->drtomem_req_retry = (rand()&0x3F)==0; 
-  /*static int set_retry_for = 0;
-  if ((rand()&0xF)==0 && set_retry_for == 0) {
-    set_retry_for = rand()&0x1F;
-  }
-  if (set_retry_for) {
-    set_retry_for--;
+#ifdef TEST_REQ_FAILURE
+  if(valid_count == 1)
     top->drtomem_req_retry = 1;
-  }else{
-    top->drtomem_req_retry = (rand()&0xF)==0; // randomly, one every 8 packets
-    }*/
+  else
+    top->drtomem_req_retry = 0;
+  
+  if (!top->l2todr_req_retry) {
+    top->l2todr_req_paddr = rand();
+    if (inp_list_req.empty()) { // Once every 4
+      top->l2todr_req_valid = 0;
+      valid_count = 0;
+    }else{
+      top->l2todr_req_valid = 1;
+      valid_count++;
+    }
+  }
+#else
+  top->drtomem_req_retry = (rand()&0x3F)==0; 
 
   if (!top->l2todr_req_retry) {
     top->l2todr_req_paddr = rand();
@@ -161,6 +173,7 @@ void try_send_packet(Vdirectory_bank_wp *top) {
       top->l2todr_req_valid = 1;
     }
   }
+#endif 
   
   //ack
   top->drtol2_snack_retry = (rand()&0x3F)==0; 
@@ -234,7 +247,7 @@ void try_send_packet(Vdirectory_bank_wp *top) {
       error_found(top);
     }
 
-
+#ifdef TEST_ACK
     InputPacket_memtodr_ack inp3 = inp_list_ack.back();
     top->memtodr_ack_drid = inp3.drid;
     
@@ -246,6 +259,7 @@ void try_send_packet(Vdirectory_bank_wp *top) {
     top->memtodr_ack_line_2 = inp3.line_2;
     top->memtodr_ack_line_1 = inp3.line_1;
     top->memtodr_ack_line_0 = inp3.line_0;
+
 #ifdef DEBUG_TRACE
     printf("@%lu ack req data:%lu,%lu,%lu,%lu,%lu,%lu,%lu,%lu\n",global_time, inp3.line_7
                                                                              ,inp3.line_6
@@ -268,7 +282,9 @@ void try_send_packet(Vdirectory_bank_wp *top) {
     out3.line_1 = inp3.line_1;
     out3.line_0 = inp3.line_0;
     out_list_ack.push_front(out3);
-    
+#endif    
+
+
 
     inp_list_ack.pop_back();
   }
@@ -429,7 +445,12 @@ int main(int argc, char **argv, char **env) {
   Vdirectory_bank_wp *top = new Vdirectory_bank_wp;
 
   int t = (int)time(0);
+#ifdef TEST_REQ_FAILURE
+  //srand(1477551033);
   srand(t);
+#else
+  srand(t);
+#endif
   printf("My RAND Seed is %d\n",t);
 
 #ifdef TRACE
@@ -500,6 +521,18 @@ int main(int argc, char **argv, char **env) {
 #endif
     
 #ifdef TEST_REQ  
+#ifdef TEST_REQ_FAILURE
+    if (inp_list_req.empty()) {
+      InputPacket_l2todr_req i;
+      i.addr = rand() & 0x0001FFFFFFFFFFFF;
+      
+      //Push multiple times, tests seems to only fails with multiple valids in a row,
+      //so we set up that condition to occur by populating the list.
+      inp_list_req.push_front(i);
+      inp_list_req.push_front(i);
+      inp_list_req.push_front(i);
+    }
+#else
     if (((rand() & 0x3)==0) && inp_list_req.size() < 3 ) {
       InputPacket_l2todr_req i;
 
@@ -512,6 +545,7 @@ int main(int argc, char **argv, char **env) {
 
       inp_list_req.push_front(i);
     }
+#endif
 #endif
     //Ack does not have one of these because every push from from the response to a request
     
