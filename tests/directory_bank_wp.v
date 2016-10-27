@@ -1,6 +1,3 @@
-//lines to compile, removed 'r' from verilato because the program will think its a directive
-//verilato --assert --debug-check -I./rtl --Wall --cc --trace --top-module directory_bank_wp ./tests/directory_bank_wp.v ./rtl/directory_bank.v ./rtl/fflop.v --exe tests/directory_bank_wp_tb.cpp -CFLAGS -DTRACE=1	
-// make -C obj_dir/ -f Vdirectory_bank_wp.mk Vdirectory_bank_wp
 
 `include "scmem.vh"
 
@@ -18,7 +15,8 @@
 // 
 // For replacement use HawkEye or RRIP
 
-//this directives are set just to let me compile until I make the connections
+//verilato --assert --debug-check -I./rtl --Wall --cc --trace --top-module directory_bank_wp ./tests/directory_bank_wp.v ./rtl/directory_bank.v ./rtl/fflop.v --exe tests/directory_bank_wp_tb.cpp -CFLAGS -DTRACE=1	
+// make -C obj_dir/ -f Vdirectory_bank_wp.mk Vdirectory_bank_wp
 
 module directory_bank_wp(
    input                           clk
@@ -28,6 +26,7 @@ module directory_bank_wp(
   ,input                           l2todr_pfreq_valid
   ,output                          l2todr_pfreq_retry
   ,input  SC_paddr_type            l2todr_pfreq_paddr
+  ,input  SC_nodeid_type           l2todr_pfreq_nid 
 
   ,input                           l2todr_req_valid
   ,output                          l2todr_req_retry
@@ -42,7 +41,14 @@ module directory_bank_wp(
   ,output L2_reqid_type            drtol2_snack_l2id // !=0 ACK
   ,output DR_reqid_type            drtol2_snack_drid // !=0 snoop
   ,output SC_snack_type            drtol2_snack_snack
-  ,output SC_line_type             drtol2_snack_line //line needs to be divided into smaller chunks
+  ,output logic [`SC_LINEBYTES-1:0]              drtol2_snack_line_7 //yeah, I know the spacing is off...
+  ,output logic [`SC_LINEBYTES-1:0]              drtol2_snack_line_6
+  ,output logic [`SC_LINEBYTES-1:0]              drtol2_snack_line_5 
+  ,output logic [`SC_LINEBYTES-1:0]              drtol2_snack_line_4 
+  ,output logic [`SC_LINEBYTES-1:0]              drtol2_snack_line_3 
+  ,output logic [`SC_LINEBYTES-1:0]              drtol2_snack_line_2 
+  ,output logic [`SC_LINEBYTES-1:0]              drtol2_snack_line_1 
+  ,output logic [`SC_LINEBYTES-1:0]              drtol2_snack_line_0 
   ,output SC_paddr_type            drtol2_snack_paddr // Not used for ACKs
 
   ,input                           l2todr_disp_valid
@@ -60,9 +66,9 @@ module directory_bank_wp(
   ,output SC_nodeid_type           drtol2_dack_nid
   ,output L2_reqid_type            drtol2_dack_l2id
 
-  ,output                          l2todr_snoop_ack_valid //should these set of signals 
-  ,input                           l2todr_snoop_ack_retry
-  ,output DR_reqid_type            l2todr_snoop_ack_drid  //should this be an input? This guess is based on the l2todr naming and they appear to be the ack from a directory snoops    
+  ,input                           l2todr_snoop_ack_valid //should these set of signals 
+  ,output                          l2todr_snoop_ack_retry
+  ,input  DR_reqid_type            l2todr_snoop_ack_drid  //should this be an input? This guess is based on the l2todr naming and they appear to be the ack from a directory snoops   
 
   // Memory interface
   // If nobody has the data, send request to memory
@@ -76,8 +82,17 @@ module directory_bank_wp(
   ,input                           memtodr_ack_valid
   ,output                          memtodr_ack_retry
   ,input  DR_reqid_type            memtodr_ack_drid
+  ,input  SC_nodeid_type           memtodr_ack_nid
+  ,input  SC_paddr_type            memtodr_ack_paddr			
   ,input  SC_snack_type            memtodr_ack_ack // only ACK for mem
-  ,input  SC_line_type             memtodr_ack_line
+  ,input [`SC_LINEBYTES-1:0]              memtodr_ack_line_7 //yeah, I know the spacing is off...
+  ,input [`SC_LINEBYTES-1:0]              memtodr_ack_line_6
+  ,input [`SC_LINEBYTES-1:0]              memtodr_ack_line_5 
+  ,input [`SC_LINEBYTES-1:0]              memtodr_ack_line_4 
+  ,input [`SC_LINEBYTES-1:0]              memtodr_ack_line_3 
+  ,input [`SC_LINEBYTES-1:0]              memtodr_ack_line_2 
+  ,input [`SC_LINEBYTES-1:0]              memtodr_ack_line_1 
+  ,input [`SC_LINEBYTES-1:0]              memtodr_ack_line_0 
 
   ,output                          drtomem_wb_valid
   ,input                           drtomem_wb_retry
@@ -86,10 +101,11 @@ module directory_bank_wp(
 
   ,output logic                    drtomem_pfreq_valid
   ,input  logic                    drtomem_pfreq_retry
+  ,output SC_nodeid_type           drtomem_pfreq_nid
   ,output SC_paddr_type            drtomem_pfreq_paddr
 
   );
-
+  
   directory_bank 
   dr(
     .clk(clk)
@@ -98,8 +114,9 @@ module directory_bank_wp(
   // L2s interface
    ,.l2todr_pfreq_valid(l2todr_pfreq_valid)
    ,.l2todr_pfreq_retry(l2todr_pfreq_retry)
-   ,.l2todr_pfreq(l2todr_pfreq_paddr)       // NOTE: pfreq does not have ack if dropped
-
+   ,.l2todr_pfreq({     l2todr_pfreq_nid
+                       ,l2todr_pfreq_paddr})       // NOTE: pfreq does not have ack if dropped
+     
    ,.l2todr_req_valid(l2todr_req_valid)
    ,.l2todr_req_retry(l2todr_req_retry)
    ,.l2todr_req({   l2todr_req_nid
@@ -113,7 +130,14 @@ module directory_bank_wp(
                    ,drtol2_snack_l2id
                    ,drtol2_snack_drid
                    ,drtol2_snack_snack
-                   ,drtol2_snack_line
+                   ,drtol2_snack_line_7
+                   ,drtol2_snack_line_6
+                   ,drtol2_snack_line_5
+                   ,drtol2_snack_line_4
+                   ,drtol2_snack_line_3
+                   ,drtol2_snack_line_2
+                   ,drtol2_snack_line_1
+                   ,drtol2_snack_line_0
                    ,drtol2_snack_paddr})
 
    ,.l2todr_disp_valid(l2todr_disp_valid)
@@ -147,8 +171,17 @@ module directory_bank_wp(
    ,.memtodr_ack_valid(memtodr_ack_valid)
    ,.memtodr_ack_retry(memtodr_ack_retry)
    ,.memtodr_ack({  memtodr_ack_drid
+		   ,memtodr_ack_nid
+		   ,memtodr_ack_paddr
                    ,memtodr_ack_ack
-                   ,memtodr_ack_line})
+                   ,memtodr_ack_line_7
+                   ,memtodr_ack_line_6
+                   ,memtodr_ack_line_5
+                   ,memtodr_ack_line_4
+                   ,memtodr_ack_line_3
+                   ,memtodr_ack_line_2
+                   ,memtodr_ack_line_1
+                   ,memtodr_ack_line_0})
 
    ,.drtomem_wb_valid(drtomem_wb_valid)
    ,.drtomem_wb_retry(drtomem_wb_retry)
@@ -157,10 +190,9 @@ module directory_bank_wp(
 
    ,.drtomem_pfreq_valid(drtomem_pfreq_valid)
    ,.drtomem_pfreq_retry(drtomem_pfreq_retry)
-   ,.drtomem_pfreq(drtomem_pfreq_paddr)
+   ,.drtomem_pfreq({ drtomem_pfreq_nid
+		    ,drtomem_pfreq_paddr})
   );
 
-   
 endmodule
-
 

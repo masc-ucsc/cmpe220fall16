@@ -410,6 +410,7 @@ typedef struct packed {
 
 // {{{1 drtomem_pfreq
 typedef struct packed {
+  SC_nodeid_type    nid; 
   SC_paddr_type     paddr;
 } I_drtomem_pfreq_type;
 // 1}}}

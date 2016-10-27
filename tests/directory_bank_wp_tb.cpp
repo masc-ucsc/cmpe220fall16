@@ -9,6 +9,11 @@
 
 #define DEBUG_TRACE 1
 
+//Set which sets you want to run
+#define TEST_PFREQ 1
+//#define TEST_REQ 1
+//#define TEST_ACK 1
+
 vluint64_t global_time = 0;
 VerilatedVcdC* tfp = 0;
 
@@ -70,6 +75,36 @@ struct OutputPacket_drtomem_req {
   uint64_t addr; // read result
 };
 
+struct InputPacket_memtodr_ack {
+  uint8_t drid;
+  uint8_t ack_cmd;
+  uint64_t line_7;
+  uint64_t line_6;
+  uint64_t line_5;
+  uint64_t line_4;
+  uint64_t line_3;
+  uint64_t line_2;
+  uint64_t line_1;
+  uint64_t line_0;
+};
+
+struct OutputPacket_drtol2_snack {
+  uint8_t nid;
+  uint8_t l2id;
+  uint8_t drid;
+  uint8_t ack_cmd;
+  uint64_t addr; // read result
+  uint64_t line_7;
+  uint64_t line_6;
+  uint64_t line_5;
+  uint64_t line_4;
+  uint64_t line_3;
+  uint64_t line_2;
+  uint64_t line_1;
+  uint64_t line_0;
+  
+};
+
 double sc_time_stamp() {
   return 0;
 }
@@ -81,6 +116,9 @@ std::list<OutputPacket_drtomem_pfreq> out_list_pfreq;
 
 std::list<InputPacket_l2todr_req>  inp_list_req;
 std::list<OutputPacket_drtomem_req> out_list_req;
+
+std::list<InputPacket_memtodr_ack>  inp_list_ack;
+std::list<OutputPacket_drtol2_snack> out_list_ack;
 
 void error_found(Vdirectory_bank_wp *top) {
   advance_half_clock(top);
@@ -104,6 +142,16 @@ void try_send_packet(Vdirectory_bank_wp *top) {
   
   //req
   top->drtomem_req_retry = (rand()&0x3F)==0; 
+  /*static int set_retry_for = 0;
+  if ((rand()&0xF)==0 && set_retry_for == 0) {
+    set_retry_for = rand()&0x1F;
+  }
+  if (set_retry_for) {
+    set_retry_for--;
+    top->drtomem_req_retry = 1;
+  }else{
+    top->drtomem_req_retry = (rand()&0xF)==0; // randomly, one every 8 packets
+    }*/
 
   if (!top->l2todr_req_retry) {
     top->l2todr_req_paddr = rand();
@@ -111,6 +159,26 @@ void try_send_packet(Vdirectory_bank_wp *top) {
       top->l2todr_req_valid = 0;
     }else{
       top->l2todr_req_valid = 1;
+    }
+  }
+  
+  //ack
+  top->drtol2_snack_retry = (rand()&0x3F)==0; 
+
+  if (!top->memtodr_ack_retry) {
+    top->memtodr_ack_line_7 = rand();
+    top->memtodr_ack_line_6 = rand();
+    top->memtodr_ack_line_5 = rand();
+    top->memtodr_ack_line_4 = rand();
+    top->memtodr_ack_line_3 = rand();
+    top->memtodr_ack_line_2 = rand();
+    top->memtodr_ack_line_1 = rand();
+    top->memtodr_ack_line_0 = rand();
+    
+    if (inp_list_ack.empty() || (rand() & 0x3)) { // Once every 4
+      top->memtodr_ack_valid = 0;
+    }else{
+      top->memtodr_ack_valid = 1;
     }
   }
   
@@ -122,12 +190,6 @@ void try_send_packet(Vdirectory_bank_wp *top) {
       error_found(top);
     }
 
-    static vluint64_t last_clk = 0;
-
-    if (last_clk >= (global_time+2)) {
-      fprintf(stderr,"ERROR: dense RAMs have 2 cycle delay. No back to back requests accepted\n");
-      error_found(top);
-    }
 
     InputPacket_l2todr_pfreq inp1 = inp_list_pfreq.back();
     top->l2todr_pfreq_paddr = inp1.addr;
@@ -150,12 +212,6 @@ void try_send_packet(Vdirectory_bank_wp *top) {
       error_found(top);
     }
 
-    static vluint64_t last_clk = 0;
-
-    if (last_clk >= (global_time+2)) {
-      fprintf(stderr,"ERROR: dense RAMs have 2 cycle delay. No back to back requests accepted\n");
-      error_found(top);
-    }
 
     InputPacket_l2todr_req inp2   = inp_list_req.back();
     top->l2todr_req_paddr = inp2.addr;
@@ -170,11 +226,59 @@ void try_send_packet(Vdirectory_bank_wp *top) {
 
     inp_list_req.pop_back();
   }
+  
+  //ack
+  if (top->memtodr_ack_valid && !top->memtodr_ack_retry) {
+    if (inp_list_ack.empty()) {
+      fprintf(stderr,"ERROR: Internal error, could not be empty inpa\n");
+      error_found(top);
+    }
+
+
+    InputPacket_memtodr_ack inp3 = inp_list_ack.back();
+    top->memtodr_ack_drid = inp3.drid;
+    
+    top->memtodr_ack_line_7 = inp3.line_7;
+    top->memtodr_ack_line_6 = inp3.line_6;
+    top->memtodr_ack_line_5 = inp3.line_5;
+    top->memtodr_ack_line_4 = inp3.line_4;
+    top->memtodr_ack_line_3 = inp3.line_3;
+    top->memtodr_ack_line_2 = inp3.line_2;
+    top->memtodr_ack_line_1 = inp3.line_1;
+    top->memtodr_ack_line_0 = inp3.line_0;
+#ifdef DEBUG_TRACE
+    printf("@%lu ack req data:%lu,%lu,%lu,%lu,%lu,%lu,%lu,%lu\n",global_time, inp3.line_7
+                                                                             ,inp3.line_6
+                                                                             ,inp3.line_5
+                                                                             ,inp3.line_4
+                                                                             ,inp3.line_3
+                                                                             ,inp3.line_2
+                                                                             ,inp3.line_1
+                                                                             ,inp3.line_0); //change
+#endif
+   
+    //the output expection should expect a specific nid and l2id. Not fully implemented yet.
+    OutputPacket_drtol2_snack out3;    
+    out3.line_7 = inp3.line_7;
+    out3.line_6 = inp3.line_6;
+    out3.line_5 = inp3.line_5;
+    out3.line_4 = inp3.line_4;
+    out3.line_3 = inp3.line_3;
+    out3.line_2 = inp3.line_2;
+    out3.line_1 = inp3.line_1;
+    out3.line_0 = inp3.line_0;
+    out_list_ack.push_front(out3);
+    
+
+    inp_list_ack.pop_back();
+  }
+  
+ 
 
 }
 
 //above is code from other tb
-void try_recv_packet(Vdirectory_bank_wp *top) {
+void try_recv_packet_pfreq(Vdirectory_bank_wp *top) {
 
   //pfreq
   if (top->drtomem_pfreq_valid && out_list_pfreq.empty()) {
@@ -231,8 +335,87 @@ void try_recv_packet_req(Vdirectory_bank_wp *top) {
     printf("ERROR: expected addr:%lu but ack is %lu\n",o2.addr,top->drtomem_req_paddr);
     error_found(top);
   }
-
+  
+  //When we receive a request, push an ack
+  InputPacket_memtodr_ack inAck;    
+  inAck.line_7 = rand();
+  inAck.line_6 = rand();
+  inAck.line_5 = rand();
+  inAck.line_4 = rand();
+  inAck.line_3 = rand();
+  inAck.line_2 = rand();
+  inAck.line_1 = rand();
+  inAck.line_0 = rand();
+  inAck.drid = rand();
+  inp_list_ack.push_front(inAck);
+  
   out_list_req.pop_back();
+}
+
+//ack
+void try_recv_packet_ack(Vdirectory_bank_wp *top) {
+
+  if (top->drtol2_snack_valid && out_list_ack.empty()) {
+    printf("ERROR: unexpected req ack data:%lu,%lu,%lu,%lu,%lu,%lu,%lu,%lu\n",top->drtol2_snack_line_7
+                                                                             ,top->drtol2_snack_line_6
+                                                                             ,top->drtol2_snack_line_5
+                                                                             ,top->drtol2_snack_line_4
+                                                                             ,top->drtol2_snack_line_3
+                                                                             ,top->drtol2_snack_line_2
+                                                                             ,top->drtol2_snack_line_1
+                                                                             ,top->drtol2_snack_line_0); //change
+    error_found(top);
+    return;
+  }
+
+  if (top->drtol2_snack_retry)
+    return;
+
+  if (!top->drtol2_snack_valid)
+    return;
+
+  if (out_list_ack.empty())
+    return;
+
+#ifdef DEBUG_TRACE
+    printf("@%lu ack ack data:%lu,%lu,%lu,%lu,%lu,%lu,%lu,%lu\n",global_time, top->drtol2_snack_line_7
+                                                                             ,top->drtol2_snack_line_6
+                                                                             ,top->drtol2_snack_line_5
+                                                                             ,top->drtol2_snack_line_4
+                                                                             ,top->drtol2_snack_line_3
+                                                                             ,top->drtol2_snack_line_2
+                                                                             ,top->drtol2_snack_line_1
+                                                                             ,top->drtol2_snack_line_0); //change
+#endif
+  OutputPacket_drtol2_snack o3 = out_list_ack.back();
+  if (top->drtol2_snack_line_7 != o3.line_7) {
+    printf("ERROR: expected data:%lu but ack is %lu\n",o3.line_7,top->drtol2_snack_line_7);
+    error_found(top);
+  } else if (top->drtol2_snack_line_6 != o3.line_6) {
+    printf("ERROR: expected data:%lu but ack is %lu\n",o3.line_6,top->drtol2_snack_line_6);
+    error_found(top);
+  } else if (top->drtol2_snack_line_5 != o3.line_5) {
+    printf("ERROR: expected data:%lu but ack is %lu\n",o3.line_5,top->drtol2_snack_line_5);
+    error_found(top);
+  } else if (top->drtol2_snack_line_4 != o3.line_4) {
+    printf("ERROR: expected data:%lu but ack is %lu\n",o3.line_4,top->drtol2_snack_line_4);
+    error_found(top);
+  } else if (top->drtol2_snack_line_3 != o3.line_3) {
+    printf("ERROR: expected data:%lu but ack is %lu\n",o3.line_3,top->drtol2_snack_line_3);
+    error_found(top);
+  } else if (top->drtol2_snack_line_2 != o3.line_2) {
+    printf("ERROR: expected data:%lu but ack is %lu\n",o3.line_2,top->drtol2_snack_line_2);
+    error_found(top);
+  } else if (top->drtol2_snack_line_1 != o3.line_1) {
+    printf("ERROR: expected data:%lu but ack is %lu\n",o3.line_1,top->drtol2_snack_line_1);
+    error_found(top);
+  } else if (top->drtol2_snack_line_0 != o3.line_0) {
+    printf("ERROR: expected data:%lu but ack is %lu\n",o3.line_0,top->drtol2_snack_line_0);
+    error_found(top);
+  }
+
+
+  out_list_ack.pop_back();
 }
 
 
@@ -267,8 +450,10 @@ int main(int argc, char **argv, char **env) {
   top->reset = 0;
   top->drtomem_pfreq_retry = 1;
   top->drtomem_req_retry = 1;
-  top->drtomem_pfreq_valid = 0;
-  top->drtomem_req_valid = 0;
+  
+  top->drtol2_snack_retry = 1;
+  top->memtodr_ack_valid = 0;
+
   
   top->l2todr_req_nid = 0;
   top->l2todr_req_l2id = 0;
@@ -285,10 +470,21 @@ int main(int argc, char **argv, char **env) {
   for(int i =0;i<10240;i++) {
     try_send_packet(top);
     advance_half_clock(top);
-    try_recv_packet(top);
-    try_recv_packet_req(top);
-    advance_half_clock(top);
+    
+#ifdef TEST_PFREQ
+    try_recv_packet_pfreq(top);
+#endif
 
+#ifdef TEST_REQ
+    try_recv_packet_req(top);
+#endif
+
+#ifdef TEST_ACK    
+    try_recv_packet_ack(top);
+#endif
+    advance_half_clock(top);
+    
+#ifdef TEST_PFREQ
     if (((rand() & 0x3)==0) && inp_list_pfreq.size() < 3 ) {
       InputPacket_l2todr_pfreq i;
 
@@ -301,7 +497,9 @@ int main(int argc, char **argv, char **env) {
 
       inp_list_pfreq.push_front(i);
     }
+#endif
     
+#ifdef TEST_REQ  
     if (((rand() & 0x3)==0) && inp_list_req.size() < 3 ) {
       InputPacket_l2todr_req i;
 
@@ -314,6 +512,9 @@ int main(int argc, char **argv, char **env) {
 
       inp_list_req.push_front(i);
     }
+#endif
+    //Ack does not have one of these because every push from from the response to a request
+    
   }
 #endif
 

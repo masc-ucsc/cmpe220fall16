@@ -99,7 +99,7 @@ module directory_bank(
   //I do not know what to us the rest of the signals for and am not sure why main memory only has an address input
   //for its prefetch request type. If you know the answer, feel free to comment in my Directory good doc about it.
   
-  fflop #(.Size($bits(I_l2todr_pfreq_type))) ff0 (
+  fflop #(.Size($bits(I_l2todr_pfreq_type))) pfreq_ff (
     .clk      (clk),
     .reset    (reset),
 
@@ -147,7 +147,7 @@ module directory_bank(
   //Sorry about poor naming.
   logic l2_req_retry;
   //fflop for l2todr_req (l2 request)
-  fflop #(.Size(64)) ff1 (
+  fflop #(.Size($bits(I_l2todr_req_type))) req_ff (
     .clk      (clk),
     .reset    (reset),
 
@@ -179,7 +179,7 @@ module directory_bank(
   //connections to drtol2_snack not complete. There is an assumption in this passthrough that
   //the acks are returned in order.
   //bit size of fflop is incorrect
-  fflop #(.Size(524)) ff2 (
+  fflop #(.Size($bits(I_memtodr_ack_type))) ack_ff (
     .clk      (clk),
     .reset    (reset),
 
@@ -205,7 +205,7 @@ module directory_bank(
   //connections to drtomem_wb not complete. There is an assumption in this passthrough that the acks are returned in order.
   //The directory should also return an ack which is associated with this write back.
   //bit size of fflop is incorrect
-  fflop #(.Size(590)) ff3 (
+  fflop #(.Size($bits(I_l2todr_disp_type))) disp_ff (
     .clk      (clk),
     .reset    (reset),
 
@@ -230,7 +230,7 @@ module directory_bank(
   assign drff_dack_valid = 1'b0;
   
   //fflop for drtol2_dack (displacement acknowledge)
-  fflop #(.Size(11)) ff4(
+  fflop #(.Size($bits(I_drtol2_dack_type))) dack_ff (
     .clk      (clk),
     .reset    (reset),
 
@@ -248,26 +248,21 @@ module directory_bank(
   logic drff_snoop_ack_retry;
   I_drsnoop_ack_type drff_snoop_ack;
   
-  //This should have an actual value, but I have not implemented that yet.
-  assign drff_snoop_ack.drid = 6'b0;
-
-  //Therefore, I am not making this valid yet.
-  assign drff_snoop_ack_valid = 1'b0;
   
   //fflop for l2todr_snoop_ack (snoop acknowledge)
   //Right now this is an output, but this is likely a type and it is actually a type.
   //Therefore, I am just going to output nothing relevant on this for now.
-  fflop #(.Size(6)) ff5 (
+  fflop #(.Size($bits(I_drsnoop_ack_type))) snoop_ack_ff (
     .clk      (clk),
     .reset    (reset),
 
-    .din      (drff_snoop_ack),
-    .dinValid (drff_snoop_ack_valid),
-    .dinRetry (drff_snoop_ack_retry),
+    .din      (l2todr_snoop_ack),
+    .dinValid (l2todr_snoop_ack_valid),
+    .dinRetry (l2todr_snoop_ack_retry),
 
-    .q        (l2todr_snoop_ack),
-    .qValid   (l2todr_snoop_ack_valid),
-    .qRetry   (l2todr_snoop_ack_retry)
+    .q        (drff_snoop_ack),
+    .qValid   (drff_snoop_ack_valid),
+    .qRetry   (drff_snoop_ack_retry)
   );
   
   //What needs to be done for passthrough:
