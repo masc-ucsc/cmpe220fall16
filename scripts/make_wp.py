@@ -20,6 +20,35 @@ dict = {'I_drtol2_snack_type': [
             ('SC_snack_type\t', 'snack'),
             ('SC_line_type\t', 'line'),
             ('SC_paddr_type\t', 'paddr')],
+	'I_l1tol2tlb_req_type': [
+	    ('L1_reqid_type\t', '1lid'),
+	    ('logic\t', 'prefetch'),
+	    ('SC_poffset_type\t', 'poffset'),
+	    ('TLB_hpaddr_type\t', 'hpaddr')],
+	'I_l2tlbtol2_fwd_type': [
+	    ('L1_reqid_type\t', '1lid'),
+	    ('logic\t', 'prefetch'),
+	    ('SC_fault_type\t', 'fault'),
+	    ('TLB_hpaddr_type\t', 'hpaddr'),
+	    ('SC_paddr_type\t', 'paddr')],
+	'I_l2tlbtol1tlb_snoop_type': [
+	    ('TLB_reqid-type\t', 'rid'),
+	    ('TLB_hpaddr_type\t', 'hpaddr')],
+	'I_l2tlbtol1tlb_ack_type': [
+	    ('TLB_reqid_type\t', 'rid'),
+	    ('TLB_hpaddr_type\t', 'hpaddr'),
+	    ('SC_ppaddr_type\t', 'ppaddr'),
+	    ('SC_dctlbe_type\t', 'dctlbe')],
+	'I_l1tlbtol2tlb_req_type': [
+	    ('TLB_reqid_type\t', 'rid'),
+	    ('logic\t', 'disp_req'),
+	    ('logic\t', 'disp_A'),
+	    ('logic\t', 'disp_B'),
+	    ('TLB_hpaddr_type\t', 'disp_hpaddr'),
+	    ('SC_laddr_type\t', 'laddr'),
+	    ('SC_sptbr_type\t', 'sptbr')],
+	'I_l1tlbtol2tlb_sack_type': [
+	    ('TLB_reqid_type\t', 'rid')],
         'I_l2todr_disp_type':[
             ('SC_nodeid_type\t', 'nid'),
             ('L2_reqid_type\t','l2id'),
