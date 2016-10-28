@@ -76,6 +76,7 @@ module l2cache_pipe_wp(
     output                                l2tlbtol2_fwd_retry,
       // Dispatching
     input   L1_reqid_type                 l2tlbtol2_fwd_l1id, // 5
+    input   logic                         l2tlbtol2_fwd_prefetch, // 1
     input   SC_fault_type                 l2tlbtol2_fwd_fault, // 3
     input   TLB_hpaddr_type               l2tlbtol2_fwd_hpaddr, // 11
     input   SC_paddr_type                 l2tlbtol2_fwd_paddr, // 50
@@ -157,8 +158,8 @@ module l2cache_pipe_wp(
     output                                l2todr_pfreq_valid,
     input                                 l2todr_pfreq_retry,
       // Dispatching
-    output  SC_paddr_type                 l2todr_pfreq_paddr, // 50
-    output  SC_nodeid_type                l2todr_pfreq_nid // 5
+    output  SC_paddr_type                 l2todr_pfreq_nid, // 5
+    output  SC_nodeid_type                l2todr_pfreq_paddr // 50
 
 );
 
@@ -218,6 +219,7 @@ module l2cache_pipe_wp(
         .l2tlbtol2_fwd_valid(l2tlbtol2_fwd_valid),
         .l2tlbtol2_fwd_retry(l2tlbtol2_fwd_retry),
         .l2tlbtol2_fwd({     l2tlbtol2_fwd_l1id,
+                             l2tlbtol2_fwd_prefetch,
                              l2tlbtol2_fwd_fault,
                              l2tlbtol2_fwd_hpaddr,
                              l2tlbtol2_fwd_paddr}),

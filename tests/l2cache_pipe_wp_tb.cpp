@@ -146,6 +146,7 @@ struct DrtoL2DackPacket { // input
 
 struct L2tltToL2FwdPacket {
     uint8_t l1id;
+    uint8_t prefetch;
     uint8_t fault;
     uint16_t hpaddr;
     uint64_t paddr;
@@ -440,6 +441,7 @@ void try_send_l2tlb_to_l2_fwd_packet (Vl2cache_pipe_wp *top) {
     top->l2tlbtol2_fwd_retry = (rand()&0xF)==0; // randomly,
     if ( !top-> l2todr_pfreq_retry ) {
         top->l2tlbtol2_fwd_l1id = rand();
+        top->l2tlbtol2_fwd_prefetch = rand();
         top->l2tlbtol2_fwd_fault = rand();
         top->l2tlbtol2_fwd_hpaddr = rand();
         top->l2tlbtol2_fwd_paddr = rand();
@@ -457,12 +459,13 @@ void try_send_l2tlb_to_l2_fwd_packet (Vl2cache_pipe_wp *top) {
         L2tlbtoL2FwdPacket l2tlbtol2_fwdp = l2tlbtol2_fwd_list.back();
         count_l2tlbtol2_fwd++;
         top->l2tlbtol2_fwd_l1id = l2tlbtol2_fwd.l1id;
+        top->l2tlbtol2_fwd_prefetch = l2tlbtol2_fwd.prefetch;
         top->l2tlbtol2_fwd_fault = l2tlbtol2_fwd.fault;
         top->l2tlbtol2_fwd_hpaddr = l2tlbtol2_fwd.hpaddr;
         top->l2tlbtol2_fwd_paddr = l2tlbtol2_fwd.paddr;
 #ifdef DEBUG_TRACE
-        printf("@%lld l2tlbtol2_fwd l1id:%x fault:%x hpaddr:%d paddr:%x\n",global_time, l2tlbtol2_fwdp.l1id, 
-            l2tlbtol2_fwdp.fault, l2tlbtol2_fwdp.hpaddr, l2tlbtol2_fwdp.paddr);
+        printf("@%lld l2tlbtol2_fwd l1id:%x prefetch:%x fault:%x hpaddr:%d paddr:%x\n",global_time, l2tlbtol2_fwdp.l1id, 
+            l2tlbtol2_fwdp.prefetch, l2tlbtol2_fwdp.fault, l2tlbtol2_fwdp.hpaddr, l2tlbtol2_fwdp.paddr);
 #endif
         if (0) { // If it's write
                     // TODO
@@ -471,7 +474,6 @@ void try_send_l2tlb_to_l2_fwd_packet (Vl2cache_pipe_wp *top) {
           L2toDrPfreqPacket l2todr_pfreqp;
           l2todr_pfreqp.nid = rand();
           l2todr_pfreqp.paddr = l2todr_pfreqp.paddr;
-          // l2todr_reqp.paddr = l1tol2_reqp.laddr;
           l2todr_pfreq_list.push_front(l2todr_pfreqp);
         }
         l2tlbtol2_fwd_list.pop_back();
@@ -818,6 +820,7 @@ int main(int argc, char **argv, char **env) {
       //L2tlbtoL2FwdPacket l2tlbtol2_fwdp = L2tlbtoL2FwdPacket();
       L2tlbtoL2FwdPacket l2tlbtol2_fwdp;
       l2tlbtol2_fwdp.l1id = rand() & 0x1F;
+      l2tlbtol2_fwdp.prefetch = rand() & 0x1;
       l2tlbtol2_fwdp.fault = rand() & 0x7;
       l2tlbtol2_fwdp.hpaddr = rand() & 0x7FF;
       l2tlbtol2_fwdp.paddr = rand() & 0x3FFFFFFFFFFFF;
