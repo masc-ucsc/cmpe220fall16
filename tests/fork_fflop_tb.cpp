@@ -194,8 +194,8 @@ int main(int argc, char **argv, char **env) {
   Vfork_fflop* top = new Vfork_fflop;
 
   int t = (int)time(0);
-#if 0
-  srand(1477403302);
+#if 1
+  srand(1477696983);
 #else
   srand(t);
 #endif

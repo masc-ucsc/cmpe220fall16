@@ -44,7 +44,7 @@
 ****************************************************************************/
 
 `define FLOP_RETRY_USE_FLOPS 1
-`define USE_SELF_W2R1 1
+//`define USE_SELF_W2R1 1
 
 module fflop
   #(parameter Size=1)

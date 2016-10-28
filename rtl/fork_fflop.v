@@ -16,12 +16,14 @@ module fork_fflop(
 );
 
 
-  logic   inp_abValid;
+  logic   inp_aValid;
+  logic   inp_bValid;
   logic   inp_aRetry;
   logic   inp_bRetry;
 
   always_comb begin
-    inp_abValid = inp_Valid && !inp_Retry;
+    inp_bValid = inp_Valid & !inp_aRetry;
+    inp_aValid = inp_Valid & !inp_bRetry;
   end
   
   always_comb begin
@@ -35,7 +37,7 @@ module fork_fflop(
     .reset    (reset),
 
     .din      (inp),
-    .dinValid (inp_abValid),
+    .dinValid (inp_aValid),
     .dinRetry (inp_aRetry),
 
     .q        (out_a),
@@ -48,7 +50,7 @@ module fork_fflop(
     .reset    (reset),
 
     .din      (inp),
-    .dinValid (inp_abValid),
+    .dinValid (inp_bValid),
     .dinRetry (inp_bRetry),
 
     .q        (out_b),
