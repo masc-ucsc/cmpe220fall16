@@ -68,10 +68,10 @@ dict = {'I_drtol2_snack_type': [
             ('SC_snack_type\t', 'ack'),
             ('SC_line_type\t', 'line')],
         'I_dctocore_std_ack_type':[
-            ('SC_abort_type\t', 'aborted'),
+            ('SC_fault_type\t', 'fault'),
             ('CORE_reqid_type\t', 'coreid')],
         'I_ictocore_type':[
-            ('SC_abort_type\t', 'aborted'),
+            ('SC_fault_type\t', 'fault'),
             ('IC_fwidth_type\t', 'data')],
         'I_coretodc_std_type':[
             ('DC_ckpid_type\t', 'ckpid'),
@@ -84,7 +84,7 @@ dict = {'I_drtol2_snack_type': [
             ('SC_line_type\t', 'data')],
         'I_dctocore_ld_type':[
             ('CORE_reqid_type\t', 'coreid'),
-            ('SC_abort_type\t', 'aborted'),
+            ('SC_fault_type\t', 'fault'),
             ('SC_line_type\t', 'data')],
         }
 
