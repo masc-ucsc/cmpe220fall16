@@ -85,5 +85,5 @@ regression: lint $(REGLIST)
 	ruby scripts/regcheck.rb $(REGLIST)
 
 clean:
-	rm -rf obj_dir output.vcd a.out
+	rm -rf obj_dir *.vcd a.out
 
