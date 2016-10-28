@@ -11,691 +11,693 @@
 // 4 data cache slice(s) per core, and
 // 2 directory(ies)
 
+
 `include "scmem.vh"
-module integration_2core2dr(
+
+module top_2core2dr_wp(
   /* verilator lint_off UNUSED */
   /* verilator lint_off UNDRIVEN */
-    input   logic               clk
-    ,input  logic               reset
+	input	logic				clk
+	,input	logic				reset
 
    //******************************************
    //*  CORE 0                       *
    //******************************************//
    // icache core 0
-    ,input  logic               core0_coretoic_valid
-    ,output logic               core0_coretoic_retry
-    ,input  SC_laddr_type       core0_coretoic_pc
-    ,output logic               core0_ictocore_valid
-    ,input  logic               core0_ictocore_retry
-    //  ,output I_ictocore_type      core0_ictocore              
-    ,output SC_fault_type       core0_ictocore_fault
-    ,output IC_fwidth_type      core0_ictocore_data
+	,input	logic				core0_coretoic_valid
+	,output	logic				core0_coretoic_retry
+	,input	SC_laddr_type		core0_coretoic_pc
+	,output	logic				core0_ictocore_valid
+	,input	logic				core0_ictocore_retry
+	//  ,output I_ictocore_type      core0_ictocore              
+	,output	SC_fault_type		core0_ictocore_fault
+	,output	IC_fwidth_type		core0_ictocore_data
 
    // dcache core 0, slice 0
-    ,input  logic               core0_slice0_coretodc_ld_valid
-    ,output logic               core0_slice0_coretodc_ld_retry
-    //  ,input   I_coretodc_ld_type      core0_slice0_coretodc_ld           
-    ,input  DC_ckpid_type       core0_slice0_coretodc_ld_ckpid
-    ,input  CORE_reqid_type     core0_slice0_coretodc_ld_coreid
-    ,input  CORE_lop_type       core0_slice0_coretodc_ld_lop
-    ,input  logic               core0_slice0_coretodc_ld_pnr
-    ,input  SC_pcsign_type      core0_slice0_coretodc_ld_pcsign
-    ,input  SC_laddr_type       core0_slice0_coretodc_ld_laddr
-    ,input  SC_sptbr_type       core0_slice0_coretodc_ld_sptbr
-    ,output logic               core0_slice0_dctocore_ld_valid
-    ,input  logic               core0_slice0_dctocore_ld_retry
-    //  ,output  I_dctocore_ld_type      core0_slice0_dctocore_ld           
-    ,output CORE_reqid_type     core0_slice0_dctocore_ld_coreid
-    ,output SC_fault_type       core0_slice0_dctocore_ld_fault
-    ,output SC_line_type        core0_slice0_dctocore_ld_data
-    ,input  logic               core0_slice0_coretodc_std_valid
-    ,output logic               core0_slice0_coretodc_std_retry
-    //  ,input   I_coretodc_std_type     core0_slice0_coretodc_std          
-    ,input  DC_ckpid_type       core0_slice0_coretodc_std_ckpid
-    ,input  CORE_reqid_type     core0_slice0_coretodc_std_coreid
-    ,input  CORE_mop_type       core0_slice0_coretodc_std_mop
-    ,input  logic               core0_slice0_coretodc_std_pnr
-    ,input  SC_pcsign_type      core0_slice0_coretodc_std_pcsign
-    ,input  SC_laddr_type       core0_slice0_coretodc_std_laddr
-    ,input  SC_sptbr_type       core0_slice0_coretodc_std_sptbr
-    ,input  SC_line_type        core0_slice0_coretodc_std_data
-    ,output logic               core0_slice0_dctocore_std_ack_valid
-    ,input  logic               core0_slice0_dctocore_std_ack_retry
-    //  ,output  I_dctocore_std_ack_type core0_slice0_dctocore_std_ack      
-    ,output SC_fault_type       core0_slice0_dctocore_std_ack_fault
-    ,output CORE_reqid_type     core0_slice0_dctocore_std_ack_coreid
+	,input	logic				core0_slice0_coretodc_ld_valid
+	,output	logic				core0_slice0_coretodc_ld_retry
+	//  ,input   I_coretodc_ld_type      core0_slice0_coretodc_ld           
+	,input	DC_ckpid_type		core0_slice0_coretodc_ld_ckpid
+	,input	CORE_reqid_type		core0_slice0_coretodc_ld_coreid
+	,input	CORE_lop_type		core0_slice0_coretodc_ld_lop
+	,input	logic				core0_slice0_coretodc_ld_pnr
+	,input	SC_pcsign_type		core0_slice0_coretodc_ld_pcsign
+	,input	SC_laddr_type		core0_slice0_coretodc_ld_laddr
+	,input	SC_sptbr_type		core0_slice0_coretodc_ld_sptbr
+	,output	logic				core0_slice0_dctocore_ld_valid
+	,input	logic				core0_slice0_dctocore_ld_retry
+	//  ,output  I_dctocore_ld_type      core0_slice0_dctocore_ld           
+	,output	CORE_reqid_type		core0_slice0_dctocore_ld_coreid
+	,output	SC_fault_type		core0_slice0_dctocore_ld_fault
+	,output	SC_line_type		core0_slice0_dctocore_ld_data
+	,input	logic				core0_slice0_coretodc_std_valid
+	,output	logic				core0_slice0_coretodc_std_retry
+	//  ,input   I_coretodc_std_type     core0_slice0_coretodc_std          
+	,input	DC_ckpid_type		core0_slice0_coretodc_std_ckpid
+	,input	CORE_reqid_type		core0_slice0_coretodc_std_coreid
+	,input	CORE_mop_type		core0_slice0_coretodc_std_mop
+	,input	logic				core0_slice0_coretodc_std_pnr
+	,input	SC_pcsign_type		core0_slice0_coretodc_std_pcsign
+	,input	SC_laddr_type		core0_slice0_coretodc_std_laddr
+	,input	SC_sptbr_type		core0_slice0_coretodc_std_sptbr
+	,input	SC_line_type		core0_slice0_coretodc_std_data
+	,output	logic				core0_slice0_dctocore_std_ack_valid
+	,input	logic				core0_slice0_dctocore_std_ack_retry
+	//  ,output  I_dctocore_std_ack_type core0_slice0_dctocore_std_ack      
+	,output	SC_fault_type		core0_slice0_dctocore_std_ack_fault
+	,output	CORE_reqid_type		core0_slice0_dctocore_std_ack_coreid
 
    // dcache core 0, slice 1
-    ,input  logic               core0_slice1_coretodc_ld_valid
-    ,output logic               core0_slice1_coretodc_ld_retry
-    //  ,input   I_coretodc_ld_type      core0_slice1_coretodc_ld           
-    ,input  DC_ckpid_type       core0_slice1_coretodc_ld_ckpid
-    ,input  CORE_reqid_type     core0_slice1_coretodc_ld_coreid
-    ,input  CORE_lop_type       core0_slice1_coretodc_ld_lop
-    ,input  logic               core0_slice1_coretodc_ld_pnr
-    ,input  SC_pcsign_type      core0_slice1_coretodc_ld_pcsign
-    ,input  SC_laddr_type       core0_slice1_coretodc_ld_laddr
-    ,input  SC_sptbr_type       core0_slice1_coretodc_ld_sptbr
-    ,output logic               core0_slice1_dctocore_ld_valid
-    ,input  logic               core0_slice1_dctocore_ld_retry
-    //  ,output  I_dctocore_ld_type      core0_slice1_dctocore_ld           
-    ,output CORE_reqid_type     core0_slice1_dctocore_ld_coreid
-    ,output SC_fault_type       core0_slice1_dctocore_ld_fault
-    ,output SC_line_type        core0_slice1_dctocore_ld_data
-    ,input  logic               core0_slice1_coretodc_std_valid
-    ,output logic               core0_slice1_coretodc_std_retry
-    //  ,input   I_coretodc_std_type     core0_slice1_coretodc_std          
-    ,input  DC_ckpid_type       core0_slice1_coretodc_std_ckpid
-    ,input  CORE_reqid_type     core0_slice1_coretodc_std_coreid
-    ,input  CORE_mop_type       core0_slice1_coretodc_std_mop
-    ,input  logic               core0_slice1_coretodc_std_pnr
-    ,input  SC_pcsign_type      core0_slice1_coretodc_std_pcsign
-    ,input  SC_laddr_type       core0_slice1_coretodc_std_laddr
-    ,input  SC_sptbr_type       core0_slice1_coretodc_std_sptbr
-    ,input  SC_line_type        core0_slice1_coretodc_std_data
-    ,output logic               core0_slice1_dctocore_std_ack_valid
-    ,input  logic               core0_slice1_dctocore_std_ack_retry
-    //  ,output  I_dctocore_std_ack_type core0_slice1_dctocore_std_ack      
-    ,output SC_fault_type       core0_slice1_dctocore_std_ack_fault
-    ,output CORE_reqid_type     core0_slice1_dctocore_std_ack_coreid
+	,input	logic				core0_slice1_coretodc_ld_valid
+	,output	logic				core0_slice1_coretodc_ld_retry
+	//  ,input   I_coretodc_ld_type      core0_slice1_coretodc_ld           
+	,input	DC_ckpid_type		core0_slice1_coretodc_ld_ckpid
+	,input	CORE_reqid_type		core0_slice1_coretodc_ld_coreid
+	,input	CORE_lop_type		core0_slice1_coretodc_ld_lop
+	,input	logic				core0_slice1_coretodc_ld_pnr
+	,input	SC_pcsign_type		core0_slice1_coretodc_ld_pcsign
+	,input	SC_laddr_type		core0_slice1_coretodc_ld_laddr
+	,input	SC_sptbr_type		core0_slice1_coretodc_ld_sptbr
+	,output	logic				core0_slice1_dctocore_ld_valid
+	,input	logic				core0_slice1_dctocore_ld_retry
+	//  ,output  I_dctocore_ld_type      core0_slice1_dctocore_ld           
+	,output	CORE_reqid_type		core0_slice1_dctocore_ld_coreid
+	,output	SC_fault_type		core0_slice1_dctocore_ld_fault
+	,output	SC_line_type		core0_slice1_dctocore_ld_data
+	,input	logic				core0_slice1_coretodc_std_valid
+	,output	logic				core0_slice1_coretodc_std_retry
+	//  ,input   I_coretodc_std_type     core0_slice1_coretodc_std          
+	,input	DC_ckpid_type		core0_slice1_coretodc_std_ckpid
+	,input	CORE_reqid_type		core0_slice1_coretodc_std_coreid
+	,input	CORE_mop_type		core0_slice1_coretodc_std_mop
+	,input	logic				core0_slice1_coretodc_std_pnr
+	,input	SC_pcsign_type		core0_slice1_coretodc_std_pcsign
+	,input	SC_laddr_type		core0_slice1_coretodc_std_laddr
+	,input	SC_sptbr_type		core0_slice1_coretodc_std_sptbr
+	,input	SC_line_type		core0_slice1_coretodc_std_data
+	,output	logic				core0_slice1_dctocore_std_ack_valid
+	,input	logic				core0_slice1_dctocore_std_ack_retry
+	//  ,output  I_dctocore_std_ack_type core0_slice1_dctocore_std_ack      
+	,output	SC_fault_type		core0_slice1_dctocore_std_ack_fault
+	,output	CORE_reqid_type		core0_slice1_dctocore_std_ack_coreid
 
 
 `ifdef SC_4PIPE
    // dcache core 0, slice 2
-    ,input  logic               core0_slice2_coretodc_ld_valid
-    ,output logic               core0_slice2_coretodc_ld_retry
-    //  ,input   I_coretodc_ld_type      core0_slice2_coretodc_ld           
-    ,input  DC_ckpid_type       core0_slice2_coretodc_ld_ckpid
-    ,input  CORE_reqid_type     core0_slice2_coretodc_ld_coreid
-    ,input  CORE_lop_type       core0_slice2_coretodc_ld_lop
-    ,input  logic               core0_slice2_coretodc_ld_pnr
-    ,input  SC_pcsign_type      core0_slice2_coretodc_ld_pcsign
-    ,input  SC_laddr_type       core0_slice2_coretodc_ld_laddr
-    ,input  SC_sptbr_type       core0_slice2_coretodc_ld_sptbr
-    ,output logic               core0_slice2_dctocore_ld_valid
-    ,input  logic               core0_slice2_dctocore_ld_retry
-    //  ,output  I_dctocore_ld_type      core0_slice2_dctocore_ld           
-    ,output CORE_reqid_type     core0_slice2_dctocore_ld_coreid
-    ,output SC_fault_type       core0_slice2_dctocore_ld_fault
-    ,output SC_line_type        core0_slice2_dctocore_ld_data
-    ,input  logic               core0_slice2_coretodc_std_valid
-    ,output logic               core0_slice2_coretodc_std_retry
-    //  ,input   I_coretodc_std_type     core0_slice2_coretodc_std          
-    ,input  DC_ckpid_type       core0_slice2_coretodc_std_ckpid
-    ,input  CORE_reqid_type     core0_slice2_coretodc_std_coreid
-    ,input  CORE_mop_type       core0_slice2_coretodc_std_mop
-    ,input  logic               core0_slice2_coretodc_std_pnr
-    ,input  SC_pcsign_type      core0_slice2_coretodc_std_pcsign
-    ,input  SC_laddr_type       core0_slice2_coretodc_std_laddr
-    ,input  SC_sptbr_type       core0_slice2_coretodc_std_sptbr
-    ,input  SC_line_type        core0_slice2_coretodc_std_data
-    ,output logic               core0_slice2_dctocore_std_ack_valid
-    ,input  logic               core0_slice2_dctocore_std_ack_retry
-    //  ,output  I_dctocore_std_ack_type core0_slice2_dctocore_std_ack      
-    ,output SC_fault_type       core0_slice2_dctocore_std_ack_fault
-    ,output CORE_reqid_type     core0_slice2_dctocore_std_ack_coreid
+	,input	logic				core0_slice2_coretodc_ld_valid
+	,output	logic				core0_slice2_coretodc_ld_retry
+	//  ,input   I_coretodc_ld_type      core0_slice2_coretodc_ld           
+	,input	DC_ckpid_type		core0_slice2_coretodc_ld_ckpid
+	,input	CORE_reqid_type		core0_slice2_coretodc_ld_coreid
+	,input	CORE_lop_type		core0_slice2_coretodc_ld_lop
+	,input	logic				core0_slice2_coretodc_ld_pnr
+	,input	SC_pcsign_type		core0_slice2_coretodc_ld_pcsign
+	,input	SC_laddr_type		core0_slice2_coretodc_ld_laddr
+	,input	SC_sptbr_type		core0_slice2_coretodc_ld_sptbr
+	,output	logic				core0_slice2_dctocore_ld_valid
+	,input	logic				core0_slice2_dctocore_ld_retry
+	//  ,output  I_dctocore_ld_type      core0_slice2_dctocore_ld           
+	,output	CORE_reqid_type		core0_slice2_dctocore_ld_coreid
+	,output	SC_fault_type		core0_slice2_dctocore_ld_fault
+	,output	SC_line_type		core0_slice2_dctocore_ld_data
+	,input	logic				core0_slice2_coretodc_std_valid
+	,output	logic				core0_slice2_coretodc_std_retry
+	//  ,input   I_coretodc_std_type     core0_slice2_coretodc_std          
+	,input	DC_ckpid_type		core0_slice2_coretodc_std_ckpid
+	,input	CORE_reqid_type		core0_slice2_coretodc_std_coreid
+	,input	CORE_mop_type		core0_slice2_coretodc_std_mop
+	,input	logic				core0_slice2_coretodc_std_pnr
+	,input	SC_pcsign_type		core0_slice2_coretodc_std_pcsign
+	,input	SC_laddr_type		core0_slice2_coretodc_std_laddr
+	,input	SC_sptbr_type		core0_slice2_coretodc_std_sptbr
+	,input	SC_line_type		core0_slice2_coretodc_std_data
+	,output	logic				core0_slice2_dctocore_std_ack_valid
+	,input	logic				core0_slice2_dctocore_std_ack_retry
+	//  ,output  I_dctocore_std_ack_type core0_slice2_dctocore_std_ack      
+	,output	SC_fault_type		core0_slice2_dctocore_std_ack_fault
+	,output	CORE_reqid_type		core0_slice2_dctocore_std_ack_coreid
 
    // dcache core 0, slice 3
-    ,input  logic               core0_slice3_coretodc_ld_valid
-    ,output logic               core0_slice3_coretodc_ld_retry
-    //  ,input   I_coretodc_ld_type      core0_slice3_coretodc_ld           
-    ,input  DC_ckpid_type       core0_slice3_coretodc_ld_ckpid
-    ,input  CORE_reqid_type     core0_slice3_coretodc_ld_coreid
-    ,input  CORE_lop_type       core0_slice3_coretodc_ld_lop
-    ,input  logic               core0_slice3_coretodc_ld_pnr
-    ,input  SC_pcsign_type      core0_slice3_coretodc_ld_pcsign
-    ,input  SC_laddr_type       core0_slice3_coretodc_ld_laddr
-    ,input  SC_sptbr_type       core0_slice3_coretodc_ld_sptbr
-    ,output logic               core0_slice3_dctocore_ld_valid
-    ,input  logic               core0_slice3_dctocore_ld_retry
-    //  ,output  I_dctocore_ld_type      core0_slice3_dctocore_ld           
-    ,output CORE_reqid_type     core0_slice3_dctocore_ld_coreid
-    ,output SC_fault_type       core0_slice3_dctocore_ld_fault
-    ,output SC_line_type        core0_slice3_dctocore_ld_data
-    ,input  logic               core0_slice3_coretodc_std_valid
-    ,output logic               core0_slice3_coretodc_std_retry
-    //  ,input   I_coretodc_std_type     core0_slice3_coretodc_std          
-    ,input  DC_ckpid_type       core0_slice3_coretodc_std_ckpid
-    ,input  CORE_reqid_type     core0_slice3_coretodc_std_coreid
-    ,input  CORE_mop_type       core0_slice3_coretodc_std_mop
-    ,input  logic               core0_slice3_coretodc_std_pnr
-    ,input  SC_pcsign_type      core0_slice3_coretodc_std_pcsign
-    ,input  SC_laddr_type       core0_slice3_coretodc_std_laddr
-    ,input  SC_sptbr_type       core0_slice3_coretodc_std_sptbr
-    ,input  SC_line_type        core0_slice3_coretodc_std_data
-    ,output logic               core0_slice3_dctocore_std_ack_valid
-    ,input  logic               core0_slice3_dctocore_std_ack_retry
-    //  ,output  I_dctocore_std_ack_type core0_slice3_dctocore_std_ack      
-    ,output SC_fault_type       core0_slice3_dctocore_std_ack_fault
-    ,output CORE_reqid_type     core0_slice3_dctocore_std_ack_coreid
+	,input	logic				core0_slice3_coretodc_ld_valid
+	,output	logic				core0_slice3_coretodc_ld_retry
+	//  ,input   I_coretodc_ld_type      core0_slice3_coretodc_ld           
+	,input	DC_ckpid_type		core0_slice3_coretodc_ld_ckpid
+	,input	CORE_reqid_type		core0_slice3_coretodc_ld_coreid
+	,input	CORE_lop_type		core0_slice3_coretodc_ld_lop
+	,input	logic				core0_slice3_coretodc_ld_pnr
+	,input	SC_pcsign_type		core0_slice3_coretodc_ld_pcsign
+	,input	SC_laddr_type		core0_slice3_coretodc_ld_laddr
+	,input	SC_sptbr_type		core0_slice3_coretodc_ld_sptbr
+	,output	logic				core0_slice3_dctocore_ld_valid
+	,input	logic				core0_slice3_dctocore_ld_retry
+	//  ,output  I_dctocore_ld_type      core0_slice3_dctocore_ld           
+	,output	CORE_reqid_type		core0_slice3_dctocore_ld_coreid
+	,output	SC_fault_type		core0_slice3_dctocore_ld_fault
+	,output	SC_line_type		core0_slice3_dctocore_ld_data
+	,input	logic				core0_slice3_coretodc_std_valid
+	,output	logic				core0_slice3_coretodc_std_retry
+	//  ,input   I_coretodc_std_type     core0_slice3_coretodc_std          
+	,input	DC_ckpid_type		core0_slice3_coretodc_std_ckpid
+	,input	CORE_reqid_type		core0_slice3_coretodc_std_coreid
+	,input	CORE_mop_type		core0_slice3_coretodc_std_mop
+	,input	logic				core0_slice3_coretodc_std_pnr
+	,input	SC_pcsign_type		core0_slice3_coretodc_std_pcsign
+	,input	SC_laddr_type		core0_slice3_coretodc_std_laddr
+	,input	SC_sptbr_type		core0_slice3_coretodc_std_sptbr
+	,input	SC_line_type		core0_slice3_coretodc_std_data
+	,output	logic				core0_slice3_dctocore_std_ack_valid
+	,input	logic				core0_slice3_dctocore_std_ack_retry
+	//  ,output  I_dctocore_std_ack_type core0_slice3_dctocore_std_ack      
+	,output	SC_fault_type		core0_slice3_dctocore_std_ack_fault
+	,output	CORE_reqid_type		core0_slice3_dctocore_std_ack_coreid
 
 `endif
 
 
     // core 0 prefetch 
-    ,input  logic               core0_pfgtopfe_op_valid
-    ,output logic               core0_pfgtopfe_op_retry
-    //  ,input  I_pfgtopfe_op_type   core0_pfgtopfe_op      
-    ,input  PF_delta_type       core0_pfgtopfe_op_d
-    ,input  PF_weigth_type      core0_pfgtopfe_op_w
-    ,input  SC_pcsign_type      core0_pfgtopfe_op_pcsign
-    ,input  SC_laddr_type       core0_pfgtopfe_op_laddr
-    ,input  SC_sptbr_type       core0_pfgtopfe_op_sptbr
+	,input	logic				core0_pfgtopfe_op_valid
+	,output	logic				core0_pfgtopfe_op_retry
+	//  ,input  I_pfgtopfe_op_type   core0_pfgtopfe_op      
+	,input	PF_delta_type		core0_pfgtopfe_op_d
+	,input	PF_weigth_type		core0_pfgtopfe_op_w
+	,input	SC_pcsign_type		core0_pfgtopfe_op_pcsign
+	,input	SC_laddr_type		core0_pfgtopfe_op_laddr
+	,input	SC_sptbr_type		core0_pfgtopfe_op_sptbr
 
    //******************************************
    //*  CORE 1                       *
    //******************************************//
    // icache core 1
-    ,input  logic               core1_coretoic_valid
-    ,output logic               core1_coretoic_retry
-    ,input  SC_laddr_type       core1_coretoic_pc
-    ,output logic               core1_ictocore_valid
-    ,input  logic               core1_ictocore_retry
-    //  ,output I_ictocore_type      core1_ictocore              
-    ,output SC_fault_type       core1_ictocore_fault
-    ,output IC_fwidth_type      core1_ictocore_data
+	,input	logic				core1_coretoic_valid
+	,output	logic				core1_coretoic_retry
+	,input	SC_laddr_type		core1_coretoic_pc
+	,output	logic				core1_ictocore_valid
+	,input	logic				core1_ictocore_retry
+	//  ,output I_ictocore_type      core1_ictocore              
+	,output	SC_fault_type		core1_ictocore_fault
+	,output	IC_fwidth_type		core1_ictocore_data
 
    // dcache core 1, slice 0
-    ,input  logic               core1_slice0_coretodc_ld_valid
-    ,output logic               core1_slice0_coretodc_ld_retry
-    //  ,input   I_coretodc_ld_type      core1_slice0_coretodc_ld           
-    ,input  DC_ckpid_type       core1_slice0_coretodc_ld_ckpid
-    ,input  CORE_reqid_type     core1_slice0_coretodc_ld_coreid
-    ,input  CORE_lop_type       core1_slice0_coretodc_ld_lop
-    ,input  logic               core1_slice0_coretodc_ld_pnr
-    ,input  SC_pcsign_type      core1_slice0_coretodc_ld_pcsign
-    ,input  SC_laddr_type       core1_slice0_coretodc_ld_laddr
-    ,input  SC_sptbr_type       core1_slice0_coretodc_ld_sptbr
-    ,output logic               core1_slice0_dctocore_ld_valid
-    ,input  logic               core1_slice0_dctocore_ld_retry
-    //  ,output  I_dctocore_ld_type      core1_slice0_dctocore_ld           
-    ,output CORE_reqid_type     core1_slice0_dctocore_ld_coreid
-    ,output SC_fault_type       core1_slice0_dctocore_ld_fault
-    ,output SC_line_type        core1_slice0_dctocore_ld_data
-    ,input  logic               core1_slice0_coretodc_std_valid
-    ,output logic               core1_slice0_coretodc_std_retry
-    //  ,input   I_coretodc_std_type     core1_slice0_coretodc_std          
-    ,input  DC_ckpid_type       core1_slice0_coretodc_std_ckpid
-    ,input  CORE_reqid_type     core1_slice0_coretodc_std_coreid
-    ,input  CORE_mop_type       core1_slice0_coretodc_std_mop
-    ,input  logic               core1_slice0_coretodc_std_pnr
-    ,input  SC_pcsign_type      core1_slice0_coretodc_std_pcsign
-    ,input  SC_laddr_type       core1_slice0_coretodc_std_laddr
-    ,input  SC_sptbr_type       core1_slice0_coretodc_std_sptbr
-    ,input  SC_line_type        core1_slice0_coretodc_std_data
-    ,output logic               core1_slice0_dctocore_std_ack_valid
-    ,input  logic               core1_slice0_dctocore_std_ack_retry
-    //  ,output  I_dctocore_std_ack_type core1_slice0_dctocore_std_ack      
-    ,output SC_fault_type       core1_slice0_dctocore_std_ack_fault
-    ,output CORE_reqid_type     core1_slice0_dctocore_std_ack_coreid
+	,input	logic				core1_slice0_coretodc_ld_valid
+	,output	logic				core1_slice0_coretodc_ld_retry
+	//  ,input   I_coretodc_ld_type      core1_slice0_coretodc_ld           
+	,input	DC_ckpid_type		core1_slice0_coretodc_ld_ckpid
+	,input	CORE_reqid_type		core1_slice0_coretodc_ld_coreid
+	,input	CORE_lop_type		core1_slice0_coretodc_ld_lop
+	,input	logic				core1_slice0_coretodc_ld_pnr
+	,input	SC_pcsign_type		core1_slice0_coretodc_ld_pcsign
+	,input	SC_laddr_type		core1_slice0_coretodc_ld_laddr
+	,input	SC_sptbr_type		core1_slice0_coretodc_ld_sptbr
+	,output	logic				core1_slice0_dctocore_ld_valid
+	,input	logic				core1_slice0_dctocore_ld_retry
+	//  ,output  I_dctocore_ld_type      core1_slice0_dctocore_ld           
+	,output	CORE_reqid_type		core1_slice0_dctocore_ld_coreid
+	,output	SC_fault_type		core1_slice0_dctocore_ld_fault
+	,output	SC_line_type		core1_slice0_dctocore_ld_data
+	,input	logic				core1_slice0_coretodc_std_valid
+	,output	logic				core1_slice0_coretodc_std_retry
+	//  ,input   I_coretodc_std_type     core1_slice0_coretodc_std          
+	,input	DC_ckpid_type		core1_slice0_coretodc_std_ckpid
+	,input	CORE_reqid_type		core1_slice0_coretodc_std_coreid
+	,input	CORE_mop_type		core1_slice0_coretodc_std_mop
+	,input	logic				core1_slice0_coretodc_std_pnr
+	,input	SC_pcsign_type		core1_slice0_coretodc_std_pcsign
+	,input	SC_laddr_type		core1_slice0_coretodc_std_laddr
+	,input	SC_sptbr_type		core1_slice0_coretodc_std_sptbr
+	,input	SC_line_type		core1_slice0_coretodc_std_data
+	,output	logic				core1_slice0_dctocore_std_ack_valid
+	,input	logic				core1_slice0_dctocore_std_ack_retry
+	//  ,output  I_dctocore_std_ack_type core1_slice0_dctocore_std_ack      
+	,output	SC_fault_type		core1_slice0_dctocore_std_ack_fault
+	,output	CORE_reqid_type		core1_slice0_dctocore_std_ack_coreid
 
    // dcache core 1, slice 1
-    ,input  logic               core1_slice1_coretodc_ld_valid
-    ,output logic               core1_slice1_coretodc_ld_retry
-    //  ,input   I_coretodc_ld_type      core1_slice1_coretodc_ld           
-    ,input  DC_ckpid_type       core1_slice1_coretodc_ld_ckpid
-    ,input  CORE_reqid_type     core1_slice1_coretodc_ld_coreid
-    ,input  CORE_lop_type       core1_slice1_coretodc_ld_lop
-    ,input  logic               core1_slice1_coretodc_ld_pnr
-    ,input  SC_pcsign_type      core1_slice1_coretodc_ld_pcsign
-    ,input  SC_laddr_type       core1_slice1_coretodc_ld_laddr
-    ,input  SC_sptbr_type       core1_slice1_coretodc_ld_sptbr
-    ,output logic               core1_slice1_dctocore_ld_valid
-    ,input  logic               core1_slice1_dctocore_ld_retry
-    //  ,output  I_dctocore_ld_type      core1_slice1_dctocore_ld           
-    ,output CORE_reqid_type     core1_slice1_dctocore_ld_coreid
-    ,output SC_fault_type       core1_slice1_dctocore_ld_fault
-    ,output SC_line_type        core1_slice1_dctocore_ld_data
-    ,input  logic               core1_slice1_coretodc_std_valid
-    ,output logic               core1_slice1_coretodc_std_retry
-    //  ,input   I_coretodc_std_type     core1_slice1_coretodc_std          
-    ,input  DC_ckpid_type       core1_slice1_coretodc_std_ckpid
-    ,input  CORE_reqid_type     core1_slice1_coretodc_std_coreid
-    ,input  CORE_mop_type       core1_slice1_coretodc_std_mop
-    ,input  logic               core1_slice1_coretodc_std_pnr
-    ,input  SC_pcsign_type      core1_slice1_coretodc_std_pcsign
-    ,input  SC_laddr_type       core1_slice1_coretodc_std_laddr
-    ,input  SC_sptbr_type       core1_slice1_coretodc_std_sptbr
-    ,input  SC_line_type        core1_slice1_coretodc_std_data
-    ,output logic               core1_slice1_dctocore_std_ack_valid
-    ,input  logic               core1_slice1_dctocore_std_ack_retry
-    //  ,output  I_dctocore_std_ack_type core1_slice1_dctocore_std_ack      
-    ,output SC_fault_type       core1_slice1_dctocore_std_ack_fault
-    ,output CORE_reqid_type     core1_slice1_dctocore_std_ack_coreid
+	,input	logic				core1_slice1_coretodc_ld_valid
+	,output	logic				core1_slice1_coretodc_ld_retry
+	//  ,input   I_coretodc_ld_type      core1_slice1_coretodc_ld           
+	,input	DC_ckpid_type		core1_slice1_coretodc_ld_ckpid
+	,input	CORE_reqid_type		core1_slice1_coretodc_ld_coreid
+	,input	CORE_lop_type		core1_slice1_coretodc_ld_lop
+	,input	logic				core1_slice1_coretodc_ld_pnr
+	,input	SC_pcsign_type		core1_slice1_coretodc_ld_pcsign
+	,input	SC_laddr_type		core1_slice1_coretodc_ld_laddr
+	,input	SC_sptbr_type		core1_slice1_coretodc_ld_sptbr
+	,output	logic				core1_slice1_dctocore_ld_valid
+	,input	logic				core1_slice1_dctocore_ld_retry
+	//  ,output  I_dctocore_ld_type      core1_slice1_dctocore_ld           
+	,output	CORE_reqid_type		core1_slice1_dctocore_ld_coreid
+	,output	SC_fault_type		core1_slice1_dctocore_ld_fault
+	,output	SC_line_type		core1_slice1_dctocore_ld_data
+	,input	logic				core1_slice1_coretodc_std_valid
+	,output	logic				core1_slice1_coretodc_std_retry
+	//  ,input   I_coretodc_std_type     core1_slice1_coretodc_std          
+	,input	DC_ckpid_type		core1_slice1_coretodc_std_ckpid
+	,input	CORE_reqid_type		core1_slice1_coretodc_std_coreid
+	,input	CORE_mop_type		core1_slice1_coretodc_std_mop
+	,input	logic				core1_slice1_coretodc_std_pnr
+	,input	SC_pcsign_type		core1_slice1_coretodc_std_pcsign
+	,input	SC_laddr_type		core1_slice1_coretodc_std_laddr
+	,input	SC_sptbr_type		core1_slice1_coretodc_std_sptbr
+	,input	SC_line_type		core1_slice1_coretodc_std_data
+	,output	logic				core1_slice1_dctocore_std_ack_valid
+	,input	logic				core1_slice1_dctocore_std_ack_retry
+	//  ,output  I_dctocore_std_ack_type core1_slice1_dctocore_std_ack      
+	,output	SC_fault_type		core1_slice1_dctocore_std_ack_fault
+	,output	CORE_reqid_type		core1_slice1_dctocore_std_ack_coreid
 
 
 `ifdef SC_4PIPE
    // dcache core 1, slice 2
-    ,input  logic               core1_slice2_coretodc_ld_valid
-    ,output logic               core1_slice2_coretodc_ld_retry
-    //  ,input   I_coretodc_ld_type      core1_slice2_coretodc_ld           
-    ,input  DC_ckpid_type       core1_slice2_coretodc_ld_ckpid
-    ,input  CORE_reqid_type     core1_slice2_coretodc_ld_coreid
-    ,input  CORE_lop_type       core1_slice2_coretodc_ld_lop
-    ,input  logic               core1_slice2_coretodc_ld_pnr
-    ,input  SC_pcsign_type      core1_slice2_coretodc_ld_pcsign
-    ,input  SC_laddr_type       core1_slice2_coretodc_ld_laddr
-    ,input  SC_sptbr_type       core1_slice2_coretodc_ld_sptbr
-    ,output logic               core1_slice2_dctocore_ld_valid
-    ,input  logic               core1_slice2_dctocore_ld_retry
-    //  ,output  I_dctocore_ld_type      core1_slice2_dctocore_ld           
-    ,output CORE_reqid_type     core1_slice2_dctocore_ld_coreid
-    ,output SC_fault_type       core1_slice2_dctocore_ld_fault
-    ,output SC_line_type        core1_slice2_dctocore_ld_data
-    ,input  logic               core1_slice2_coretodc_std_valid
-    ,output logic               core1_slice2_coretodc_std_retry
-    //  ,input   I_coretodc_std_type     core1_slice2_coretodc_std          
-    ,input  DC_ckpid_type       core1_slice2_coretodc_std_ckpid
-    ,input  CORE_reqid_type     core1_slice2_coretodc_std_coreid
-    ,input  CORE_mop_type       core1_slice2_coretodc_std_mop
-    ,input  logic               core1_slice2_coretodc_std_pnr
-    ,input  SC_pcsign_type      core1_slice2_coretodc_std_pcsign
-    ,input  SC_laddr_type       core1_slice2_coretodc_std_laddr
-    ,input  SC_sptbr_type       core1_slice2_coretodc_std_sptbr
-    ,input  SC_line_type        core1_slice2_coretodc_std_data
-    ,output logic               core1_slice2_dctocore_std_ack_valid
-    ,input  logic               core1_slice2_dctocore_std_ack_retry
-    //  ,output  I_dctocore_std_ack_type core1_slice2_dctocore_std_ack      
-    ,output SC_fault_type       core1_slice2_dctocore_std_ack_fault
-    ,output CORE_reqid_type     core1_slice2_dctocore_std_ack_coreid
+	,input	logic				core1_slice2_coretodc_ld_valid
+	,output	logic				core1_slice2_coretodc_ld_retry
+	//  ,input   I_coretodc_ld_type      core1_slice2_coretodc_ld           
+	,input	DC_ckpid_type		core1_slice2_coretodc_ld_ckpid
+	,input	CORE_reqid_type		core1_slice2_coretodc_ld_coreid
+	,input	CORE_lop_type		core1_slice2_coretodc_ld_lop
+	,input	logic				core1_slice2_coretodc_ld_pnr
+	,input	SC_pcsign_type		core1_slice2_coretodc_ld_pcsign
+	,input	SC_laddr_type		core1_slice2_coretodc_ld_laddr
+	,input	SC_sptbr_type		core1_slice2_coretodc_ld_sptbr
+	,output	logic				core1_slice2_dctocore_ld_valid
+	,input	logic				core1_slice2_dctocore_ld_retry
+	//  ,output  I_dctocore_ld_type      core1_slice2_dctocore_ld           
+	,output	CORE_reqid_type		core1_slice2_dctocore_ld_coreid
+	,output	SC_fault_type		core1_slice2_dctocore_ld_fault
+	,output	SC_line_type		core1_slice2_dctocore_ld_data
+	,input	logic				core1_slice2_coretodc_std_valid
+	,output	logic				core1_slice2_coretodc_std_retry
+	//  ,input   I_coretodc_std_type     core1_slice2_coretodc_std          
+	,input	DC_ckpid_type		core1_slice2_coretodc_std_ckpid
+	,input	CORE_reqid_type		core1_slice2_coretodc_std_coreid
+	,input	CORE_mop_type		core1_slice2_coretodc_std_mop
+	,input	logic				core1_slice2_coretodc_std_pnr
+	,input	SC_pcsign_type		core1_slice2_coretodc_std_pcsign
+	,input	SC_laddr_type		core1_slice2_coretodc_std_laddr
+	,input	SC_sptbr_type		core1_slice2_coretodc_std_sptbr
+	,input	SC_line_type		core1_slice2_coretodc_std_data
+	,output	logic				core1_slice2_dctocore_std_ack_valid
+	,input	logic				core1_slice2_dctocore_std_ack_retry
+	//  ,output  I_dctocore_std_ack_type core1_slice2_dctocore_std_ack      
+	,output	SC_fault_type		core1_slice2_dctocore_std_ack_fault
+	,output	CORE_reqid_type		core1_slice2_dctocore_std_ack_coreid
 
    // dcache core 1, slice 3
-    ,input  logic               core1_slice3_coretodc_ld_valid
-    ,output logic               core1_slice3_coretodc_ld_retry
-    //  ,input   I_coretodc_ld_type      core1_slice3_coretodc_ld           
-    ,input  DC_ckpid_type       core1_slice3_coretodc_ld_ckpid
-    ,input  CORE_reqid_type     core1_slice3_coretodc_ld_coreid
-    ,input  CORE_lop_type       core1_slice3_coretodc_ld_lop
-    ,input  logic               core1_slice3_coretodc_ld_pnr
-    ,input  SC_pcsign_type      core1_slice3_coretodc_ld_pcsign
-    ,input  SC_laddr_type       core1_slice3_coretodc_ld_laddr
-    ,input  SC_sptbr_type       core1_slice3_coretodc_ld_sptbr
-    ,output logic               core1_slice3_dctocore_ld_valid
-    ,input  logic               core1_slice3_dctocore_ld_retry
-    //  ,output  I_dctocore_ld_type      core1_slice3_dctocore_ld           
-    ,output CORE_reqid_type     core1_slice3_dctocore_ld_coreid
-    ,output SC_fault_type       core1_slice3_dctocore_ld_fault
-    ,output SC_line_type        core1_slice3_dctocore_ld_data
-    ,input  logic               core1_slice3_coretodc_std_valid
-    ,output logic               core1_slice3_coretodc_std_retry
-    //  ,input   I_coretodc_std_type     core1_slice3_coretodc_std          
-    ,input  DC_ckpid_type       core1_slice3_coretodc_std_ckpid
-    ,input  CORE_reqid_type     core1_slice3_coretodc_std_coreid
-    ,input  CORE_mop_type       core1_slice3_coretodc_std_mop
-    ,input  logic               core1_slice3_coretodc_std_pnr
-    ,input  SC_pcsign_type      core1_slice3_coretodc_std_pcsign
-    ,input  SC_laddr_type       core1_slice3_coretodc_std_laddr
-    ,input  SC_sptbr_type       core1_slice3_coretodc_std_sptbr
-    ,input  SC_line_type        core1_slice3_coretodc_std_data
-    ,output logic               core1_slice3_dctocore_std_ack_valid
-    ,input  logic               core1_slice3_dctocore_std_ack_retry
-    //  ,output  I_dctocore_std_ack_type core1_slice3_dctocore_std_ack      
-    ,output SC_fault_type       core1_slice3_dctocore_std_ack_fault
-    ,output CORE_reqid_type     core1_slice3_dctocore_std_ack_coreid
+	,input	logic				core1_slice3_coretodc_ld_valid
+	,output	logic				core1_slice3_coretodc_ld_retry
+	//  ,input   I_coretodc_ld_type      core1_slice3_coretodc_ld           
+	,input	DC_ckpid_type		core1_slice3_coretodc_ld_ckpid
+	,input	CORE_reqid_type		core1_slice3_coretodc_ld_coreid
+	,input	CORE_lop_type		core1_slice3_coretodc_ld_lop
+	,input	logic				core1_slice3_coretodc_ld_pnr
+	,input	SC_pcsign_type		core1_slice3_coretodc_ld_pcsign
+	,input	SC_laddr_type		core1_slice3_coretodc_ld_laddr
+	,input	SC_sptbr_type		core1_slice3_coretodc_ld_sptbr
+	,output	logic				core1_slice3_dctocore_ld_valid
+	,input	logic				core1_slice3_dctocore_ld_retry
+	//  ,output  I_dctocore_ld_type      core1_slice3_dctocore_ld           
+	,output	CORE_reqid_type		core1_slice3_dctocore_ld_coreid
+	,output	SC_fault_type		core1_slice3_dctocore_ld_fault
+	,output	SC_line_type		core1_slice3_dctocore_ld_data
+	,input	logic				core1_slice3_coretodc_std_valid
+	,output	logic				core1_slice3_coretodc_std_retry
+	//  ,input   I_coretodc_std_type     core1_slice3_coretodc_std          
+	,input	DC_ckpid_type		core1_slice3_coretodc_std_ckpid
+	,input	CORE_reqid_type		core1_slice3_coretodc_std_coreid
+	,input	CORE_mop_type		core1_slice3_coretodc_std_mop
+	,input	logic				core1_slice3_coretodc_std_pnr
+	,input	SC_pcsign_type		core1_slice3_coretodc_std_pcsign
+	,input	SC_laddr_type		core1_slice3_coretodc_std_laddr
+	,input	SC_sptbr_type		core1_slice3_coretodc_std_sptbr
+	,input	SC_line_type		core1_slice3_coretodc_std_data
+	,output	logic				core1_slice3_dctocore_std_ack_valid
+	,input	logic				core1_slice3_dctocore_std_ack_retry
+	//  ,output  I_dctocore_std_ack_type core1_slice3_dctocore_std_ack      
+	,output	SC_fault_type		core1_slice3_dctocore_std_ack_fault
+	,output	CORE_reqid_type		core1_slice3_dctocore_std_ack_coreid
 
 `endif
 
 
     // core 1 prefetch 
-    ,input  logic               core1_pfgtopfe_op_valid
-    ,output logic               core1_pfgtopfe_op_retry
-    //  ,input  I_pfgtopfe_op_type   core1_pfgtopfe_op      
-    ,input  PF_delta_type       core1_pfgtopfe_op_d
-    ,input  PF_weigth_type      core1_pfgtopfe_op_w
-    ,input  SC_pcsign_type      core1_pfgtopfe_op_pcsign
-    ,input  SC_laddr_type       core1_pfgtopfe_op_laddr
-    ,input  SC_sptbr_type       core1_pfgtopfe_op_sptbr
+	,input	logic				core1_pfgtopfe_op_valid
+	,output	logic				core1_pfgtopfe_op_retry
+	//  ,input  I_pfgtopfe_op_type   core1_pfgtopfe_op      
+	,input	PF_delta_type		core1_pfgtopfe_op_d
+	,input	PF_weigth_type		core1_pfgtopfe_op_w
+	,input	SC_pcsign_type		core1_pfgtopfe_op_pcsign
+	,input	SC_laddr_type		core1_pfgtopfe_op_laddr
+	,input	SC_sptbr_type		core1_pfgtopfe_op_sptbr
 
    //******************************************
    //*  Directory 0                    *
    //******************************************//
-    ,output logic               dr0_drtomem_req_valid
-    ,input  logic               dr0_drtomem_req_retry
-    //  ,output  I_drtomem_req_type   dr0_drtomem_req           
-    ,output DR_reqid_type       dr0_drtomem_req_drid
-    ,output SC_cmd_type         dr0_drtomem_req_cmd
-    ,output SC_paddr_type       dr0_drtomem_req_paddr
-    ,input  logic               dr0_memtodr_ack_valid
-    ,output logic               dr0_memtodr_ack_retry
-    //  ,input   I_memtodr_ack_type   dr0_memtodr_ack           
-    ,input  DR_reqid_type       dr0_memtodr_ack_drid
-    ,input  SC_snack_type       dr0_memtodr_ack_ack
-    ,input  SC_line_type        dr0_memtodr_ack_line
-    ,output logic               dr0_drtomem_wb_valid
-    ,input  logic               dr0_drtomem_wb_retry
-    //  ,output  I_drtomem_wb_type    dr0_drtomem_wb            
-    ,output SC_line_type        dr0_drtomem_wb_line
-    ,output SC_paddr_type       dr0_drtomem_wb_paddr
-    ,output logic               dr0_drtomem_pfreq_valid
-    ,input  logic               dr0_drtomem_pfreq_retry
-    //  ,output  I_drtomem_pfreq_type dr0_drtomem_pfreq         
-    ,output SC_paddr_type       dr0_drtomem_pfreq_paddr
+	,output	logic				dr0_drtomem_req_valid
+	,input	logic				dr0_drtomem_req_retry
+	//  ,output  I_drtomem_req_type   dr0_drtomem_req           
+	,output	DR_reqid_type		dr0_drtomem_req_drid
+	,output	SC_cmd_type			dr0_drtomem_req_cmd
+	,output	SC_paddr_type		dr0_drtomem_req_paddr
+	,input	logic				dr0_memtodr_ack_valid
+	,output	logic				dr0_memtodr_ack_retry
+	//  ,input   I_memtodr_ack_type   dr0_memtodr_ack           
+	,input	DR_reqid_type		dr0_memtodr_ack_drid
+	,input	SC_snack_type		dr0_memtodr_ack_ack
+	,input	SC_line_type		dr0_memtodr_ack_line
+	,output	logic				dr0_drtomem_wb_valid
+	,input	logic				dr0_drtomem_wb_retry
+	//  ,output  I_drtomem_wb_type    dr0_drtomem_wb            
+	,output	SC_line_type		dr0_drtomem_wb_line
+	,output	SC_paddr_type		dr0_drtomem_wb_paddr
+	,output	logic				dr0_drtomem_pfreq_valid
+	,input	logic				dr0_drtomem_pfreq_retry
+	//  ,output  I_drtomem_pfreq_type dr0_drtomem_pfreq         
+	,output	SC_paddr_type		dr0_drtomem_pfreq_paddr
 
    //******************************************
    //*  Directory 1                    *
    //******************************************//
-    ,output logic               dr1_drtomem_req_valid
-    ,input  logic               dr1_drtomem_req_retry
-    //  ,output  I_drtomem_req_type   dr1_drtomem_req           
-    ,output DR_reqid_type       dr1_drtomem_req_drid
-    ,output SC_cmd_type         dr1_drtomem_req_cmd
-    ,output SC_paddr_type       dr1_drtomem_req_paddr
-    ,input  logic               dr1_memtodr_ack_valid
-    ,output logic               dr1_memtodr_ack_retry
-    //  ,input   I_memtodr_ack_type   dr1_memtodr_ack           
-    ,input  DR_reqid_type       dr1_memtodr_ack_drid
-    ,input  SC_snack_type       dr1_memtodr_ack_ack
-    ,input  SC_line_type        dr1_memtodr_ack_line
-    ,output logic               dr1_drtomem_wb_valid
-    ,input  logic               dr1_drtomem_wb_retry
-    //  ,output  I_drtomem_wb_type    dr1_drtomem_wb            
-    ,output SC_line_type        dr1_drtomem_wb_line
-    ,output SC_paddr_type       dr1_drtomem_wb_paddr
-    ,output logic               dr1_drtomem_pfreq_valid
-    ,input  logic               dr1_drtomem_pfreq_retry
-    //  ,output  I_drtomem_pfreq_type dr1_drtomem_pfreq         
-    ,output SC_paddr_type       dr1_drtomem_pfreq_paddr
+	,output	logic				dr1_drtomem_req_valid
+	,input	logic				dr1_drtomem_req_retry
+	//  ,output  I_drtomem_req_type   dr1_drtomem_req           
+	,output	DR_reqid_type		dr1_drtomem_req_drid
+	,output	SC_cmd_type			dr1_drtomem_req_cmd
+	,output	SC_paddr_type		dr1_drtomem_req_paddr
+	,input	logic				dr1_memtodr_ack_valid
+	,output	logic				dr1_memtodr_ack_retry
+	//  ,input   I_memtodr_ack_type   dr1_memtodr_ack           
+	,input	DR_reqid_type		dr1_memtodr_ack_drid
+	,input	SC_snack_type		dr1_memtodr_ack_ack
+	,input	SC_line_type		dr1_memtodr_ack_line
+	,output	logic				dr1_drtomem_wb_valid
+	,input	logic				dr1_drtomem_wb_retry
+	//  ,output  I_drtomem_wb_type    dr1_drtomem_wb            
+	,output	SC_line_type		dr1_drtomem_wb_line
+	,output	SC_paddr_type		dr1_drtomem_wb_paddr
+	,output	logic				dr1_drtomem_pfreq_valid
+	,input	logic				dr1_drtomem_pfreq_retry
+	//  ,output  I_drtomem_pfreq_type dr1_drtomem_pfreq         
+	,output	SC_paddr_type		dr1_drtomem_pfreq_paddr
 
 );
 
 
 
 
-    I_ictocore_type core0_ictocore;
-    assign core0_ictocore_fault = core0_ictocore.fault;
-    assign core0_ictocore_data = core0_ictocore.data;
+	I_ictocore_type core0_ictocore;
+	assign core0_ictocore_fault = core0_ictocore.fault;
+	assign core0_ictocore_data = core0_ictocore.data;
 
-    I_coretodc_ld_type core0_slice0_coretodc_ld;
-    assign core0_slice0_coretodc_ld.ckpid = core0_slice0_coretodc_ld_ckpid;
-    assign core0_slice0_coretodc_ld.coreid = core0_slice0_coretodc_ld_coreid;
-    assign core0_slice0_coretodc_ld.lop = core0_slice0_coretodc_ld_lop;
-    assign core0_slice0_coretodc_ld.pnr = core0_slice0_coretodc_ld_pnr;
-    assign core0_slice0_coretodc_ld.pcsign = core0_slice0_coretodc_ld_pcsign;
-    assign core0_slice0_coretodc_ld.laddr = core0_slice0_coretodc_ld_laddr;
-    assign core0_slice0_coretodc_ld.sptbr = core0_slice0_coretodc_ld_sptbr;
+	I_coretodc_ld_type core0_slice0_coretodc_ld;
+	assign core0_slice0_coretodc_ld.ckpid = core0_slice0_coretodc_ld_ckpid;
+	assign core0_slice0_coretodc_ld.coreid = core0_slice0_coretodc_ld_coreid;
+	assign core0_slice0_coretodc_ld.lop = core0_slice0_coretodc_ld_lop;
+	assign core0_slice0_coretodc_ld.pnr = core0_slice0_coretodc_ld_pnr;
+	assign core0_slice0_coretodc_ld.pcsign = core0_slice0_coretodc_ld_pcsign;
+	assign core0_slice0_coretodc_ld.laddr = core0_slice0_coretodc_ld_laddr;
+	assign core0_slice0_coretodc_ld.sptbr = core0_slice0_coretodc_ld_sptbr;
 
-    I_dctocore_ld_type core0_slice0_dctocore_ld;
-    assign core0_slice0_dctocore_ld_coreid = core0_slice0_dctocore_ld.coreid;
-    assign core0_slice0_dctocore_ld_fault = core0_slice0_dctocore_ld.fault;
-    assign core0_slice0_dctocore_ld_data = core0_slice0_dctocore_ld.data;
+	I_dctocore_ld_type core0_slice0_dctocore_ld;
+	assign core0_slice0_dctocore_ld_coreid = core0_slice0_dctocore_ld.coreid;
+	assign core0_slice0_dctocore_ld_fault = core0_slice0_dctocore_ld.fault;
+	assign core0_slice0_dctocore_ld_data = core0_slice0_dctocore_ld.data;
 
-    I_coretodc_std_type core0_slice0_coretodc_std;
-    assign core0_slice0_coretodc_std.ckpid = core0_slice0_coretodc_std_ckpid;
-    assign core0_slice0_coretodc_std.coreid = core0_slice0_coretodc_std_coreid;
-    assign core0_slice0_coretodc_std.mop = core0_slice0_coretodc_std_mop;
-    assign core0_slice0_coretodc_std.pnr = core0_slice0_coretodc_std_pnr;
-    assign core0_slice0_coretodc_std.pcsign = core0_slice0_coretodc_std_pcsign;
-    assign core0_slice0_coretodc_std.laddr = core0_slice0_coretodc_std_laddr;
-    assign core0_slice0_coretodc_std.sptbr = core0_slice0_coretodc_std_sptbr;
-    assign core0_slice0_coretodc_std.data = core0_slice0_coretodc_std_data;
+	I_coretodc_std_type core0_slice0_coretodc_std;
+	assign core0_slice0_coretodc_std.ckpid = core0_slice0_coretodc_std_ckpid;
+	assign core0_slice0_coretodc_std.coreid = core0_slice0_coretodc_std_coreid;
+	assign core0_slice0_coretodc_std.mop = core0_slice0_coretodc_std_mop;
+	assign core0_slice0_coretodc_std.pnr = core0_slice0_coretodc_std_pnr;
+	assign core0_slice0_coretodc_std.pcsign = core0_slice0_coretodc_std_pcsign;
+	assign core0_slice0_coretodc_std.laddr = core0_slice0_coretodc_std_laddr;
+	assign core0_slice0_coretodc_std.sptbr = core0_slice0_coretodc_std_sptbr;
+	assign core0_slice0_coretodc_std.data = core0_slice0_coretodc_std_data;
 
-    I_dctocore_std_ack_type core0_slice0_dctocore_std_ack;
-    assign core0_slice0_dctocore_std_ack_fault = core0_slice0_dctocore_std_ack.fault;
-    assign core0_slice0_dctocore_std_ack_coreid = core0_slice0_dctocore_std_ack.coreid;
+	I_dctocore_std_ack_type core0_slice0_dctocore_std_ack;
+	assign core0_slice0_dctocore_std_ack_fault = core0_slice0_dctocore_std_ack.fault;
+	assign core0_slice0_dctocore_std_ack_coreid = core0_slice0_dctocore_std_ack.coreid;
 
-    I_coretodc_ld_type core0_slice1_coretodc_ld;
-    assign core0_slice1_coretodc_ld.ckpid = core0_slice1_coretodc_ld_ckpid;
-    assign core0_slice1_coretodc_ld.coreid = core0_slice1_coretodc_ld_coreid;
-    assign core0_slice1_coretodc_ld.lop = core0_slice1_coretodc_ld_lop;
-    assign core0_slice1_coretodc_ld.pnr = core0_slice1_coretodc_ld_pnr;
-    assign core0_slice1_coretodc_ld.pcsign = core0_slice1_coretodc_ld_pcsign;
-    assign core0_slice1_coretodc_ld.laddr = core0_slice1_coretodc_ld_laddr;
-    assign core0_slice1_coretodc_ld.sptbr = core0_slice1_coretodc_ld_sptbr;
+	I_coretodc_ld_type core0_slice1_coretodc_ld;
+	assign core0_slice1_coretodc_ld.ckpid = core0_slice1_coretodc_ld_ckpid;
+	assign core0_slice1_coretodc_ld.coreid = core0_slice1_coretodc_ld_coreid;
+	assign core0_slice1_coretodc_ld.lop = core0_slice1_coretodc_ld_lop;
+	assign core0_slice1_coretodc_ld.pnr = core0_slice1_coretodc_ld_pnr;
+	assign core0_slice1_coretodc_ld.pcsign = core0_slice1_coretodc_ld_pcsign;
+	assign core0_slice1_coretodc_ld.laddr = core0_slice1_coretodc_ld_laddr;
+	assign core0_slice1_coretodc_ld.sptbr = core0_slice1_coretodc_ld_sptbr;
 
-    I_dctocore_ld_type core0_slice1_dctocore_ld;
-    assign core0_slice1_dctocore_ld_coreid = core0_slice1_dctocore_ld.coreid;
-    assign core0_slice1_dctocore_ld_fault = core0_slice1_dctocore_ld.fault;
-    assign core0_slice1_dctocore_ld_data = core0_slice1_dctocore_ld.data;
+	I_dctocore_ld_type core0_slice1_dctocore_ld;
+	assign core0_slice1_dctocore_ld_coreid = core0_slice1_dctocore_ld.coreid;
+	assign core0_slice1_dctocore_ld_fault = core0_slice1_dctocore_ld.fault;
+	assign core0_slice1_dctocore_ld_data = core0_slice1_dctocore_ld.data;
 
-    I_coretodc_std_type core0_slice1_coretodc_std;
-    assign core0_slice1_coretodc_std.ckpid = core0_slice1_coretodc_std_ckpid;
-    assign core0_slice1_coretodc_std.coreid = core0_slice1_coretodc_std_coreid;
-    assign core0_slice1_coretodc_std.mop = core0_slice1_coretodc_std_mop;
-    assign core0_slice1_coretodc_std.pnr = core0_slice1_coretodc_std_pnr;
-    assign core0_slice1_coretodc_std.pcsign = core0_slice1_coretodc_std_pcsign;
-    assign core0_slice1_coretodc_std.laddr = core0_slice1_coretodc_std_laddr;
-    assign core0_slice1_coretodc_std.sptbr = core0_slice1_coretodc_std_sptbr;
-    assign core0_slice1_coretodc_std.data = core0_slice1_coretodc_std_data;
+	I_coretodc_std_type core0_slice1_coretodc_std;
+	assign core0_slice1_coretodc_std.ckpid = core0_slice1_coretodc_std_ckpid;
+	assign core0_slice1_coretodc_std.coreid = core0_slice1_coretodc_std_coreid;
+	assign core0_slice1_coretodc_std.mop = core0_slice1_coretodc_std_mop;
+	assign core0_slice1_coretodc_std.pnr = core0_slice1_coretodc_std_pnr;
+	assign core0_slice1_coretodc_std.pcsign = core0_slice1_coretodc_std_pcsign;
+	assign core0_slice1_coretodc_std.laddr = core0_slice1_coretodc_std_laddr;
+	assign core0_slice1_coretodc_std.sptbr = core0_slice1_coretodc_std_sptbr;
+	assign core0_slice1_coretodc_std.data = core0_slice1_coretodc_std_data;
 
-    I_dctocore_std_ack_type core0_slice1_dctocore_std_ack;
-    assign core0_slice1_dctocore_std_ack_fault = core0_slice1_dctocore_std_ack.fault;
-    assign core0_slice1_dctocore_std_ack_coreid = core0_slice1_dctocore_std_ack.coreid;
-
-
-`ifdef SC_4PIPE
-
-
-    I_coretodc_ld_type core0_slice2_coretodc_ld;
-    assign core0_slice2_coretodc_ld.ckpid = core0_slice2_coretodc_ld_ckpid;
-    assign core0_slice2_coretodc_ld.coreid = core0_slice2_coretodc_ld_coreid;
-    assign core0_slice2_coretodc_ld.lop = core0_slice2_coretodc_ld_lop;
-    assign core0_slice2_coretodc_ld.pnr = core0_slice2_coretodc_ld_pnr;
-    assign core0_slice2_coretodc_ld.pcsign = core0_slice2_coretodc_ld_pcsign;
-    assign core0_slice2_coretodc_ld.laddr = core0_slice2_coretodc_ld_laddr;
-    assign core0_slice2_coretodc_ld.sptbr = core0_slice2_coretodc_ld_sptbr;
-
-    I_dctocore_ld_type core0_slice2_dctocore_ld;
-    assign core0_slice2_dctocore_ld_coreid = core0_slice2_dctocore_ld.coreid;
-    assign core0_slice2_dctocore_ld_fault = core0_slice2_dctocore_ld.fault;
-    assign core0_slice2_dctocore_ld_data = core0_slice2_dctocore_ld.data;
-
-    I_coretodc_std_type core0_slice2_coretodc_std;
-    assign core0_slice2_coretodc_std.ckpid = core0_slice2_coretodc_std_ckpid;
-    assign core0_slice2_coretodc_std.coreid = core0_slice2_coretodc_std_coreid;
-    assign core0_slice2_coretodc_std.mop = core0_slice2_coretodc_std_mop;
-    assign core0_slice2_coretodc_std.pnr = core0_slice2_coretodc_std_pnr;
-    assign core0_slice2_coretodc_std.pcsign = core0_slice2_coretodc_std_pcsign;
-    assign core0_slice2_coretodc_std.laddr = core0_slice2_coretodc_std_laddr;
-    assign core0_slice2_coretodc_std.sptbr = core0_slice2_coretodc_std_sptbr;
-    assign core0_slice2_coretodc_std.data = core0_slice2_coretodc_std_data;
-
-    I_dctocore_std_ack_type core0_slice2_dctocore_std_ack;
-    assign core0_slice2_dctocore_std_ack_fault = core0_slice2_dctocore_std_ack.fault;
-    assign core0_slice2_dctocore_std_ack_coreid = core0_slice2_dctocore_std_ack.coreid;
-
-    I_coretodc_ld_type core0_slice3_coretodc_ld;
-    assign core0_slice3_coretodc_ld.ckpid = core0_slice3_coretodc_ld_ckpid;
-    assign core0_slice3_coretodc_ld.coreid = core0_slice3_coretodc_ld_coreid;
-    assign core0_slice3_coretodc_ld.lop = core0_slice3_coretodc_ld_lop;
-    assign core0_slice3_coretodc_ld.pnr = core0_slice3_coretodc_ld_pnr;
-    assign core0_slice3_coretodc_ld.pcsign = core0_slice3_coretodc_ld_pcsign;
-    assign core0_slice3_coretodc_ld.laddr = core0_slice3_coretodc_ld_laddr;
-    assign core0_slice3_coretodc_ld.sptbr = core0_slice3_coretodc_ld_sptbr;
-
-    I_dctocore_ld_type core0_slice3_dctocore_ld;
-    assign core0_slice3_dctocore_ld_coreid = core0_slice3_dctocore_ld.coreid;
-    assign core0_slice3_dctocore_ld_fault = core0_slice3_dctocore_ld.fault;
-    assign core0_slice3_dctocore_ld_data = core0_slice3_dctocore_ld.data;
-
-    I_coretodc_std_type core0_slice3_coretodc_std;
-    assign core0_slice3_coretodc_std.ckpid = core0_slice3_coretodc_std_ckpid;
-    assign core0_slice3_coretodc_std.coreid = core0_slice3_coretodc_std_coreid;
-    assign core0_slice3_coretodc_std.mop = core0_slice3_coretodc_std_mop;
-    assign core0_slice3_coretodc_std.pnr = core0_slice3_coretodc_std_pnr;
-    assign core0_slice3_coretodc_std.pcsign = core0_slice3_coretodc_std_pcsign;
-    assign core0_slice3_coretodc_std.laddr = core0_slice3_coretodc_std_laddr;
-    assign core0_slice3_coretodc_std.sptbr = core0_slice3_coretodc_std_sptbr;
-    assign core0_slice3_coretodc_std.data = core0_slice3_coretodc_std_data;
-
-    I_dctocore_std_ack_type core0_slice3_dctocore_std_ack;
-    assign core0_slice3_dctocore_std_ack_fault = core0_slice3_dctocore_std_ack.fault;
-    assign core0_slice3_dctocore_std_ack_coreid = core0_slice3_dctocore_std_ack.coreid;
-
-
-`endif
-
-
-    I_pfgtopfe_op_type core0_pfgtopfe_op;
-    assign core0_pfgtopfe_op.d = core0_pfgtopfe_op_d;
-    assign core0_pfgtopfe_op.w = core0_pfgtopfe_op_w;
-    assign core0_pfgtopfe_op.pcsign = core0_pfgtopfe_op_pcsign;
-    assign core0_pfgtopfe_op.laddr = core0_pfgtopfe_op_laddr;
-    assign core0_pfgtopfe_op.sptbr = core0_pfgtopfe_op_sptbr;
-
-    I_ictocore_type core1_ictocore;
-    assign core1_ictocore_fault = core1_ictocore.fault;
-    assign core1_ictocore_data = core1_ictocore.data;
-
-    I_coretodc_ld_type core1_slice0_coretodc_ld;
-    assign core1_slice0_coretodc_ld.ckpid = core1_slice0_coretodc_ld_ckpid;
-    assign core1_slice0_coretodc_ld.coreid = core1_slice0_coretodc_ld_coreid;
-    assign core1_slice0_coretodc_ld.lop = core1_slice0_coretodc_ld_lop;
-    assign core1_slice0_coretodc_ld.pnr = core1_slice0_coretodc_ld_pnr;
-    assign core1_slice0_coretodc_ld.pcsign = core1_slice0_coretodc_ld_pcsign;
-    assign core1_slice0_coretodc_ld.laddr = core1_slice0_coretodc_ld_laddr;
-    assign core1_slice0_coretodc_ld.sptbr = core1_slice0_coretodc_ld_sptbr;
-
-    I_dctocore_ld_type core1_slice0_dctocore_ld;
-    assign core1_slice0_dctocore_ld_coreid = core1_slice0_dctocore_ld.coreid;
-    assign core1_slice0_dctocore_ld_fault = core1_slice0_dctocore_ld.fault;
-    assign core1_slice0_dctocore_ld_data = core1_slice0_dctocore_ld.data;
-
-    I_coretodc_std_type core1_slice0_coretodc_std;
-    assign core1_slice0_coretodc_std.ckpid = core1_slice0_coretodc_std_ckpid;
-    assign core1_slice0_coretodc_std.coreid = core1_slice0_coretodc_std_coreid;
-    assign core1_slice0_coretodc_std.mop = core1_slice0_coretodc_std_mop;
-    assign core1_slice0_coretodc_std.pnr = core1_slice0_coretodc_std_pnr;
-    assign core1_slice0_coretodc_std.pcsign = core1_slice0_coretodc_std_pcsign;
-    assign core1_slice0_coretodc_std.laddr = core1_slice0_coretodc_std_laddr;
-    assign core1_slice0_coretodc_std.sptbr = core1_slice0_coretodc_std_sptbr;
-    assign core1_slice0_coretodc_std.data = core1_slice0_coretodc_std_data;
-
-    I_dctocore_std_ack_type core1_slice0_dctocore_std_ack;
-    assign core1_slice0_dctocore_std_ack_fault = core1_slice0_dctocore_std_ack.fault;
-    assign core1_slice0_dctocore_std_ack_coreid = core1_slice0_dctocore_std_ack.coreid;
-
-    I_coretodc_ld_type core1_slice1_coretodc_ld;
-    assign core1_slice1_coretodc_ld.ckpid = core1_slice1_coretodc_ld_ckpid;
-    assign core1_slice1_coretodc_ld.coreid = core1_slice1_coretodc_ld_coreid;
-    assign core1_slice1_coretodc_ld.lop = core1_slice1_coretodc_ld_lop;
-    assign core1_slice1_coretodc_ld.pnr = core1_slice1_coretodc_ld_pnr;
-    assign core1_slice1_coretodc_ld.pcsign = core1_slice1_coretodc_ld_pcsign;
-    assign core1_slice1_coretodc_ld.laddr = core1_slice1_coretodc_ld_laddr;
-    assign core1_slice1_coretodc_ld.sptbr = core1_slice1_coretodc_ld_sptbr;
-
-    I_dctocore_ld_type core1_slice1_dctocore_ld;
-    assign core1_slice1_dctocore_ld_coreid = core1_slice1_dctocore_ld.coreid;
-    assign core1_slice1_dctocore_ld_fault = core1_slice1_dctocore_ld.fault;
-    assign core1_slice1_dctocore_ld_data = core1_slice1_dctocore_ld.data;
-
-    I_coretodc_std_type core1_slice1_coretodc_std;
-    assign core1_slice1_coretodc_std.ckpid = core1_slice1_coretodc_std_ckpid;
-    assign core1_slice1_coretodc_std.coreid = core1_slice1_coretodc_std_coreid;
-    assign core1_slice1_coretodc_std.mop = core1_slice1_coretodc_std_mop;
-    assign core1_slice1_coretodc_std.pnr = core1_slice1_coretodc_std_pnr;
-    assign core1_slice1_coretodc_std.pcsign = core1_slice1_coretodc_std_pcsign;
-    assign core1_slice1_coretodc_std.laddr = core1_slice1_coretodc_std_laddr;
-    assign core1_slice1_coretodc_std.sptbr = core1_slice1_coretodc_std_sptbr;
-    assign core1_slice1_coretodc_std.data = core1_slice1_coretodc_std_data;
-
-    I_dctocore_std_ack_type core1_slice1_dctocore_std_ack;
-    assign core1_slice1_dctocore_std_ack_fault = core1_slice1_dctocore_std_ack.fault;
-    assign core1_slice1_dctocore_std_ack_coreid = core1_slice1_dctocore_std_ack.coreid;
+	I_dctocore_std_ack_type core0_slice1_dctocore_std_ack;
+	assign core0_slice1_dctocore_std_ack_fault = core0_slice1_dctocore_std_ack.fault;
+	assign core0_slice1_dctocore_std_ack_coreid = core0_slice1_dctocore_std_ack.coreid;
 
 
 `ifdef SC_4PIPE
 
 
-    I_coretodc_ld_type core1_slice2_coretodc_ld;
-    assign core1_slice2_coretodc_ld.ckpid = core1_slice2_coretodc_ld_ckpid;
-    assign core1_slice2_coretodc_ld.coreid = core1_slice2_coretodc_ld_coreid;
-    assign core1_slice2_coretodc_ld.lop = core1_slice2_coretodc_ld_lop;
-    assign core1_slice2_coretodc_ld.pnr = core1_slice2_coretodc_ld_pnr;
-    assign core1_slice2_coretodc_ld.pcsign = core1_slice2_coretodc_ld_pcsign;
-    assign core1_slice2_coretodc_ld.laddr = core1_slice2_coretodc_ld_laddr;
-    assign core1_slice2_coretodc_ld.sptbr = core1_slice2_coretodc_ld_sptbr;
+	I_coretodc_ld_type core0_slice2_coretodc_ld;
+	assign core0_slice2_coretodc_ld.ckpid = core0_slice2_coretodc_ld_ckpid;
+	assign core0_slice2_coretodc_ld.coreid = core0_slice2_coretodc_ld_coreid;
+	assign core0_slice2_coretodc_ld.lop = core0_slice2_coretodc_ld_lop;
+	assign core0_slice2_coretodc_ld.pnr = core0_slice2_coretodc_ld_pnr;
+	assign core0_slice2_coretodc_ld.pcsign = core0_slice2_coretodc_ld_pcsign;
+	assign core0_slice2_coretodc_ld.laddr = core0_slice2_coretodc_ld_laddr;
+	assign core0_slice2_coretodc_ld.sptbr = core0_slice2_coretodc_ld_sptbr;
 
-    I_dctocore_ld_type core1_slice2_dctocore_ld;
-    assign core1_slice2_dctocore_ld_coreid = core1_slice2_dctocore_ld.coreid;
-    assign core1_slice2_dctocore_ld_fault = core1_slice2_dctocore_ld.fault;
-    assign core1_slice2_dctocore_ld_data = core1_slice2_dctocore_ld.data;
+	I_dctocore_ld_type core0_slice2_dctocore_ld;
+	assign core0_slice2_dctocore_ld_coreid = core0_slice2_dctocore_ld.coreid;
+	assign core0_slice2_dctocore_ld_fault = core0_slice2_dctocore_ld.fault;
+	assign core0_slice2_dctocore_ld_data = core0_slice2_dctocore_ld.data;
 
-    I_coretodc_std_type core1_slice2_coretodc_std;
-    assign core1_slice2_coretodc_std.ckpid = core1_slice2_coretodc_std_ckpid;
-    assign core1_slice2_coretodc_std.coreid = core1_slice2_coretodc_std_coreid;
-    assign core1_slice2_coretodc_std.mop = core1_slice2_coretodc_std_mop;
-    assign core1_slice2_coretodc_std.pnr = core1_slice2_coretodc_std_pnr;
-    assign core1_slice2_coretodc_std.pcsign = core1_slice2_coretodc_std_pcsign;
-    assign core1_slice2_coretodc_std.laddr = core1_slice2_coretodc_std_laddr;
-    assign core1_slice2_coretodc_std.sptbr = core1_slice2_coretodc_std_sptbr;
-    assign core1_slice2_coretodc_std.data = core1_slice2_coretodc_std_data;
+	I_coretodc_std_type core0_slice2_coretodc_std;
+	assign core0_slice2_coretodc_std.ckpid = core0_slice2_coretodc_std_ckpid;
+	assign core0_slice2_coretodc_std.coreid = core0_slice2_coretodc_std_coreid;
+	assign core0_slice2_coretodc_std.mop = core0_slice2_coretodc_std_mop;
+	assign core0_slice2_coretodc_std.pnr = core0_slice2_coretodc_std_pnr;
+	assign core0_slice2_coretodc_std.pcsign = core0_slice2_coretodc_std_pcsign;
+	assign core0_slice2_coretodc_std.laddr = core0_slice2_coretodc_std_laddr;
+	assign core0_slice2_coretodc_std.sptbr = core0_slice2_coretodc_std_sptbr;
+	assign core0_slice2_coretodc_std.data = core0_slice2_coretodc_std_data;
 
-    I_dctocore_std_ack_type core1_slice2_dctocore_std_ack;
-    assign core1_slice2_dctocore_std_ack_fault = core1_slice2_dctocore_std_ack.fault;
-    assign core1_slice2_dctocore_std_ack_coreid = core1_slice2_dctocore_std_ack.coreid;
+	I_dctocore_std_ack_type core0_slice2_dctocore_std_ack;
+	assign core0_slice2_dctocore_std_ack_fault = core0_slice2_dctocore_std_ack.fault;
+	assign core0_slice2_dctocore_std_ack_coreid = core0_slice2_dctocore_std_ack.coreid;
 
-    I_coretodc_ld_type core1_slice3_coretodc_ld;
-    assign core1_slice3_coretodc_ld.ckpid = core1_slice3_coretodc_ld_ckpid;
-    assign core1_slice3_coretodc_ld.coreid = core1_slice3_coretodc_ld_coreid;
-    assign core1_slice3_coretodc_ld.lop = core1_slice3_coretodc_ld_lop;
-    assign core1_slice3_coretodc_ld.pnr = core1_slice3_coretodc_ld_pnr;
-    assign core1_slice3_coretodc_ld.pcsign = core1_slice3_coretodc_ld_pcsign;
-    assign core1_slice3_coretodc_ld.laddr = core1_slice3_coretodc_ld_laddr;
-    assign core1_slice3_coretodc_ld.sptbr = core1_slice3_coretodc_ld_sptbr;
+	I_coretodc_ld_type core0_slice3_coretodc_ld;
+	assign core0_slice3_coretodc_ld.ckpid = core0_slice3_coretodc_ld_ckpid;
+	assign core0_slice3_coretodc_ld.coreid = core0_slice3_coretodc_ld_coreid;
+	assign core0_slice3_coretodc_ld.lop = core0_slice3_coretodc_ld_lop;
+	assign core0_slice3_coretodc_ld.pnr = core0_slice3_coretodc_ld_pnr;
+	assign core0_slice3_coretodc_ld.pcsign = core0_slice3_coretodc_ld_pcsign;
+	assign core0_slice3_coretodc_ld.laddr = core0_slice3_coretodc_ld_laddr;
+	assign core0_slice3_coretodc_ld.sptbr = core0_slice3_coretodc_ld_sptbr;
 
-    I_dctocore_ld_type core1_slice3_dctocore_ld;
-    assign core1_slice3_dctocore_ld_coreid = core1_slice3_dctocore_ld.coreid;
-    assign core1_slice3_dctocore_ld_fault = core1_slice3_dctocore_ld.fault;
-    assign core1_slice3_dctocore_ld_data = core1_slice3_dctocore_ld.data;
+	I_dctocore_ld_type core0_slice3_dctocore_ld;
+	assign core0_slice3_dctocore_ld_coreid = core0_slice3_dctocore_ld.coreid;
+	assign core0_slice3_dctocore_ld_fault = core0_slice3_dctocore_ld.fault;
+	assign core0_slice3_dctocore_ld_data = core0_slice3_dctocore_ld.data;
 
-    I_coretodc_std_type core1_slice3_coretodc_std;
-    assign core1_slice3_coretodc_std.ckpid = core1_slice3_coretodc_std_ckpid;
-    assign core1_slice3_coretodc_std.coreid = core1_slice3_coretodc_std_coreid;
-    assign core1_slice3_coretodc_std.mop = core1_slice3_coretodc_std_mop;
-    assign core1_slice3_coretodc_std.pnr = core1_slice3_coretodc_std_pnr;
-    assign core1_slice3_coretodc_std.pcsign = core1_slice3_coretodc_std_pcsign;
-    assign core1_slice3_coretodc_std.laddr = core1_slice3_coretodc_std_laddr;
-    assign core1_slice3_coretodc_std.sptbr = core1_slice3_coretodc_std_sptbr;
-    assign core1_slice3_coretodc_std.data = core1_slice3_coretodc_std_data;
+	I_coretodc_std_type core0_slice3_coretodc_std;
+	assign core0_slice3_coretodc_std.ckpid = core0_slice3_coretodc_std_ckpid;
+	assign core0_slice3_coretodc_std.coreid = core0_slice3_coretodc_std_coreid;
+	assign core0_slice3_coretodc_std.mop = core0_slice3_coretodc_std_mop;
+	assign core0_slice3_coretodc_std.pnr = core0_slice3_coretodc_std_pnr;
+	assign core0_slice3_coretodc_std.pcsign = core0_slice3_coretodc_std_pcsign;
+	assign core0_slice3_coretodc_std.laddr = core0_slice3_coretodc_std_laddr;
+	assign core0_slice3_coretodc_std.sptbr = core0_slice3_coretodc_std_sptbr;
+	assign core0_slice3_coretodc_std.data = core0_slice3_coretodc_std_data;
 
-    I_dctocore_std_ack_type core1_slice3_dctocore_std_ack;
-    assign core1_slice3_dctocore_std_ack_fault = core1_slice3_dctocore_std_ack.fault;
-    assign core1_slice3_dctocore_std_ack_coreid = core1_slice3_dctocore_std_ack.coreid;
+	I_dctocore_std_ack_type core0_slice3_dctocore_std_ack;
+	assign core0_slice3_dctocore_std_ack_fault = core0_slice3_dctocore_std_ack.fault;
+	assign core0_slice3_dctocore_std_ack_coreid = core0_slice3_dctocore_std_ack.coreid;
 
 
 `endif
 
 
-    I_pfgtopfe_op_type core1_pfgtopfe_op;
-    assign core1_pfgtopfe_op.d = core1_pfgtopfe_op_d;
-    assign core1_pfgtopfe_op.w = core1_pfgtopfe_op_w;
-    assign core1_pfgtopfe_op.pcsign = core1_pfgtopfe_op_pcsign;
-    assign core1_pfgtopfe_op.laddr = core1_pfgtopfe_op_laddr;
-    assign core1_pfgtopfe_op.sptbr = core1_pfgtopfe_op_sptbr;
+	I_pfgtopfe_op_type core0_pfgtopfe_op;
+	assign core0_pfgtopfe_op.d = core0_pfgtopfe_op_d;
+	assign core0_pfgtopfe_op.w = core0_pfgtopfe_op_w;
+	assign core0_pfgtopfe_op.pcsign = core0_pfgtopfe_op_pcsign;
+	assign core0_pfgtopfe_op.laddr = core0_pfgtopfe_op_laddr;
+	assign core0_pfgtopfe_op.sptbr = core0_pfgtopfe_op_sptbr;
 
-    I_drtomem_req_type dr0_drtomem_req;
-    assign dr0_drtomem_req_drid = dr0_drtomem_req.drid;
-    assign dr0_drtomem_req_cmd = dr0_drtomem_req.cmd;
-    assign dr0_drtomem_req_paddr = dr0_drtomem_req.paddr;
+	I_ictocore_type core1_ictocore;
+	assign core1_ictocore_fault = core1_ictocore.fault;
+	assign core1_ictocore_data = core1_ictocore.data;
 
-    I_memtodr_ack_type dr0_memtodr_ack;
-    assign dr0_memtodr_ack.drid = dr0_memtodr_ack_drid;
-    assign dr0_memtodr_ack.ack = dr0_memtodr_ack_ack;
-    assign dr0_memtodr_ack.line = dr0_memtodr_ack_line;
+	I_coretodc_ld_type core1_slice0_coretodc_ld;
+	assign core1_slice0_coretodc_ld.ckpid = core1_slice0_coretodc_ld_ckpid;
+	assign core1_slice0_coretodc_ld.coreid = core1_slice0_coretodc_ld_coreid;
+	assign core1_slice0_coretodc_ld.lop = core1_slice0_coretodc_ld_lop;
+	assign core1_slice0_coretodc_ld.pnr = core1_slice0_coretodc_ld_pnr;
+	assign core1_slice0_coretodc_ld.pcsign = core1_slice0_coretodc_ld_pcsign;
+	assign core1_slice0_coretodc_ld.laddr = core1_slice0_coretodc_ld_laddr;
+	assign core1_slice0_coretodc_ld.sptbr = core1_slice0_coretodc_ld_sptbr;
 
-    I_drtomem_wb_type dr0_drtomem_wb;
-    assign dr0_drtomem_wb_line = dr0_drtomem_wb.line;
-    assign dr0_drtomem_wb_paddr = dr0_drtomem_wb.paddr;
+	I_dctocore_ld_type core1_slice0_dctocore_ld;
+	assign core1_slice0_dctocore_ld_coreid = core1_slice0_dctocore_ld.coreid;
+	assign core1_slice0_dctocore_ld_fault = core1_slice0_dctocore_ld.fault;
+	assign core1_slice0_dctocore_ld_data = core1_slice0_dctocore_ld.data;
 
-    I_drtomem_pfreq_type dr0_drtomem_pfreq;
-    assign dr0_drtomem_pfreq_paddr = dr0_drtomem_pfreq.paddr;
+	I_coretodc_std_type core1_slice0_coretodc_std;
+	assign core1_slice0_coretodc_std.ckpid = core1_slice0_coretodc_std_ckpid;
+	assign core1_slice0_coretodc_std.coreid = core1_slice0_coretodc_std_coreid;
+	assign core1_slice0_coretodc_std.mop = core1_slice0_coretodc_std_mop;
+	assign core1_slice0_coretodc_std.pnr = core1_slice0_coretodc_std_pnr;
+	assign core1_slice0_coretodc_std.pcsign = core1_slice0_coretodc_std_pcsign;
+	assign core1_slice0_coretodc_std.laddr = core1_slice0_coretodc_std_laddr;
+	assign core1_slice0_coretodc_std.sptbr = core1_slice0_coretodc_std_sptbr;
+	assign core1_slice0_coretodc_std.data = core1_slice0_coretodc_std_data;
 
-    I_drtomem_req_type dr1_drtomem_req;
-    assign dr1_drtomem_req_drid = dr1_drtomem_req.drid;
-    assign dr1_drtomem_req_cmd = dr1_drtomem_req.cmd;
-    assign dr1_drtomem_req_paddr = dr1_drtomem_req.paddr;
+	I_dctocore_std_ack_type core1_slice0_dctocore_std_ack;
+	assign core1_slice0_dctocore_std_ack_fault = core1_slice0_dctocore_std_ack.fault;
+	assign core1_slice0_dctocore_std_ack_coreid = core1_slice0_dctocore_std_ack.coreid;
 
-    I_memtodr_ack_type dr1_memtodr_ack;
-    assign dr1_memtodr_ack.drid = dr1_memtodr_ack_drid;
-    assign dr1_memtodr_ack.ack = dr1_memtodr_ack_ack;
-    assign dr1_memtodr_ack.line = dr1_memtodr_ack_line;
+	I_coretodc_ld_type core1_slice1_coretodc_ld;
+	assign core1_slice1_coretodc_ld.ckpid = core1_slice1_coretodc_ld_ckpid;
+	assign core1_slice1_coretodc_ld.coreid = core1_slice1_coretodc_ld_coreid;
+	assign core1_slice1_coretodc_ld.lop = core1_slice1_coretodc_ld_lop;
+	assign core1_slice1_coretodc_ld.pnr = core1_slice1_coretodc_ld_pnr;
+	assign core1_slice1_coretodc_ld.pcsign = core1_slice1_coretodc_ld_pcsign;
+	assign core1_slice1_coretodc_ld.laddr = core1_slice1_coretodc_ld_laddr;
+	assign core1_slice1_coretodc_ld.sptbr = core1_slice1_coretodc_ld_sptbr;
 
-    I_drtomem_wb_type dr1_drtomem_wb;
-    assign dr1_drtomem_wb_line = dr1_drtomem_wb.line;
-    assign dr1_drtomem_wb_paddr = dr1_drtomem_wb.paddr;
+	I_dctocore_ld_type core1_slice1_dctocore_ld;
+	assign core1_slice1_dctocore_ld_coreid = core1_slice1_dctocore_ld.coreid;
+	assign core1_slice1_dctocore_ld_fault = core1_slice1_dctocore_ld.fault;
+	assign core1_slice1_dctocore_ld_data = core1_slice1_dctocore_ld.data;
 
-    I_drtomem_pfreq_type dr1_drtomem_pfreq;
-    assign dr1_drtomem_pfreq_paddr = dr1_drtomem_pfreq.paddr;
+	I_coretodc_std_type core1_slice1_coretodc_std;
+	assign core1_slice1_coretodc_std.ckpid = core1_slice1_coretodc_std_ckpid;
+	assign core1_slice1_coretodc_std.coreid = core1_slice1_coretodc_std_coreid;
+	assign core1_slice1_coretodc_std.mop = core1_slice1_coretodc_std_mop;
+	assign core1_slice1_coretodc_std.pnr = core1_slice1_coretodc_std_pnr;
+	assign core1_slice1_coretodc_std.pcsign = core1_slice1_coretodc_std_pcsign;
+	assign core1_slice1_coretodc_std.laddr = core1_slice1_coretodc_std_laddr;
+	assign core1_slice1_coretodc_std.sptbr = core1_slice1_coretodc_std_sptbr;
+	assign core1_slice1_coretodc_std.data = core1_slice1_coretodc_std_data;
+
+	I_dctocore_std_ack_type core1_slice1_dctocore_std_ack;
+	assign core1_slice1_dctocore_std_ack_fault = core1_slice1_dctocore_std_ack.fault;
+	assign core1_slice1_dctocore_std_ack_coreid = core1_slice1_dctocore_std_ack.coreid;
+
+
+`ifdef SC_4PIPE
+
+
+	I_coretodc_ld_type core1_slice2_coretodc_ld;
+	assign core1_slice2_coretodc_ld.ckpid = core1_slice2_coretodc_ld_ckpid;
+	assign core1_slice2_coretodc_ld.coreid = core1_slice2_coretodc_ld_coreid;
+	assign core1_slice2_coretodc_ld.lop = core1_slice2_coretodc_ld_lop;
+	assign core1_slice2_coretodc_ld.pnr = core1_slice2_coretodc_ld_pnr;
+	assign core1_slice2_coretodc_ld.pcsign = core1_slice2_coretodc_ld_pcsign;
+	assign core1_slice2_coretodc_ld.laddr = core1_slice2_coretodc_ld_laddr;
+	assign core1_slice2_coretodc_ld.sptbr = core1_slice2_coretodc_ld_sptbr;
+
+	I_dctocore_ld_type core1_slice2_dctocore_ld;
+	assign core1_slice2_dctocore_ld_coreid = core1_slice2_dctocore_ld.coreid;
+	assign core1_slice2_dctocore_ld_fault = core1_slice2_dctocore_ld.fault;
+	assign core1_slice2_dctocore_ld_data = core1_slice2_dctocore_ld.data;
+
+	I_coretodc_std_type core1_slice2_coretodc_std;
+	assign core1_slice2_coretodc_std.ckpid = core1_slice2_coretodc_std_ckpid;
+	assign core1_slice2_coretodc_std.coreid = core1_slice2_coretodc_std_coreid;
+	assign core1_slice2_coretodc_std.mop = core1_slice2_coretodc_std_mop;
+	assign core1_slice2_coretodc_std.pnr = core1_slice2_coretodc_std_pnr;
+	assign core1_slice2_coretodc_std.pcsign = core1_slice2_coretodc_std_pcsign;
+	assign core1_slice2_coretodc_std.laddr = core1_slice2_coretodc_std_laddr;
+	assign core1_slice2_coretodc_std.sptbr = core1_slice2_coretodc_std_sptbr;
+	assign core1_slice2_coretodc_std.data = core1_slice2_coretodc_std_data;
+
+	I_dctocore_std_ack_type core1_slice2_dctocore_std_ack;
+	assign core1_slice2_dctocore_std_ack_fault = core1_slice2_dctocore_std_ack.fault;
+	assign core1_slice2_dctocore_std_ack_coreid = core1_slice2_dctocore_std_ack.coreid;
+
+	I_coretodc_ld_type core1_slice3_coretodc_ld;
+	assign core1_slice3_coretodc_ld.ckpid = core1_slice3_coretodc_ld_ckpid;
+	assign core1_slice3_coretodc_ld.coreid = core1_slice3_coretodc_ld_coreid;
+	assign core1_slice3_coretodc_ld.lop = core1_slice3_coretodc_ld_lop;
+	assign core1_slice3_coretodc_ld.pnr = core1_slice3_coretodc_ld_pnr;
+	assign core1_slice3_coretodc_ld.pcsign = core1_slice3_coretodc_ld_pcsign;
+	assign core1_slice3_coretodc_ld.laddr = core1_slice3_coretodc_ld_laddr;
+	assign core1_slice3_coretodc_ld.sptbr = core1_slice3_coretodc_ld_sptbr;
+
+	I_dctocore_ld_type core1_slice3_dctocore_ld;
+	assign core1_slice3_dctocore_ld_coreid = core1_slice3_dctocore_ld.coreid;
+	assign core1_slice3_dctocore_ld_fault = core1_slice3_dctocore_ld.fault;
+	assign core1_slice3_dctocore_ld_data = core1_slice3_dctocore_ld.data;
+
+	I_coretodc_std_type core1_slice3_coretodc_std;
+	assign core1_slice3_coretodc_std.ckpid = core1_slice3_coretodc_std_ckpid;
+	assign core1_slice3_coretodc_std.coreid = core1_slice3_coretodc_std_coreid;
+	assign core1_slice3_coretodc_std.mop = core1_slice3_coretodc_std_mop;
+	assign core1_slice3_coretodc_std.pnr = core1_slice3_coretodc_std_pnr;
+	assign core1_slice3_coretodc_std.pcsign = core1_slice3_coretodc_std_pcsign;
+	assign core1_slice3_coretodc_std.laddr = core1_slice3_coretodc_std_laddr;
+	assign core1_slice3_coretodc_std.sptbr = core1_slice3_coretodc_std_sptbr;
+	assign core1_slice3_coretodc_std.data = core1_slice3_coretodc_std_data;
+
+	I_dctocore_std_ack_type core1_slice3_dctocore_std_ack;
+	assign core1_slice3_dctocore_std_ack_fault = core1_slice3_dctocore_std_ack.fault;
+	assign core1_slice3_dctocore_std_ack_coreid = core1_slice3_dctocore_std_ack.coreid;
+
+
+`endif
+
+
+	I_pfgtopfe_op_type core1_pfgtopfe_op;
+	assign core1_pfgtopfe_op.d = core1_pfgtopfe_op_d;
+	assign core1_pfgtopfe_op.w = core1_pfgtopfe_op_w;
+	assign core1_pfgtopfe_op.pcsign = core1_pfgtopfe_op_pcsign;
+	assign core1_pfgtopfe_op.laddr = core1_pfgtopfe_op_laddr;
+	assign core1_pfgtopfe_op.sptbr = core1_pfgtopfe_op_sptbr;
+
+	I_drtomem_req_type dr0_drtomem_req;
+	assign dr0_drtomem_req_drid = dr0_drtomem_req.drid;
+	assign dr0_drtomem_req_cmd = dr0_drtomem_req.cmd;
+	assign dr0_drtomem_req_paddr = dr0_drtomem_req.paddr;
+
+	I_memtodr_ack_type dr0_memtodr_ack;
+	assign dr0_memtodr_ack.drid = dr0_memtodr_ack_drid;
+	assign dr0_memtodr_ack.ack = dr0_memtodr_ack_ack;
+	assign dr0_memtodr_ack.line = dr0_memtodr_ack_line;
+
+	I_drtomem_wb_type dr0_drtomem_wb;
+	assign dr0_drtomem_wb_line = dr0_drtomem_wb.line;
+	assign dr0_drtomem_wb_paddr = dr0_drtomem_wb.paddr;
+
+	I_drtomem_pfreq_type dr0_drtomem_pfreq;
+	assign dr0_drtomem_pfreq_paddr = dr0_drtomem_pfreq.paddr;
+
+	I_drtomem_req_type dr1_drtomem_req;
+	assign dr1_drtomem_req_drid = dr1_drtomem_req.drid;
+	assign dr1_drtomem_req_cmd = dr1_drtomem_req.cmd;
+	assign dr1_drtomem_req_paddr = dr1_drtomem_req.paddr;
+
+	I_memtodr_ack_type dr1_memtodr_ack;
+	assign dr1_memtodr_ack.drid = dr1_memtodr_ack_drid;
+	assign dr1_memtodr_ack.ack = dr1_memtodr_ack_ack;
+	assign dr1_memtodr_ack.line = dr1_memtodr_ack_line;
+
+	I_drtomem_wb_type dr1_drtomem_wb;
+	assign dr1_drtomem_wb_line = dr1_drtomem_wb.line;
+	assign dr1_drtomem_wb_paddr = dr1_drtomem_wb.paddr;
+
+	I_drtomem_pfreq_type dr1_drtomem_pfreq;
+	assign dr1_drtomem_pfreq_paddr = dr1_drtomem_pfreq.paddr;
 
 
 top_2core2dr top(.*);
