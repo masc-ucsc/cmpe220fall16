@@ -160,8 +160,8 @@ fflop #(.Size($bits(I_l2tol1_snack_type))) fsnack (
     assign l1tol2_disp_retry = 0;
     assign l2tol1_dack_valid = 1;
     assign l2tol1_dack = 0;
-    assign l1tol2_pfreq_retry = 0;
-    assign pftol2_pfreq_retry = 0;
+    //assign l1tol2_pfreq_retry = 0;
+    //assign pftol2_pfreq_retry = 0;
     assign cachetopf_stats = 0;
     assign drtol2_snack_retry = 0;
     assign l2todr_snoop_ack_valid = 1;
@@ -175,15 +175,18 @@ fflop #(.Size($bits(I_l2tol1_snack_type))) fsnack (
     //assign l2tol1_snack_next = 0;
     assign l2tol1_snack_valid = 1;
     assign l2tol1_snack = 0;
+    assign l2tlbtol2_fwd_retry = 0;
     
     
     // Temp drive End
     always_comb begin
         if (l1tol2_req_valid) begin
-           // l2todr_req_next.nid = l1tol2_req.dcid; // Could be wrong
+            l2todr_req_next.nid = 5'b00000; // Could be wrong
             l2todr_req_next.l2id = 6'b00_0000;
             l2todr_req_next.cmd = l1tol2_req.cmd;
-           // l2todr_req_next.paddr = {11'b000_0000_0000, l1tol2_req.laddr};
+            l2todr_req_next.paddr = {{35{1'b0}},
+                l1tol2_req.ppaddr,
+                {12{1'b0}}}; //35 + 3bit + 12bit
         end
     end
 
