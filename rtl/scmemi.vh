@@ -208,7 +208,7 @@ typedef struct packed {
   L2_reqid_type     l2id; // != means L2 initiated disp (drid==0)
   DR_reqid_type     drid; // !=0 snoop ack. (E.g: SMCD_WI resulting in a disp)
 
-  SC_disp_mask_type mask;
+  SC_disp_mask_type mask; // For NC disps
   SC_dcmd_type      dcmd;
 
   SC_line_type      line;
@@ -404,6 +404,7 @@ typedef struct packed {
   // No ReqID, no disp needed, no command, just writeback
 
   SC_line_type      line;
+  SC_disp_mask_type mask; // For NC disps
   SC_paddr_type     paddr;
 } I_drtomem_wb_type;
 // 1}}}

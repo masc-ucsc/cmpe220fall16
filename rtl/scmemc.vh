@@ -101,7 +101,7 @@
 // Displace command DC -> L2 and L2 -> DR 
 `define SC_DCMDBITS      3
 `define SC_DCMD_WI       3'b000 // Line got write-back & invalidated
-`define SC_DCMD_WE       3'b001 // Line got write-back & kept exclusive
+`define SC_DCMD_WS       3'b001 // Line got write-back & kept shared
 `define SC_DCMD_I        3'b010 // Line got invalidated (no disp)
 `define SC_DCMD_NC       3'b100 // non-cacheable write going down
 
