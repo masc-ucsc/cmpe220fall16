@@ -144,7 +144,7 @@ struct DrtoL2DackPacket { // input
     uint8_t l2id;
 };
 
-struct L2tltToL2FwdPacket {
+struct L2tlbtoL2FwdPacket {
     uint8_t l1id;
     uint8_t prefetch;
     uint8_t fault;
@@ -193,7 +193,7 @@ void error_found(Vl2cache_pipe_wp *top) {
 void try_send_l1_to_l2_req_packet (Vl2cache_pipe_wp *top) {
     top->l2todr_req_retry = (rand()&0xF)==0; // randomly,
     if ( !top-> l1tol2_req_retry ) {
-        top->l1tol2_req_dcid = rand();
+        top->l1tol2_req_l1id = rand();
         top->l1tol2_req_cmd = rand();
         top->l1tol2_req_pcsign = rand();
         top->l1tol2_req_ppaddr = rand();
@@ -210,12 +210,12 @@ void try_send_l1_to_l2_req_packet (Vl2cache_pipe_wp *top) {
         }
         L1toL2ReqPacket l1tol2_reqp = l1tol2_req_list.back();
         count_l1tol2_req++;
-        top->l1tol2_req_dcid = l1tol2_reqp.dcid;
+        top->l1tol2_req_l1id = l1tol2_reqp.l1id;
         top->l1tol2_req_cmd = l1tol2_reqp.cmd;
         top->l1tol2_req_pcsign = l1tol2_reqp.pcsign;
         top->l1tol2_req_ppaddr = l1tol2_reqp.ppaddr;
 #ifdef DEBUG_TRACE
-        printf("@%lld l1tol2_req dcid:%x cmd:%x pcsign:%d ppaddr:%x\n",global_time, l1tol2_reqp.dcid, 
+        printf("@%lld l1tol2_req l1id:%x cmd:%x pcsign:%d ppaddr:%x\n",global_time, l1tol2_reqp.l1id, 
             l1tol2_reqp.cmd, l1tol2_reqp.pcsign, l1tol2_reqp.ppaddr);
 #endif
         if (0) { // If it's write
@@ -250,7 +250,7 @@ void try_send_dr_to_l2_snack_packet (Vl2cache_pipe_wp *top) {
         top->drtol2_snack_line0 = rand();
         top->drtol2_snack_paddr = rand();
         if (drtol2_snack_list.empty() || (rand() & 0x3==0)) { // Once every 4
-          top->drto12_snack_valid = 0;
+          top->drtol2_snack_valid = 0;
         }else{
           top->drtol2_snack_valid = 1;
         }
@@ -276,14 +276,14 @@ void try_send_dr_to_l2_snack_packet (Vl2cache_pipe_wp *top) {
         top->drtol2_snack_line0 = drtol2_snackp.line0;
         top->drtol2_snack_paddr = drtol2_snackp.paddr;
 #ifdef DEBUG_TRACE
-        printf("@%lld drtol2_snack nid:%x l2id:%x drid:%x snack:%d line7:%x line6:%x line5:%x line4:%x line3:%x line2:%x line1:%x line0:%x paddr:%x\n",global_time, drtol2_snackp.nid, drtol2_snackp.l2id, drtol2_snack.drid, drtol2_snackp.snack, drtol2_snackp.line7, drtol2_snackp.line6, drtol2_snackp.line5, drtol2_snackp.line4, drtol2_snackp.line3, drtol2_snackp.line2, drtol2_snackp.line1, drtol2_snackp.line0, drtol2_snackp.paddr);
+        printf("@%lld drtol2_snack nid:%x l2id:%x drid:%x snack:%d line7:%x line6:%x line5:%x line4:%x line3:%x line2:%x line1:%x line0:%x paddr:%x\n",global_time, drtol2_snackp.nid, drtol2_snackp.l2id, drtol2_snackp.drid, drtol2_snackp.snack, drtol2_snackp.line7, drtol2_snackp.line6, drtol2_snackp.line5, drtol2_snackp.line4, drtol2_snackp.line3, drtol2_snackp.line2, drtol2_snackp.line1, drtol2_snackp.line0, drtol2_snackp.paddr);
 #endif
         if (0) { // If it's write
                     // TODO
         }
         else{
           L2toL1SnackPacket l2tol1_snackp;
-          l2tol1_snackp.dcid = rand();
+          l2tol1_snackp.l1id = rand();
           l2tol1_snackp.l2id = rand();
           l2tol1_snackp.snack = drtol2_snackp.snack;
           l2tol1_snackp.line7 = drtol2_snackp.line7;
@@ -294,7 +294,8 @@ void try_send_dr_to_l2_snack_packet (Vl2cache_pipe_wp *top) {
           l2tol1_snackp.line2 = drtol2_snackp.line2;
           l2tol1_snackp.line1 = drtol2_snackp.line1;
           l2tol1_snackp.line0 = drtol2_snackp.line0;
-          l2tol1_snackp.paddr = drtol2_snackp.paddr;
+          //l2tol1_snackp.poffset = drtol2_snackp.poffset;
+          //l2tol1_snackp.hpaddr = drtol2_snackp.hpaddr;
           l2tol1_snack_list.push_front(l2tol1_snackp);
         }
         drtol2_snack_list.pop_back();
@@ -327,7 +328,7 @@ void try_send_l1_to_l2_snoop_ack_packet (Vl2cache_pipe_wp *top) {
         }
         else{
           L2toDrSnoopAckPacket l2todr_snoop_ackp;
-          l2todr_reqp.l2id = rand();
+          l2todr_snoop_ackp.l2id = rand();
         }
         l1tol2_snoop_ack_list.pop_back();
     }
@@ -350,7 +351,7 @@ void try_send_l1_to_l2_disp_packet (Vl2cache_pipe_wp *top) {
         top->l1tol2_disp_line0 = rand();
         top->l1tol2_disp_ppaddr = rand();
         if (l1tol2_disp_list.empty() || (rand() & 0x3==0)) { // Once every 4
-          top->l1to12_disp_valid = 0;
+          top->l1tol2_disp_valid = 0;
         }else{
           top->l1tol2_disp_valid = 1;
         }
@@ -387,7 +388,7 @@ void try_send_l1_to_l2_disp_packet (Vl2cache_pipe_wp *top) {
           l2todr_dispp.l2id = rand();
           l2todr_dispp.drid = rand();
           l2todr_dispp.mask = l1tol2_dispp.mask;
-          l2todr_dispp.dcmd = l1tol2_dispp.dcmd
+          l2todr_dispp.dcmd = l1tol2_dispp.dcmd;
           l2todr_dispp.line7 = l1tol2_dispp.line7;
           l2todr_dispp.line6 = l1tol2_dispp.line6;
           l2todr_dispp.line5 = l1tol2_dispp.line5;
@@ -396,7 +397,7 @@ void try_send_l1_to_l2_disp_packet (Vl2cache_pipe_wp *top) {
           l2todr_dispp.line2 = l1tol2_dispp.line2;
           l2todr_dispp.line1 = l1tol2_dispp.line1;
           l2todr_dispp.line0 = l1tol2_dispp.line0;
-          l2todr_dispp.ppaddr = l1tol2_dispp.ppaddr;
+          //l2todr_dispp.ppaddr = l1tol2_dispp.ppaddr;
           l2todr_disp_list.push_front(l2todr_dispp);
         }
         l1tol2_disp_list.pop_back();
@@ -421,17 +422,17 @@ void try_send_dr_to_l2_dack_packet (Vl2cache_pipe_wp *top) {
         }
         DrtoL2DackPacket drtol2_dackp = drtol2_dack_list.back();
         count_drtol2_dack++;
-        top->drtol2_dack_nid = drtol2_dack.nid;
-        top->drtol2_dack_l2id = drtol2_dack.l2id;
+        top->drtol2_dack_nid = drtol2_dackp.nid;
+        top->drtol2_dack_l2id = drtol2_dackp.l2id;
 #ifdef DEBUG_TRACE
-        printf("@%lld drtol2_dack nid:%x l2id:%x\n",global_time, drtol2_dackp.nid, drtol2_dack.l2id);
+        printf("@%lld drtol2_dack nid:%x l2id:%x\n",global_time, drtol2_dackp.nid, drtol2_dackp.l2id);
 #endif
         if (0) { // If it's write
                     // TODO
         }
         else{
           L2toL1DackPacket l2tol1_dackp;
-          l2tol1_reqp.l1id = rand();
+          l2tol1_dackp.l1id = rand();
         }
         drtol2_dack_list.pop_back();
     }
@@ -458,11 +459,11 @@ void try_send_l2tlb_to_l2_fwd_packet (Vl2cache_pipe_wp *top) {
         }
         L2tlbtoL2FwdPacket l2tlbtol2_fwdp = l2tlbtol2_fwd_list.back();
         count_l2tlbtol2_fwd++;
-        top->l2tlbtol2_fwd_l1id = l2tlbtol2_fwd.l1id;
-        top->l2tlbtol2_fwd_prefetch = l2tlbtol2_fwd.prefetch;
-        top->l2tlbtol2_fwd_fault = l2tlbtol2_fwd.fault;
-        top->l2tlbtol2_fwd_hpaddr = l2tlbtol2_fwd.hpaddr;
-        top->l2tlbtol2_fwd_paddr = l2tlbtol2_fwd.paddr;
+        top->l2tlbtol2_fwd_l1id = l2tlbtol2_fwdp.l1id;
+        top->l2tlbtol2_fwd_prefetch = l2tlbtol2_fwdp.prefetch;
+        top->l2tlbtol2_fwd_fault = l2tlbtol2_fwdp.fault;
+        top->l2tlbtol2_fwd_hpaddr = l2tlbtol2_fwdp.hpaddr;
+        top->l2tlbtol2_fwd_paddr = l2tlbtol2_fwdp.paddr;
 #ifdef DEBUG_TRACE
         printf("@%lld l2tlbtol2_fwd l1id:%x prefetch:%x fault:%x hpaddr:%d paddr:%x\n",global_time, l2tlbtol2_fwdp.l1id, 
             l2tlbtol2_fwdp.prefetch, l2tlbtol2_fwdp.fault, l2tlbtol2_fwdp.hpaddr, l2tlbtol2_fwdp.paddr);
@@ -534,7 +535,7 @@ void try_receive_l2_to_l1_snack_packet (Vl2cache_pipe_wp *top) {
         return;
 
     #ifdef DEBUG_TRACE
-    printf("@%lld l2tol1_req l1id:%x l2id:%x snack:%x line7:%x line6:%x line5:%x line4:%x line3:%x line2:%x line1:%x line0:%x poffset:%x hpaddr:%x\n",global_time, top->l2tol1_snack_l1id, top->l2tol1_req_l2id, top->l2tol1_snack_snack, top->l2tol1_snack_line7, top->l2tol1_snack_line6, top->l2tol1_snack_line5, top->l2tol1_snack_line4, top->l2tol1_snack_line3, top->l2tol1_snack_line2, top->l2tol1_snack_line1, top->l2tol1_snack_line0, top->l2tol1_snack_poffset, l2tol1_snack_hpaddr);
+    printf("@%lld l2tol1_req l1id:%x l2id:%x snack:%x line7:%x line6:%x line5:%x line4:%x line3:%x line2:%x line1:%x line0:%x poffset:%x hpaddr:%x\n",global_time, top->l2tol1_snack_l1id, top->l2tol1_snack_l2id, top->l2tol1_snack_snack, top->l2tol1_snack_line7, top->l2tol1_snack_line6, top->l2tol1_snack_line5, top->l2tol1_snack_line4, top->l2tol1_snack_line3, top->l2tol1_snack_line2, top->l2tol1_snack_line1, top->l2tol1_snack_line0, top->l2tol1_snack_poffset, top->l2tol1_snack_hpaddr);
 
     #endif
     L2toL1SnackPacket l2tol1_snackp = l2tol1_snack_list.back();
@@ -631,14 +632,14 @@ void try_receive_l2_to_dr_disp_packet (Vl2cache_pipe_wp *top) {
         printf("ERROR: expected l2todr_disp_mask:%x but actual l2todr_disp_mask is %x\n", l2todr_dispp.mask,top->l2todr_disp_mask);
         printf("ERROR: expected l2todr_disp_dcmd:%x but actual l2todr_disp_dcmd is %x\n", l2todr_dispp.dcmd,top->l2todr_disp_dcmd);
         printf("ERROR: expected l2todr_disp_line7:%x but actual l2todr_disp_line7 is %x\n", l2todr_dispp.line7,top->l2todr_disp_line7);
-        printf("ERROR: expected l2todr_disp_line6:%x but actual l2todr_disp_line6 is %x\n", l2todr_dispp.line6,top->l2tol1_snack_line6);
-        printf("ERROR: expected l2todr_disp_line5:%x but actual l2todr_disp_line5 is %x\n", l2todr_dispp.line5,top->l2tol1_snack_line5);
-        printf("ERROR: expected l2todr_disp_line4:%x but actual l2todr_disp_line4 is %x\n", l2todr_dispp.line4,top->l2tol1_snack_line4);
-        printf("ERROR: expected l2todr_disp_line3:%x but actual l2todr_disp_line3 is %x\n", l2todr_dispp.line3,top->l2tol1_snack_line3);
-        printf("ERROR: expected l2todr_disp_line2:%x but actual l2todr_disp_line2 is %x\n", l2todr_dispp.line2,top->l2tol1_snack_line2);
-        printf("ERROR: expected l2todr_disp_line1:%x but actual l2todr_disp_line1 is %x\n", l2todr_dispp.line1,top->l2tol1_snack_line1);
-        printf("ERROR: expected l2todr_disp_line0:%x but actual l2todr_disp_line0 is %x\n", l2todr_dispp.line0,top->l2tol1_snack_line0);
-        printf("ERROR: expected l2todr_disp_paddr:%x but actual l2todr_disp_paddr is %x\n", l2todr_dispp.paddr,top->l2tol1_snack_paddr);
+        printf("ERROR: expected l2todr_disp_line6:%x but actual l2todr_disp_line6 is %x\n", l2todr_dispp.line6,top->l2todr_disp_line6);
+        printf("ERROR: expected l2todr_disp_line5:%x but actual l2todr_disp_line5 is %x\n", l2todr_dispp.line5,top->l2todr_disp_line5);
+        printf("ERROR: expected l2todr_disp_line4:%x but actual l2todr_disp_line4 is %x\n", l2todr_dispp.line4,top->l2todr_disp_line4);
+        printf("ERROR: expected l2todr_disp_line3:%x but actual l2todr_disp_line3 is %x\n", l2todr_dispp.line3,top->l2todr_disp_line3);
+        printf("ERROR: expected l2todr_disp_line2:%x but actual l2todr_disp_line2 is %x\n", l2todr_dispp.line2,top->l2todr_disp_line2);
+        printf("ERROR: expected l2todr_disp_line1:%x but actual l2todr_disp_line1 is %x\n", l2todr_dispp.line1,top->l2todr_disp_line1);
+        printf("ERROR: expected l2todr_disp_line0:%x but actual l2todr_disp_line0 is %x\n", l2todr_dispp.line0,top->l2todr_disp_line0);
+        printf("ERROR: expected l2todr_disp_paddr:%x but actual l2todr_disp_paddr is %x\n", l2todr_dispp.paddr,top->l2todr_disp_paddr);
         error_found(top);
       }
     l2todr_disp_list.pop_back();
@@ -664,7 +665,7 @@ void try_receive_l2_to_l1_dack_packet (Vl2cache_pipe_wp *top) {
         return;
 
     #ifdef DEBUG_TRACE
-    printf("@%lld l2tol1_dack l1id:%x\n",global_time, top->l2tol1_dack_l2id);
+    printf("@%lld l2tol1_dack l1id:%x\n",global_time, top->l2tol1_dack_l1id);
 
     #endif
     L2toL1DackPacket l2tol1_dackp = l2tol1_dack_list.back();
@@ -758,14 +759,14 @@ int main(int argc, char **argv, char **env) {
     if (((rand() & 0x3)==0) && l1tol2_req_list.size() < 3 ) {
       //L1toL2ReqPacket l1tol2_reqp = L1toL2ReqPacket();
       L1toL2ReqPacket l1tol2_reqp;
-      l1tol2_reqp.dcid = rand() & 0x1F;
+      l1tol2_reqp.l1id = rand() & 0x1F;
       l1tol2_reqp.cmd = rand() & 0x7;
       l1tol2_reqp.pcsign = rand() & 0x1FFF;
       l1tol2_reqp.ppaddr = rand() & 0x7;
       l1tol2_req_list.push_front(l1tol2_reqp);
     }
 
-    if(((rand() & 0x3)==0) && drtol2_snack_list.size(0 < 3 ) {
+    if(((rand() & 0x3)==0) && drtol2_snack_list.size() < 3 ) {
       //DrtoL2SnackPacket drtol2_snackp = DrtoL2SnackPacket();
       DrtoL2SnackPacket drtol2_snackp;
       drtol2_snackp.nid = rand() & 0x1F;
@@ -781,16 +782,17 @@ int main(int argc, char **argv, char **env) {
       drtol2_snackp.line2 = rand() & 0xFFFFFFFFFFFFFFFF;
       drtol2_snackp.line0 = rand() & 0xFFFFFFFFFFFFFFFF;
       drtol2_snackp.paddr = rand() & 0x3FFFFFFFFFFFF;
+      drtol2_snack_list.push_front(drtol2_snackp);
     }
 
     if (((rand() & 0x3)==0) && l1tol2_snoop_ack_list.size() < 3 ) {
-      //L1tol2SnoopAckPacket l1tol2_snoop_ackp = L1tol2SnoopAckPacket();
-      L1tol2SnoopAckPacket l1tol2_snoop_ackp;
+      //L1toL2SnoopAckPacket l1tol2_snoop_ackp = L1toL2SnoopAckPacket();
+      L1toL2SnoopAckPacket l1tol2_snoop_ackp;
       l1tol2_snoop_ackp.l2id = rand() & 0x3F;
       l1tol2_snoop_ack_list.push_front(l1tol2_snoop_ackp);
     }
 
-    if(((rand() & 0x3)==0) && l1tol2_disp_list.size(0 < 3 ) {
+    if(((rand() & 0x3)==0) && l1tol2_disp_list.size() < 3 ) {
       //L1toL2DispPacket l1tol2_dispp = L1toL2DispPacket();
       L1toL2DispPacket l1tol2_dispp;
       l1tol2_dispp.l1id = rand() & 0x1F;
@@ -805,12 +807,13 @@ int main(int argc, char **argv, char **env) {
       l1tol2_dispp.line2 = rand() & 0xFFFFFFFFFFFFFFFF;
       l1tol2_dispp.line2 = rand() & 0xFFFFFFFFFFFFFFFF;
       l1tol2_dispp.line0 = rand() & 0xFFFFFFFFFFFFFFFF;
-      l1tol2_dispp.paddr = rand() & 0x3FFFFFFFFFFFF;
+      l1tol2_dispp.ppaddr = rand() & 0x7;
+      l1tol2_disp_list.push_front(l1tol2_dispp);
     }
 
     if (((rand() & 0x3)==0) && drtol2_dack_list.size() < 3 ) {
-      //Drtol2DackPacket drtol2_dackp = Drtol2DackPacket();
-      Drtol2DackPacket drtol2_dackp;
+      //DrtoL2DackPacket drtol2_dackp = DrtoL2DackPacket();
+      DrtoL2DackPacket drtol2_dackp;
       drtol2_dackp.nid = rand() & 0x1F;
       drtol2_dackp.l2id = rand() & 0x3F;
       drtol2_dack_list.push_front(drtol2_dackp);
@@ -824,7 +827,7 @@ int main(int argc, char **argv, char **env) {
       l2tlbtol2_fwdp.fault = rand() & 0x7;
       l2tlbtol2_fwdp.hpaddr = rand() & 0x7FF;
       l2tlbtol2_fwdp.paddr = rand() & 0x3FFFFFFFFFFFF;
-      l2tlbtol2_fwd_list.push_front(l1tol2_reqp);
+      l2tlbtol2_fwd_list.push_front(l2tlbtol2_fwdp);
     }
   }
 #endif
