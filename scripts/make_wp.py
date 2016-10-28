@@ -48,6 +48,7 @@ dict = {'I_drtol2_snack_type': [
             ('SC_cmd_type\t\t', 'cmd'),
             ('SC_paddr_type\t', 'paddr')],
         'I_drtomem_pfreq_type':[
+            ('SC_nodeid_type\t', 'nid'),
             ('SC_paddr_type\t', 'paddr')],
         'I_coretodc_ld_type':[
             ('DC_ckpid_type\t', 'ckpid'),
@@ -55,22 +56,26 @@ dict = {'I_drtol2_snack_type': [
             ('CORE_lop_type\t', 'lop'),
             ('logic\t\t\t', 'pnr'),
             ('SC_pcsign_type\t', 'pcsign'),
-            ('SC_laddr_type\t', 'laddr'),
-            ('SC_sptbr_type\t', 'sptbr')],
+            ('SC_poffset_type\t', 'poffset'),
+            ('SC_imm_type\t\t', 'imm')],
         'I_pfgtopfe_op_type':[
-            ('PF_delta_type\t', 'd'),
-            ('PF_weigth_type\t', 'w'),
+            ('PF_delta_type\t', 'delta'),
+            ('PF_weigth_type\t', 'w1'),
+            ('PF_weigth_type\t', 'w2'),
             ('SC_pcsign_type\t', 'pcsign'),
             ('SC_laddr_type\t', 'laddr'),
             ('SC_sptbr_type\t', 'sptbr')],
         'I_memtodr_ack_type':[
             ('DR_reqid_type\t', 'drid'),
+            ('SC_nodeid_type\t', 'nid'),
+            ('SC_paddr_type\t', 'paddr'),
             ('SC_snack_type\t', 'ack'),
             ('SC_line_type\t', 'line')],
         'I_dctocore_std_ack_type':[
             ('SC_fault_type\t', 'fault'),
             ('CORE_reqid_type\t', 'coreid')],
         'I_ictocore_type':[
+            ('CORE_reqid_type\t', 'coreid'),
             ('SC_fault_type\t', 'fault'),
             ('IC_fwidth_type\t', 'data')],
         'I_coretodc_std_type':[
@@ -79,8 +84,8 @@ dict = {'I_drtol2_snack_type': [
             ('CORE_mop_type\t', 'mop'),
             ('logic\t\t\t', 'pnr'),
             ('SC_pcsign_type\t', 'pcsign'),
-            ('SC_laddr_type\t', 'laddr'),
-            ('SC_sptbr_type\t', 'sptbr'),
+            ('SC_poffset_type\t', 'poffset'),
+            ('SC_imm_type\t\t', 'imm'),
             ('SC_line_type\t', 'data')],
         'I_dctocore_ld_type':[
             ('CORE_reqid_type\t', 'coreid'),
