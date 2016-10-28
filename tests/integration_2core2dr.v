@@ -14,7 +14,7 @@
 
 `include "scmem.vh"
 
-module top_2core2dr_wp(
+module integration_2core2dr(
   /* verilator lint_off UNUSED */
   /* verilator lint_off UNDRIVEN */
 	input	logic				clk
@@ -30,6 +30,7 @@ module top_2core2dr_wp(
 	,output	logic				core0_ictocore_valid
 	,input	logic				core0_ictocore_retry
 	//  ,output I_ictocore_type      core0_ictocore              
+	,output	CORE_reqid_type		core0_ictocore_coreid
 	,output	SC_fault_type		core0_ictocore_fault
 	,output	IC_fwidth_type		core0_ictocore_data
 
@@ -42,8 +43,8 @@ module top_2core2dr_wp(
 	,input	CORE_lop_type		core0_slice0_coretodc_ld_lop
 	,input	logic				core0_slice0_coretodc_ld_pnr
 	,input	SC_pcsign_type		core0_slice0_coretodc_ld_pcsign
-	,input	SC_laddr_type		core0_slice0_coretodc_ld_laddr
-	,input	SC_sptbr_type		core0_slice0_coretodc_ld_sptbr
+	,input	SC_poffset_type		core0_slice0_coretodc_ld_poffset
+	,input	SC_imm_type			core0_slice0_coretodc_ld_imm
 	,output	logic				core0_slice0_dctocore_ld_valid
 	,input	logic				core0_slice0_dctocore_ld_retry
 	//  ,output  I_dctocore_ld_type      core0_slice0_dctocore_ld           
@@ -58,8 +59,8 @@ module top_2core2dr_wp(
 	,input	CORE_mop_type		core0_slice0_coretodc_std_mop
 	,input	logic				core0_slice0_coretodc_std_pnr
 	,input	SC_pcsign_type		core0_slice0_coretodc_std_pcsign
-	,input	SC_laddr_type		core0_slice0_coretodc_std_laddr
-	,input	SC_sptbr_type		core0_slice0_coretodc_std_sptbr
+	,input	SC_poffset_type		core0_slice0_coretodc_std_poffset
+	,input	SC_imm_type			core0_slice0_coretodc_std_imm
 	,input	SC_line_type		core0_slice0_coretodc_std_data
 	,output	logic				core0_slice0_dctocore_std_ack_valid
 	,input	logic				core0_slice0_dctocore_std_ack_retry
@@ -76,8 +77,8 @@ module top_2core2dr_wp(
 	,input	CORE_lop_type		core0_slice1_coretodc_ld_lop
 	,input	logic				core0_slice1_coretodc_ld_pnr
 	,input	SC_pcsign_type		core0_slice1_coretodc_ld_pcsign
-	,input	SC_laddr_type		core0_slice1_coretodc_ld_laddr
-	,input	SC_sptbr_type		core0_slice1_coretodc_ld_sptbr
+	,input	SC_poffset_type		core0_slice1_coretodc_ld_poffset
+	,input	SC_imm_type			core0_slice1_coretodc_ld_imm
 	,output	logic				core0_slice1_dctocore_ld_valid
 	,input	logic				core0_slice1_dctocore_ld_retry
 	//  ,output  I_dctocore_ld_type      core0_slice1_dctocore_ld           
@@ -92,8 +93,8 @@ module top_2core2dr_wp(
 	,input	CORE_mop_type		core0_slice1_coretodc_std_mop
 	,input	logic				core0_slice1_coretodc_std_pnr
 	,input	SC_pcsign_type		core0_slice1_coretodc_std_pcsign
-	,input	SC_laddr_type		core0_slice1_coretodc_std_laddr
-	,input	SC_sptbr_type		core0_slice1_coretodc_std_sptbr
+	,input	SC_poffset_type		core0_slice1_coretodc_std_poffset
+	,input	SC_imm_type			core0_slice1_coretodc_std_imm
 	,input	SC_line_type		core0_slice1_coretodc_std_data
 	,output	logic				core0_slice1_dctocore_std_ack_valid
 	,input	logic				core0_slice1_dctocore_std_ack_retry
@@ -112,8 +113,8 @@ module top_2core2dr_wp(
 	,input	CORE_lop_type		core0_slice2_coretodc_ld_lop
 	,input	logic				core0_slice2_coretodc_ld_pnr
 	,input	SC_pcsign_type		core0_slice2_coretodc_ld_pcsign
-	,input	SC_laddr_type		core0_slice2_coretodc_ld_laddr
-	,input	SC_sptbr_type		core0_slice2_coretodc_ld_sptbr
+	,input	SC_poffset_type		core0_slice2_coretodc_ld_poffset
+	,input	SC_imm_type			core0_slice2_coretodc_ld_imm
 	,output	logic				core0_slice2_dctocore_ld_valid
 	,input	logic				core0_slice2_dctocore_ld_retry
 	//  ,output  I_dctocore_ld_type      core0_slice2_dctocore_ld           
@@ -128,8 +129,8 @@ module top_2core2dr_wp(
 	,input	CORE_mop_type		core0_slice2_coretodc_std_mop
 	,input	logic				core0_slice2_coretodc_std_pnr
 	,input	SC_pcsign_type		core0_slice2_coretodc_std_pcsign
-	,input	SC_laddr_type		core0_slice2_coretodc_std_laddr
-	,input	SC_sptbr_type		core0_slice2_coretodc_std_sptbr
+	,input	SC_poffset_type		core0_slice2_coretodc_std_poffset
+	,input	SC_imm_type			core0_slice2_coretodc_std_imm
 	,input	SC_line_type		core0_slice2_coretodc_std_data
 	,output	logic				core0_slice2_dctocore_std_ack_valid
 	,input	logic				core0_slice2_dctocore_std_ack_retry
@@ -146,8 +147,8 @@ module top_2core2dr_wp(
 	,input	CORE_lop_type		core0_slice3_coretodc_ld_lop
 	,input	logic				core0_slice3_coretodc_ld_pnr
 	,input	SC_pcsign_type		core0_slice3_coretodc_ld_pcsign
-	,input	SC_laddr_type		core0_slice3_coretodc_ld_laddr
-	,input	SC_sptbr_type		core0_slice3_coretodc_ld_sptbr
+	,input	SC_poffset_type		core0_slice3_coretodc_ld_poffset
+	,input	SC_imm_type			core0_slice3_coretodc_ld_imm
 	,output	logic				core0_slice3_dctocore_ld_valid
 	,input	logic				core0_slice3_dctocore_ld_retry
 	//  ,output  I_dctocore_ld_type      core0_slice3_dctocore_ld           
@@ -162,8 +163,8 @@ module top_2core2dr_wp(
 	,input	CORE_mop_type		core0_slice3_coretodc_std_mop
 	,input	logic				core0_slice3_coretodc_std_pnr
 	,input	SC_pcsign_type		core0_slice3_coretodc_std_pcsign
-	,input	SC_laddr_type		core0_slice3_coretodc_std_laddr
-	,input	SC_sptbr_type		core0_slice3_coretodc_std_sptbr
+	,input	SC_poffset_type		core0_slice3_coretodc_std_poffset
+	,input	SC_imm_type			core0_slice3_coretodc_std_imm
 	,input	SC_line_type		core0_slice3_coretodc_std_data
 	,output	logic				core0_slice3_dctocore_std_ack_valid
 	,input	logic				core0_slice3_dctocore_std_ack_retry
@@ -178,8 +179,9 @@ module top_2core2dr_wp(
 	,input	logic				core0_pfgtopfe_op_valid
 	,output	logic				core0_pfgtopfe_op_retry
 	//  ,input  I_pfgtopfe_op_type   core0_pfgtopfe_op      
-	,input	PF_delta_type		core0_pfgtopfe_op_d
-	,input	PF_weigth_type		core0_pfgtopfe_op_w
+	,input	PF_delta_type		core0_pfgtopfe_op_delta
+	,input	PF_weigth_type		core0_pfgtopfe_op_w1
+	,input	PF_weigth_type		core0_pfgtopfe_op_w2
 	,input	SC_pcsign_type		core0_pfgtopfe_op_pcsign
 	,input	SC_laddr_type		core0_pfgtopfe_op_laddr
 	,input	SC_sptbr_type		core0_pfgtopfe_op_sptbr
@@ -194,6 +196,7 @@ module top_2core2dr_wp(
 	,output	logic				core1_ictocore_valid
 	,input	logic				core1_ictocore_retry
 	//  ,output I_ictocore_type      core1_ictocore              
+	,output	CORE_reqid_type		core1_ictocore_coreid
 	,output	SC_fault_type		core1_ictocore_fault
 	,output	IC_fwidth_type		core1_ictocore_data
 
@@ -206,8 +209,8 @@ module top_2core2dr_wp(
 	,input	CORE_lop_type		core1_slice0_coretodc_ld_lop
 	,input	logic				core1_slice0_coretodc_ld_pnr
 	,input	SC_pcsign_type		core1_slice0_coretodc_ld_pcsign
-	,input	SC_laddr_type		core1_slice0_coretodc_ld_laddr
-	,input	SC_sptbr_type		core1_slice0_coretodc_ld_sptbr
+	,input	SC_poffset_type		core1_slice0_coretodc_ld_poffset
+	,input	SC_imm_type			core1_slice0_coretodc_ld_imm
 	,output	logic				core1_slice0_dctocore_ld_valid
 	,input	logic				core1_slice0_dctocore_ld_retry
 	//  ,output  I_dctocore_ld_type      core1_slice0_dctocore_ld           
@@ -222,8 +225,8 @@ module top_2core2dr_wp(
 	,input	CORE_mop_type		core1_slice0_coretodc_std_mop
 	,input	logic				core1_slice0_coretodc_std_pnr
 	,input	SC_pcsign_type		core1_slice0_coretodc_std_pcsign
-	,input	SC_laddr_type		core1_slice0_coretodc_std_laddr
-	,input	SC_sptbr_type		core1_slice0_coretodc_std_sptbr
+	,input	SC_poffset_type		core1_slice0_coretodc_std_poffset
+	,input	SC_imm_type			core1_slice0_coretodc_std_imm
 	,input	SC_line_type		core1_slice0_coretodc_std_data
 	,output	logic				core1_slice0_dctocore_std_ack_valid
 	,input	logic				core1_slice0_dctocore_std_ack_retry
@@ -240,8 +243,8 @@ module top_2core2dr_wp(
 	,input	CORE_lop_type		core1_slice1_coretodc_ld_lop
 	,input	logic				core1_slice1_coretodc_ld_pnr
 	,input	SC_pcsign_type		core1_slice1_coretodc_ld_pcsign
-	,input	SC_laddr_type		core1_slice1_coretodc_ld_laddr
-	,input	SC_sptbr_type		core1_slice1_coretodc_ld_sptbr
+	,input	SC_poffset_type		core1_slice1_coretodc_ld_poffset
+	,input	SC_imm_type			core1_slice1_coretodc_ld_imm
 	,output	logic				core1_slice1_dctocore_ld_valid
 	,input	logic				core1_slice1_dctocore_ld_retry
 	//  ,output  I_dctocore_ld_type      core1_slice1_dctocore_ld           
@@ -256,8 +259,8 @@ module top_2core2dr_wp(
 	,input	CORE_mop_type		core1_slice1_coretodc_std_mop
 	,input	logic				core1_slice1_coretodc_std_pnr
 	,input	SC_pcsign_type		core1_slice1_coretodc_std_pcsign
-	,input	SC_laddr_type		core1_slice1_coretodc_std_laddr
-	,input	SC_sptbr_type		core1_slice1_coretodc_std_sptbr
+	,input	SC_poffset_type		core1_slice1_coretodc_std_poffset
+	,input	SC_imm_type			core1_slice1_coretodc_std_imm
 	,input	SC_line_type		core1_slice1_coretodc_std_data
 	,output	logic				core1_slice1_dctocore_std_ack_valid
 	,input	logic				core1_slice1_dctocore_std_ack_retry
@@ -276,8 +279,8 @@ module top_2core2dr_wp(
 	,input	CORE_lop_type		core1_slice2_coretodc_ld_lop
 	,input	logic				core1_slice2_coretodc_ld_pnr
 	,input	SC_pcsign_type		core1_slice2_coretodc_ld_pcsign
-	,input	SC_laddr_type		core1_slice2_coretodc_ld_laddr
-	,input	SC_sptbr_type		core1_slice2_coretodc_ld_sptbr
+	,input	SC_poffset_type		core1_slice2_coretodc_ld_poffset
+	,input	SC_imm_type			core1_slice2_coretodc_ld_imm
 	,output	logic				core1_slice2_dctocore_ld_valid
 	,input	logic				core1_slice2_dctocore_ld_retry
 	//  ,output  I_dctocore_ld_type      core1_slice2_dctocore_ld           
@@ -292,8 +295,8 @@ module top_2core2dr_wp(
 	,input	CORE_mop_type		core1_slice2_coretodc_std_mop
 	,input	logic				core1_slice2_coretodc_std_pnr
 	,input	SC_pcsign_type		core1_slice2_coretodc_std_pcsign
-	,input	SC_laddr_type		core1_slice2_coretodc_std_laddr
-	,input	SC_sptbr_type		core1_slice2_coretodc_std_sptbr
+	,input	SC_poffset_type		core1_slice2_coretodc_std_poffset
+	,input	SC_imm_type			core1_slice2_coretodc_std_imm
 	,input	SC_line_type		core1_slice2_coretodc_std_data
 	,output	logic				core1_slice2_dctocore_std_ack_valid
 	,input	logic				core1_slice2_dctocore_std_ack_retry
@@ -310,8 +313,8 @@ module top_2core2dr_wp(
 	,input	CORE_lop_type		core1_slice3_coretodc_ld_lop
 	,input	logic				core1_slice3_coretodc_ld_pnr
 	,input	SC_pcsign_type		core1_slice3_coretodc_ld_pcsign
-	,input	SC_laddr_type		core1_slice3_coretodc_ld_laddr
-	,input	SC_sptbr_type		core1_slice3_coretodc_ld_sptbr
+	,input	SC_poffset_type		core1_slice3_coretodc_ld_poffset
+	,input	SC_imm_type			core1_slice3_coretodc_ld_imm
 	,output	logic				core1_slice3_dctocore_ld_valid
 	,input	logic				core1_slice3_dctocore_ld_retry
 	//  ,output  I_dctocore_ld_type      core1_slice3_dctocore_ld           
@@ -326,8 +329,8 @@ module top_2core2dr_wp(
 	,input	CORE_mop_type		core1_slice3_coretodc_std_mop
 	,input	logic				core1_slice3_coretodc_std_pnr
 	,input	SC_pcsign_type		core1_slice3_coretodc_std_pcsign
-	,input	SC_laddr_type		core1_slice3_coretodc_std_laddr
-	,input	SC_sptbr_type		core1_slice3_coretodc_std_sptbr
+	,input	SC_poffset_type		core1_slice3_coretodc_std_poffset
+	,input	SC_imm_type			core1_slice3_coretodc_std_imm
 	,input	SC_line_type		core1_slice3_coretodc_std_data
 	,output	logic				core1_slice3_dctocore_std_ack_valid
 	,input	logic				core1_slice3_dctocore_std_ack_retry
@@ -342,8 +345,9 @@ module top_2core2dr_wp(
 	,input	logic				core1_pfgtopfe_op_valid
 	,output	logic				core1_pfgtopfe_op_retry
 	//  ,input  I_pfgtopfe_op_type   core1_pfgtopfe_op      
-	,input	PF_delta_type		core1_pfgtopfe_op_d
-	,input	PF_weigth_type		core1_pfgtopfe_op_w
+	,input	PF_delta_type		core1_pfgtopfe_op_delta
+	,input	PF_weigth_type		core1_pfgtopfe_op_w1
+	,input	PF_weigth_type		core1_pfgtopfe_op_w2
 	,input	SC_pcsign_type		core1_pfgtopfe_op_pcsign
 	,input	SC_laddr_type		core1_pfgtopfe_op_laddr
 	,input	SC_sptbr_type		core1_pfgtopfe_op_sptbr
@@ -361,6 +365,8 @@ module top_2core2dr_wp(
 	,output	logic				dr0_memtodr_ack_retry
 	//  ,input   I_memtodr_ack_type   dr0_memtodr_ack           
 	,input	DR_reqid_type		dr0_memtodr_ack_drid
+	,input	SC_nodeid_type		dr0_memtodr_ack_nid
+	,input	SC_paddr_type		dr0_memtodr_ack_paddr
 	,input	SC_snack_type		dr0_memtodr_ack_ack
 	,input	SC_line_type		dr0_memtodr_ack_line
 	,output	logic				dr0_drtomem_wb_valid
@@ -371,6 +377,7 @@ module top_2core2dr_wp(
 	,output	logic				dr0_drtomem_pfreq_valid
 	,input	logic				dr0_drtomem_pfreq_retry
 	//  ,output  I_drtomem_pfreq_type dr0_drtomem_pfreq         
+	,output	SC_nodeid_type		dr0_drtomem_pfreq_nid
 	,output	SC_paddr_type		dr0_drtomem_pfreq_paddr
 
    //******************************************
@@ -386,6 +393,8 @@ module top_2core2dr_wp(
 	,output	logic				dr1_memtodr_ack_retry
 	//  ,input   I_memtodr_ack_type   dr1_memtodr_ack           
 	,input	DR_reqid_type		dr1_memtodr_ack_drid
+	,input	SC_nodeid_type		dr1_memtodr_ack_nid
+	,input	SC_paddr_type		dr1_memtodr_ack_paddr
 	,input	SC_snack_type		dr1_memtodr_ack_ack
 	,input	SC_line_type		dr1_memtodr_ack_line
 	,output	logic				dr1_drtomem_wb_valid
@@ -396,6 +405,7 @@ module top_2core2dr_wp(
 	,output	logic				dr1_drtomem_pfreq_valid
 	,input	logic				dr1_drtomem_pfreq_retry
 	//  ,output  I_drtomem_pfreq_type dr1_drtomem_pfreq         
+	,output	SC_nodeid_type		dr1_drtomem_pfreq_nid
 	,output	SC_paddr_type		dr1_drtomem_pfreq_paddr
 
 );
@@ -404,6 +414,7 @@ module top_2core2dr_wp(
 
 
 	I_ictocore_type core0_ictocore;
+	assign core0_ictocore_coreid = core0_ictocore.coreid;
 	assign core0_ictocore_fault = core0_ictocore.fault;
 	assign core0_ictocore_data = core0_ictocore.data;
 
@@ -413,8 +424,8 @@ module top_2core2dr_wp(
 	assign core0_slice0_coretodc_ld.lop = core0_slice0_coretodc_ld_lop;
 	assign core0_slice0_coretodc_ld.pnr = core0_slice0_coretodc_ld_pnr;
 	assign core0_slice0_coretodc_ld.pcsign = core0_slice0_coretodc_ld_pcsign;
-	assign core0_slice0_coretodc_ld.laddr = core0_slice0_coretodc_ld_laddr;
-	assign core0_slice0_coretodc_ld.sptbr = core0_slice0_coretodc_ld_sptbr;
+	assign core0_slice0_coretodc_ld.poffset = core0_slice0_coretodc_ld_poffset;
+	assign core0_slice0_coretodc_ld.imm = core0_slice0_coretodc_ld_imm;
 
 	I_dctocore_ld_type core0_slice0_dctocore_ld;
 	assign core0_slice0_dctocore_ld_coreid = core0_slice0_dctocore_ld.coreid;
@@ -427,8 +438,8 @@ module top_2core2dr_wp(
 	assign core0_slice0_coretodc_std.mop = core0_slice0_coretodc_std_mop;
 	assign core0_slice0_coretodc_std.pnr = core0_slice0_coretodc_std_pnr;
 	assign core0_slice0_coretodc_std.pcsign = core0_slice0_coretodc_std_pcsign;
-	assign core0_slice0_coretodc_std.laddr = core0_slice0_coretodc_std_laddr;
-	assign core0_slice0_coretodc_std.sptbr = core0_slice0_coretodc_std_sptbr;
+	assign core0_slice0_coretodc_std.poffset = core0_slice0_coretodc_std_poffset;
+	assign core0_slice0_coretodc_std.imm = core0_slice0_coretodc_std_imm;
 	assign core0_slice0_coretodc_std.data = core0_slice0_coretodc_std_data;
 
 	I_dctocore_std_ack_type core0_slice0_dctocore_std_ack;
@@ -441,8 +452,8 @@ module top_2core2dr_wp(
 	assign core0_slice1_coretodc_ld.lop = core0_slice1_coretodc_ld_lop;
 	assign core0_slice1_coretodc_ld.pnr = core0_slice1_coretodc_ld_pnr;
 	assign core0_slice1_coretodc_ld.pcsign = core0_slice1_coretodc_ld_pcsign;
-	assign core0_slice1_coretodc_ld.laddr = core0_slice1_coretodc_ld_laddr;
-	assign core0_slice1_coretodc_ld.sptbr = core0_slice1_coretodc_ld_sptbr;
+	assign core0_slice1_coretodc_ld.poffset = core0_slice1_coretodc_ld_poffset;
+	assign core0_slice1_coretodc_ld.imm = core0_slice1_coretodc_ld_imm;
 
 	I_dctocore_ld_type core0_slice1_dctocore_ld;
 	assign core0_slice1_dctocore_ld_coreid = core0_slice1_dctocore_ld.coreid;
@@ -455,8 +466,8 @@ module top_2core2dr_wp(
 	assign core0_slice1_coretodc_std.mop = core0_slice1_coretodc_std_mop;
 	assign core0_slice1_coretodc_std.pnr = core0_slice1_coretodc_std_pnr;
 	assign core0_slice1_coretodc_std.pcsign = core0_slice1_coretodc_std_pcsign;
-	assign core0_slice1_coretodc_std.laddr = core0_slice1_coretodc_std_laddr;
-	assign core0_slice1_coretodc_std.sptbr = core0_slice1_coretodc_std_sptbr;
+	assign core0_slice1_coretodc_std.poffset = core0_slice1_coretodc_std_poffset;
+	assign core0_slice1_coretodc_std.imm = core0_slice1_coretodc_std_imm;
 	assign core0_slice1_coretodc_std.data = core0_slice1_coretodc_std_data;
 
 	I_dctocore_std_ack_type core0_slice1_dctocore_std_ack;
@@ -473,8 +484,8 @@ module top_2core2dr_wp(
 	assign core0_slice2_coretodc_ld.lop = core0_slice2_coretodc_ld_lop;
 	assign core0_slice2_coretodc_ld.pnr = core0_slice2_coretodc_ld_pnr;
 	assign core0_slice2_coretodc_ld.pcsign = core0_slice2_coretodc_ld_pcsign;
-	assign core0_slice2_coretodc_ld.laddr = core0_slice2_coretodc_ld_laddr;
-	assign core0_slice2_coretodc_ld.sptbr = core0_slice2_coretodc_ld_sptbr;
+	assign core0_slice2_coretodc_ld.poffset = core0_slice2_coretodc_ld_poffset;
+	assign core0_slice2_coretodc_ld.imm = core0_slice2_coretodc_ld_imm;
 
 	I_dctocore_ld_type core0_slice2_dctocore_ld;
 	assign core0_slice2_dctocore_ld_coreid = core0_slice2_dctocore_ld.coreid;
@@ -487,8 +498,8 @@ module top_2core2dr_wp(
 	assign core0_slice2_coretodc_std.mop = core0_slice2_coretodc_std_mop;
 	assign core0_slice2_coretodc_std.pnr = core0_slice2_coretodc_std_pnr;
 	assign core0_slice2_coretodc_std.pcsign = core0_slice2_coretodc_std_pcsign;
-	assign core0_slice2_coretodc_std.laddr = core0_slice2_coretodc_std_laddr;
-	assign core0_slice2_coretodc_std.sptbr = core0_slice2_coretodc_std_sptbr;
+	assign core0_slice2_coretodc_std.poffset = core0_slice2_coretodc_std_poffset;
+	assign core0_slice2_coretodc_std.imm = core0_slice2_coretodc_std_imm;
 	assign core0_slice2_coretodc_std.data = core0_slice2_coretodc_std_data;
 
 	I_dctocore_std_ack_type core0_slice2_dctocore_std_ack;
@@ -501,8 +512,8 @@ module top_2core2dr_wp(
 	assign core0_slice3_coretodc_ld.lop = core0_slice3_coretodc_ld_lop;
 	assign core0_slice3_coretodc_ld.pnr = core0_slice3_coretodc_ld_pnr;
 	assign core0_slice3_coretodc_ld.pcsign = core0_slice3_coretodc_ld_pcsign;
-	assign core0_slice3_coretodc_ld.laddr = core0_slice3_coretodc_ld_laddr;
-	assign core0_slice3_coretodc_ld.sptbr = core0_slice3_coretodc_ld_sptbr;
+	assign core0_slice3_coretodc_ld.poffset = core0_slice3_coretodc_ld_poffset;
+	assign core0_slice3_coretodc_ld.imm = core0_slice3_coretodc_ld_imm;
 
 	I_dctocore_ld_type core0_slice3_dctocore_ld;
 	assign core0_slice3_dctocore_ld_coreid = core0_slice3_dctocore_ld.coreid;
@@ -515,8 +526,8 @@ module top_2core2dr_wp(
 	assign core0_slice3_coretodc_std.mop = core0_slice3_coretodc_std_mop;
 	assign core0_slice3_coretodc_std.pnr = core0_slice3_coretodc_std_pnr;
 	assign core0_slice3_coretodc_std.pcsign = core0_slice3_coretodc_std_pcsign;
-	assign core0_slice3_coretodc_std.laddr = core0_slice3_coretodc_std_laddr;
-	assign core0_slice3_coretodc_std.sptbr = core0_slice3_coretodc_std_sptbr;
+	assign core0_slice3_coretodc_std.poffset = core0_slice3_coretodc_std_poffset;
+	assign core0_slice3_coretodc_std.imm = core0_slice3_coretodc_std_imm;
 	assign core0_slice3_coretodc_std.data = core0_slice3_coretodc_std_data;
 
 	I_dctocore_std_ack_type core0_slice3_dctocore_std_ack;
@@ -528,13 +539,15 @@ module top_2core2dr_wp(
 
 
 	I_pfgtopfe_op_type core0_pfgtopfe_op;
-	assign core0_pfgtopfe_op.d = core0_pfgtopfe_op_d;
-	assign core0_pfgtopfe_op.w = core0_pfgtopfe_op_w;
+	assign core0_pfgtopfe_op.delta = core0_pfgtopfe_op_delta;
+	assign core0_pfgtopfe_op.w1 = core0_pfgtopfe_op_w1;
+	assign core0_pfgtopfe_op.w2 = core0_pfgtopfe_op_w2;
 	assign core0_pfgtopfe_op.pcsign = core0_pfgtopfe_op_pcsign;
 	assign core0_pfgtopfe_op.laddr = core0_pfgtopfe_op_laddr;
 	assign core0_pfgtopfe_op.sptbr = core0_pfgtopfe_op_sptbr;
 
 	I_ictocore_type core1_ictocore;
+	assign core1_ictocore_coreid = core1_ictocore.coreid;
 	assign core1_ictocore_fault = core1_ictocore.fault;
 	assign core1_ictocore_data = core1_ictocore.data;
 
@@ -544,8 +557,8 @@ module top_2core2dr_wp(
 	assign core1_slice0_coretodc_ld.lop = core1_slice0_coretodc_ld_lop;
 	assign core1_slice0_coretodc_ld.pnr = core1_slice0_coretodc_ld_pnr;
 	assign core1_slice0_coretodc_ld.pcsign = core1_slice0_coretodc_ld_pcsign;
-	assign core1_slice0_coretodc_ld.laddr = core1_slice0_coretodc_ld_laddr;
-	assign core1_slice0_coretodc_ld.sptbr = core1_slice0_coretodc_ld_sptbr;
+	assign core1_slice0_coretodc_ld.poffset = core1_slice0_coretodc_ld_poffset;
+	assign core1_slice0_coretodc_ld.imm = core1_slice0_coretodc_ld_imm;
 
 	I_dctocore_ld_type core1_slice0_dctocore_ld;
 	assign core1_slice0_dctocore_ld_coreid = core1_slice0_dctocore_ld.coreid;
@@ -558,8 +571,8 @@ module top_2core2dr_wp(
 	assign core1_slice0_coretodc_std.mop = core1_slice0_coretodc_std_mop;
 	assign core1_slice0_coretodc_std.pnr = core1_slice0_coretodc_std_pnr;
 	assign core1_slice0_coretodc_std.pcsign = core1_slice0_coretodc_std_pcsign;
-	assign core1_slice0_coretodc_std.laddr = core1_slice0_coretodc_std_laddr;
-	assign core1_slice0_coretodc_std.sptbr = core1_slice0_coretodc_std_sptbr;
+	assign core1_slice0_coretodc_std.poffset = core1_slice0_coretodc_std_poffset;
+	assign core1_slice0_coretodc_std.imm = core1_slice0_coretodc_std_imm;
 	assign core1_slice0_coretodc_std.data = core1_slice0_coretodc_std_data;
 
 	I_dctocore_std_ack_type core1_slice0_dctocore_std_ack;
@@ -572,8 +585,8 @@ module top_2core2dr_wp(
 	assign core1_slice1_coretodc_ld.lop = core1_slice1_coretodc_ld_lop;
 	assign core1_slice1_coretodc_ld.pnr = core1_slice1_coretodc_ld_pnr;
 	assign core1_slice1_coretodc_ld.pcsign = core1_slice1_coretodc_ld_pcsign;
-	assign core1_slice1_coretodc_ld.laddr = core1_slice1_coretodc_ld_laddr;
-	assign core1_slice1_coretodc_ld.sptbr = core1_slice1_coretodc_ld_sptbr;
+	assign core1_slice1_coretodc_ld.poffset = core1_slice1_coretodc_ld_poffset;
+	assign core1_slice1_coretodc_ld.imm = core1_slice1_coretodc_ld_imm;
 
 	I_dctocore_ld_type core1_slice1_dctocore_ld;
 	assign core1_slice1_dctocore_ld_coreid = core1_slice1_dctocore_ld.coreid;
@@ -586,8 +599,8 @@ module top_2core2dr_wp(
 	assign core1_slice1_coretodc_std.mop = core1_slice1_coretodc_std_mop;
 	assign core1_slice1_coretodc_std.pnr = core1_slice1_coretodc_std_pnr;
 	assign core1_slice1_coretodc_std.pcsign = core1_slice1_coretodc_std_pcsign;
-	assign core1_slice1_coretodc_std.laddr = core1_slice1_coretodc_std_laddr;
-	assign core1_slice1_coretodc_std.sptbr = core1_slice1_coretodc_std_sptbr;
+	assign core1_slice1_coretodc_std.poffset = core1_slice1_coretodc_std_poffset;
+	assign core1_slice1_coretodc_std.imm = core1_slice1_coretodc_std_imm;
 	assign core1_slice1_coretodc_std.data = core1_slice1_coretodc_std_data;
 
 	I_dctocore_std_ack_type core1_slice1_dctocore_std_ack;
@@ -604,8 +617,8 @@ module top_2core2dr_wp(
 	assign core1_slice2_coretodc_ld.lop = core1_slice2_coretodc_ld_lop;
 	assign core1_slice2_coretodc_ld.pnr = core1_slice2_coretodc_ld_pnr;
 	assign core1_slice2_coretodc_ld.pcsign = core1_slice2_coretodc_ld_pcsign;
-	assign core1_slice2_coretodc_ld.laddr = core1_slice2_coretodc_ld_laddr;
-	assign core1_slice2_coretodc_ld.sptbr = core1_slice2_coretodc_ld_sptbr;
+	assign core1_slice2_coretodc_ld.poffset = core1_slice2_coretodc_ld_poffset;
+	assign core1_slice2_coretodc_ld.imm = core1_slice2_coretodc_ld_imm;
 
 	I_dctocore_ld_type core1_slice2_dctocore_ld;
 	assign core1_slice2_dctocore_ld_coreid = core1_slice2_dctocore_ld.coreid;
@@ -618,8 +631,8 @@ module top_2core2dr_wp(
 	assign core1_slice2_coretodc_std.mop = core1_slice2_coretodc_std_mop;
 	assign core1_slice2_coretodc_std.pnr = core1_slice2_coretodc_std_pnr;
 	assign core1_slice2_coretodc_std.pcsign = core1_slice2_coretodc_std_pcsign;
-	assign core1_slice2_coretodc_std.laddr = core1_slice2_coretodc_std_laddr;
-	assign core1_slice2_coretodc_std.sptbr = core1_slice2_coretodc_std_sptbr;
+	assign core1_slice2_coretodc_std.poffset = core1_slice2_coretodc_std_poffset;
+	assign core1_slice2_coretodc_std.imm = core1_slice2_coretodc_std_imm;
 	assign core1_slice2_coretodc_std.data = core1_slice2_coretodc_std_data;
 
 	I_dctocore_std_ack_type core1_slice2_dctocore_std_ack;
@@ -632,8 +645,8 @@ module top_2core2dr_wp(
 	assign core1_slice3_coretodc_ld.lop = core1_slice3_coretodc_ld_lop;
 	assign core1_slice3_coretodc_ld.pnr = core1_slice3_coretodc_ld_pnr;
 	assign core1_slice3_coretodc_ld.pcsign = core1_slice3_coretodc_ld_pcsign;
-	assign core1_slice3_coretodc_ld.laddr = core1_slice3_coretodc_ld_laddr;
-	assign core1_slice3_coretodc_ld.sptbr = core1_slice3_coretodc_ld_sptbr;
+	assign core1_slice3_coretodc_ld.poffset = core1_slice3_coretodc_ld_poffset;
+	assign core1_slice3_coretodc_ld.imm = core1_slice3_coretodc_ld_imm;
 
 	I_dctocore_ld_type core1_slice3_dctocore_ld;
 	assign core1_slice3_dctocore_ld_coreid = core1_slice3_dctocore_ld.coreid;
@@ -646,8 +659,8 @@ module top_2core2dr_wp(
 	assign core1_slice3_coretodc_std.mop = core1_slice3_coretodc_std_mop;
 	assign core1_slice3_coretodc_std.pnr = core1_slice3_coretodc_std_pnr;
 	assign core1_slice3_coretodc_std.pcsign = core1_slice3_coretodc_std_pcsign;
-	assign core1_slice3_coretodc_std.laddr = core1_slice3_coretodc_std_laddr;
-	assign core1_slice3_coretodc_std.sptbr = core1_slice3_coretodc_std_sptbr;
+	assign core1_slice3_coretodc_std.poffset = core1_slice3_coretodc_std_poffset;
+	assign core1_slice3_coretodc_std.imm = core1_slice3_coretodc_std_imm;
 	assign core1_slice3_coretodc_std.data = core1_slice3_coretodc_std_data;
 
 	I_dctocore_std_ack_type core1_slice3_dctocore_std_ack;
@@ -659,8 +672,9 @@ module top_2core2dr_wp(
 
 
 	I_pfgtopfe_op_type core1_pfgtopfe_op;
-	assign core1_pfgtopfe_op.d = core1_pfgtopfe_op_d;
-	assign core1_pfgtopfe_op.w = core1_pfgtopfe_op_w;
+	assign core1_pfgtopfe_op.delta = core1_pfgtopfe_op_delta;
+	assign core1_pfgtopfe_op.w1 = core1_pfgtopfe_op_w1;
+	assign core1_pfgtopfe_op.w2 = core1_pfgtopfe_op_w2;
 	assign core1_pfgtopfe_op.pcsign = core1_pfgtopfe_op_pcsign;
 	assign core1_pfgtopfe_op.laddr = core1_pfgtopfe_op_laddr;
 	assign core1_pfgtopfe_op.sptbr = core1_pfgtopfe_op_sptbr;
@@ -672,6 +686,8 @@ module top_2core2dr_wp(
 
 	I_memtodr_ack_type dr0_memtodr_ack;
 	assign dr0_memtodr_ack.drid = dr0_memtodr_ack_drid;
+	assign dr0_memtodr_ack.nid = dr0_memtodr_ack_nid;
+	assign dr0_memtodr_ack.paddr = dr0_memtodr_ack_paddr;
 	assign dr0_memtodr_ack.ack = dr0_memtodr_ack_ack;
 	assign dr0_memtodr_ack.line = dr0_memtodr_ack_line;
 
@@ -680,6 +696,7 @@ module top_2core2dr_wp(
 	assign dr0_drtomem_wb_paddr = dr0_drtomem_wb.paddr;
 
 	I_drtomem_pfreq_type dr0_drtomem_pfreq;
+	assign dr0_drtomem_pfreq_nid = dr0_drtomem_pfreq.nid;
 	assign dr0_drtomem_pfreq_paddr = dr0_drtomem_pfreq.paddr;
 
 	I_drtomem_req_type dr1_drtomem_req;
@@ -689,6 +706,8 @@ module top_2core2dr_wp(
 
 	I_memtodr_ack_type dr1_memtodr_ack;
 	assign dr1_memtodr_ack.drid = dr1_memtodr_ack_drid;
+	assign dr1_memtodr_ack.nid = dr1_memtodr_ack_nid;
+	assign dr1_memtodr_ack.paddr = dr1_memtodr_ack_paddr;
 	assign dr1_memtodr_ack.ack = dr1_memtodr_ack_ack;
 	assign dr1_memtodr_ack.line = dr1_memtodr_ack_line;
 
@@ -697,6 +716,7 @@ module top_2core2dr_wp(
 	assign dr1_drtomem_wb_paddr = dr1_drtomem_wb.paddr;
 
 	I_drtomem_pfreq_type dr1_drtomem_pfreq;
+	assign dr1_drtomem_pfreq_nid = dr1_drtomem_pfreq.nid;
 	assign dr1_drtomem_pfreq_paddr = dr1_drtomem_pfreq.paddr;
 
 
