@@ -10,17 +10,17 @@ module pfmonitor(
    input                           clk
   ,input                           reset
 
-  ,input  I_core_pfdecode_type     pfdecode
-  ,input                           pfretire_valid
-  ,output                          pfretire_retry
+  ,input  I_coretopfm_dec_type     coretopfm_dec
+  ,input                           coretopfm_dec_valid
+  ,output                          coretopfm_dec_retry
 
-  ,output I_pftocore_pred_type     pfpred
-  ,output                          pfpred_valid
-  ,input                           pfpred_retry
+  ,output I_pfmtocore_pred_type    pfmtocore_pred
+  ,output                          pfmtocore_pred_valid
+  ,input                           pfmtocore_pred_retry
 
-  ,input  I_core_pfretire_type     pfretire
-  ,input                           pfretire_valid
-  ,output                          pfretire_retry
+  ,input  I_coretopfm_retire_type  coretopfm_retire
+  ,input                           coretopfm_retire_valid
+  ,output                          coretopfm_retire_retry
   /* verilator lint_on UNUSED */
 );
 
