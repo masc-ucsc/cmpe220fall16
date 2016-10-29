@@ -18,7 +18,7 @@
 // passed as a ACK_P* to the L2 node
 // 
 // For replacement use HawkEye or RRIP
-/* verilator lint_off WIDTH */
+
 /* verilator lint_off UNUSED */
 /* verilator lint_off UNDRIVEN */
 /* verilator lint_off UNOPT */
@@ -163,11 +163,11 @@ module directory_bank(
   
   I_memtodr_ack_type      drff_snack;
 
-  assign drtol2_snack.nid = 6'b0; //These needs to be changed to match the request nid and l2id.
+  assign drtol2_snack.nid = 5'b0; //These needs to be changed to match the request nid and l2id.
   assign drtol2_snack.l2id = 6'b0;
   
   assign drtol2_snack.drid = 6'b0; //This is not a mistake in this case because the drid is required to be 0 on acks, and we do not snoop in passthrough
-  assign drtol2_snack.paddr = 49'b0; //The address is not used during an ack.
+  assign drtol2_snack.paddr = 50'b0; //The address is not used during an ack.
   assign drtol2_snack.snack = drff_snack.ack;
   assign drtol2_snack.line = drff_snack.line;
   //The memtodr_ack also contains a drid, but this should not be sent to the L2. This value should be used to search from a request table

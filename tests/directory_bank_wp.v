@@ -97,6 +97,7 @@ module directory_bank_wp(
   ,output                          drtomem_wb_valid
   ,input                           drtomem_wb_retry
   ,output SC_line_type             drtomem_wb_line
+  ,output SC_disp_mask_type        drtomem_wb_mask
   ,output SC_paddr_type            drtomem_wb_paddr
 
   ,output logic                    drtomem_pfreq_valid
@@ -186,6 +187,7 @@ module directory_bank_wp(
    ,.drtomem_wb_valid(drtomem_wb_valid)
    ,.drtomem_wb_retry(drtomem_wb_retry)
    ,.drtomem_wb({   drtomem_wb_line
+		   ,drtomem_wb_mask
                    ,drtomem_wb_paddr}) // Plain WB, no disp ack needed
 
    ,.drtomem_pfreq_valid(drtomem_pfreq_valid)
