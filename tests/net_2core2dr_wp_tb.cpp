@@ -1,5 +1,5 @@
 
-#include "Vnet_2core2dr.h"
+#include "Vnet_2core2dr_wp.h"
 #include "verilated.h"
 #include "verilated_vcd_c.h"
 

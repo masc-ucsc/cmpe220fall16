@@ -14,7 +14,9 @@
 // Effectively, a 4 pipe dual core can switch to a 8 independent l2 coherent
 // cores. No need to have a switch command as the DCs and L2s are coherent.
 
-module top_2core2dr_wp(
+`include "scmem.vh"
+
+module net_2core2dr_wp(
   /* verilator lint_off UNUSED */
   /* verilator lint_off UNDRIVEN */
 	input	logic				clk
@@ -479,6 +481,8 @@ module top_2core2dr_wp(
   // Connect L2s to directory using a ring or switch topology
 
 
+  /* verilator lint_off UNUSED */
+  /* verilator lint_off UNDRIVEN */
 
 
 
@@ -782,7 +786,8 @@ module top_2core2dr_wp(
 	I_drsnoop_ack_type l2todr1_snoop_ack;
 	assign l2todr1_snoop_ack_drid = l2todr1_snoop_ack.drid;
 
+  /* verilator lint_on UNUSED */
+  /* verilator lint_on UNDRIVEN */
 
-top_2core2dr top(.*);
 endmodule
 

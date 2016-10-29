@@ -36,6 +36,14 @@ run_l2: l2
 	./obj_dir/Vl2cache_pipe_wp
 
 ###########################
+net_2core2dr:
+	verilator --assert --debug-check -I./rtl --Wall --cc --trace --top-module net_2core2dr_wp ./tests/net_2core2dr_wp.v ./rtl/fflop.v --exe ./tests/net_2core2dr_wp_tb.cpp -CFLAGS -DTRACE=1 
+	make -C obj_dir/ -f Vnet_2core2dr_wp.mk Vnet_2core2dr_wp
+
+run_net_2core2dr: net_2core2dr
+	./obj_dir/Vnet_2core2dr_wp
+
+###########################
 ram_1port_fast_wp:
 	verilator --assert --debug-check -I./rtl --Wall --cc --trace --top-module ram_1port_fast_wp ./rtl/ram_1port_fast.v ./tests/ram_1port_fast_wp.v ./rtl/fflop.v --exe tests/ram_1port_fast_wp_tb.cpp -CFLAGS -DTRACE=1
 	make -C obj_dir/ -f Vram_1port_fast_wp.mk Vram_1port_fast_wp
