@@ -114,7 +114,7 @@ module arbl2tlb(
   ,output logic                    drtol2d_3_dack_retry
   ,input  I_drtol2_dack_type       drtol2d_3_dack
 
-  ,input  logic                    c0_l2d_3todr_pfreq_valid
+  ,input  logic                    l2d_3todr_pfreq_valid
   ,output logic                    l2d_3todr_pfreq_retry
   ,input  I_l2todr_pfreq_type      l2d_3todr_pfreq
 `endif
