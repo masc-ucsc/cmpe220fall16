@@ -44,7 +44,7 @@
 ****************************************************************************/
 
 `define FLOP_RETRY_USE_FLOPS 1
-//`define USE_SELF_W2R1 1
+`define USE_SELF_W2R1 1
 
 module fflop
   #(parameter Size=1)
@@ -66,66 +66,97 @@ module fflop
 
   // {{{1 SELF IMPLEMENTATION
 
-  logic [Size-1:0] a_reg;
-  logic [Size-1:0] q_next;
-
-  logic c1, c2;
-  logic e0;
-  //logic e1;
+  logic [Size-1:0] shadowq;
+  logic c1;
+  logic c2;
   logic shadowValid;
 
+  logic          priv_qValid;
   always_comb begin
-    c1 = dinRetry | dinValid;
-    c2 = qRetry & qValid;
+    qValid = priv_qValid;
   end
 
-  always @(negedge clk) begin
+  logic          priv_dinRetry;
+  always_comb begin
+    dinRetry = priv_dinRetry;
+  end
+
+  // Inputs private signals
+  logic          priv_qRetry;
+  always_comb begin
+    priv_qRetry = qRetry;
+  end
+  logic          priv_dinValid;
+  always_comb begin
+    priv_dinValid = dinValid;
+  end
+  // 1}}}
+
+  // {{{1 cond1 and cond2
+  always_comb begin
+    c1 = (priv_qValid & priv_qRetry); // resend (even with failure, we can have a resend) 
+    c2 = priv_dinValid | shadowValid; // pending
+  end
+  // 1}}}
+  
+
+  // {{{1 shadowValid
+  always @(posedge clk) begin
     if (reset) begin
-      shadowValid <= 0;
+      shadowValid <= 'b0;
     end else begin
       shadowValid <= (c1 & c2);
-    end
+    end 
+  end 
+  // 1}}}
+
+  // {{{1 shadowq
+  logic s_enable;
+  always_comb begin
+    s_enable = !shadowValid;
   end
+
+  always@ (posedge clk) begin
+    if (s_enable) begin
+      shadowq <= din;
+    end
+  end 
+  // 1}}}
+
+   // {{{1 q
 
   always @(posedge clk) begin
-    if(reset) begin
-      dinRetry <= 'b1; 
-      qValid   <= 'b0;
+    if (c1) begin
+      q <= q;
+    end else if (s_enable) begin
+      q <= din;
     end else begin
-      dinRetry <= shadowValid; 
-      qValid   <= shadowValid | dinValid | c2;
+      q <= shadowq;
     end
-  end
+  end 
+  // 1}}}
 
-  always_comb begin
-    if (shadowValid) begin
-      q_next =  a_reg;
-    end else begin
-      q_next =  din;
-    end
-  end
-
-  always_comb begin
-    e0  = ~c2;
-    //e1  = dinRetry & ~c2;
-  end
-
-  //data path
+  // {{{1 priv_qValid (qValid internal value)
+  logic priv_qValidla2;
   always @(posedge clk) begin
     if (reset) begin
-      a_reg <= 'b0; // Not needed, but verilator does not like x
+      priv_qValidla2 <='b0;
     end else begin
-      a_reg <= din;
-    end
-  end
+      priv_qValidla2 <= (c1 | c2);
+    end 
+  end 
 
-  always @(posedge clk) begin
-    if (reset) begin
-      q <= 'b0; // Not needed, but verilator does not like x
-    end else if(e0) begin
-      q <= q_next;
-    end
+  always_comb begin
+    priv_qValid = priv_qValidla2;
   end
+  // 1}}}
+
+  // {{{1 priv_dinRetry (dinRetry internal value)
+
+  always_comb begin
+   priv_dinRetry = shadowValid | reset;
+  end
+  // 1}}}
 
   // 1}}}
 

@@ -12,6 +12,8 @@
 vluint64_t global_time = 0;
 VerilatedVcdC* tfp = 0;
 
+long ntests = 0;
+
 void advance_half_clock(Vjoin_fadd *top) {
 #ifdef TRACE
   tfp->dump(global_time);
@@ -163,6 +165,7 @@ void try_recv_packet(Vjoin_fadd *top) {
   }
 
   out_list.pop_back();
+  ntests++;
 }
 
 
@@ -175,7 +178,7 @@ int main(int argc, char **argv, char **env) {
 
   int t = (int)time(0);
 #if 0
-  srand(1477403302);
+  srand(1477809920);
 #else
   srand(t);
 #endif
@@ -192,44 +195,71 @@ int main(int argc, char **argv, char **env) {
 
   // initialize simulation inputs
   top->clk = 1;
-  top->reset = 1;
 
-  advance_clock(top,4); // May be larger as required by reset state machines
-  //-------------------------------------------------------
-  top->reset = 0;
-  top->inp_a = 1;
-  top->inp_b = 2;
-  top->inp_aValid = 0;
-  top->inp_bValid = 0;
-  top->sumRetry = 1;
+  for(int niters=0 ; niters < 50; niters++) {
+    //-------------------------------------------------------
 
-  advance_clock(top,1);
+#ifdef DEBUG_TRACE
+    printf("reset\n");
+#endif
+    top->reset = 1;
+
+    inpa_list.clear();
+    inpb_list.clear();
+    out_list.clear();
+
+    top->inp_aValid = 1;
+    top->inp_bValid = 1;
+    int ncycles= rand() & 0xFF;
+    ncycles++; // At least one cycle reset
+    for(int i =0;i<ncycles;i++) {
+      top->inp_a = rand() & 0xFF;
+      top->inp_b = rand() & 0xFF;
+      top->sumRetry = rand() & 1;
+      advance_clock(top,1);
+    }
+
+#ifdef DEBUG_TRACE
+    printf("no reset\n");
+#endif
+    //-------------------------------------------------------
+    top->reset = 0;
+    top->inp_a = 1;
+    top->inp_b = 2;
+    top->inp_aValid = 0;
+    top->inp_bValid = 0;
+    top->sumRetry = 1;
+
+    advance_clock(top,1);
 
 #if 1
-  for(int i =0;i<10240;i++) {
-    try_send_packet(top);
-    advance_half_clock(top);
-    try_recv_packet(top);
-    advance_half_clock(top);
+    for(int i =0;i<1024;i++) {
+      try_send_packet(top);
+      advance_half_clock(top);
+      try_recv_packet(top);
+      advance_half_clock(top);
 
-    if (((rand() & 0x3)==0) && inpa_list.size() < 3 && inpb_list.size() < 3 ) {
-      InputPacketA ia;
-      InputPacketB ib;
-      ia.inp_a = rand() & 0xFF;
-      ib.inp_b = rand() & 0xFF;
-      inpa_list.push_front(ia);
-      inpb_list.push_front(ib);
+      if (((rand() & 0x3)==0) && inpa_list.size() < 3 && inpb_list.size() < 3 ) {
+        InputPacketA ia;
+        InputPacketB ib;
+        ia.inp_a = rand() & 0xFF;
+        ib.inp_b = rand() & 0xFF;
+        inpa_list.push_front(ia);
+        inpb_list.push_front(ib);
 
-      OutputPacket o;
-      o.sum = (ia.inp_a + ib.inp_b) & 0xFF;
-      o.inp_a = ia.inp_a;
-      o.inp_b = ib.inp_b;
+        OutputPacket o;
+        o.sum = (ia.inp_a + ib.inp_b) & 0xFF;
+        o.inp_a = ia.inp_a;
+        o.inp_b = ib.inp_b;
 
-      out_list.push_front(o);
+        out_list.push_front(o);
+      }
+      //advance_clock(top,1);
     }
-    //advance_clock(top,1);
-  }
 #endif
+  }
+
+  printf("performed %lld test in %lld cycles\n",ntests,(long long)global_time/2);
 
   sim_finish(true);
 }

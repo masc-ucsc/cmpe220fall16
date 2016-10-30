@@ -225,7 +225,7 @@ int main(int argc, char **argv, char **env) {
   advance_clock(top,1);
 
 #if 1
-  for(int i =0;i<10240;i++) {
+  for(int i =0;i<102400;i++) {
     try_send_packet(top);
     advance_half_clock(top);
     try_recv_packet_a(top);

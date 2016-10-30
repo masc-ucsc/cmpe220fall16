@@ -41,6 +41,10 @@ module join_fadd(
 `endif
   end
 
+  logic [7:0] sum2;
+  logic       sum2Valid;
+  logic       sum2Retry;
+
   fflop #(.Size(8)) f1 (
     .clk      (clk),
     .reset    (reset),
@@ -48,6 +52,19 @@ module join_fadd(
     .din      (sum_next),
     .dinValid (inpValid),
     .dinRetry (inpRetry),
+
+    .q        (sum2),
+    .qValid   (sum2Valid),
+    .qRetry   (sum2Retry)
+  );
+
+  fflop #(.Size(8)) f2 (
+    .clk      (clk),
+    .reset    (reset),
+
+    .din      (sum2),
+    .dinValid (sum2Valid),
+    .dinRetry (sum2Retry),
 
     .q        (sum),
     .qValid   (sumValid),
