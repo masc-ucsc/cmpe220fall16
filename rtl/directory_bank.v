@@ -305,7 +305,7 @@ module directory_bank(
       
       if(arb_drid_read_valid) begin
         arb_drid_sram_valid = 1'b1;      
-        arb_drid_read_retry = 1'b1; 
+        arb_drid_write_retry = 1'b1; 
       end else if(arb_drid_write_valid) begin
         arb_drid_sram_valid = 1'b1;
       end
@@ -318,7 +318,7 @@ module directory_bank(
       
       if(arb_drid_write_valid) begin
         arb_drid_sram_valid = 1'b1;
-        arb_drid_write_retry = 1'b1;
+        arb_drid_read_retry = 1'b1;
       end else if(arb_drid_read_valid) begin
         arb_drid_sram_valid = 1'b1;
       end

@@ -352,6 +352,7 @@ void try_recv_packet_req(Vdirectory_bank_wp *top) {
     error_found(top);
   }
   
+#ifdef TEST_ACK
   //When we receive a request, push an ack
   InputPacket_memtodr_ack inAck;    
   inAck.line_7 = rand();
@@ -364,6 +365,7 @@ void try_recv_packet_req(Vdirectory_bank_wp *top) {
   inAck.line_0 = rand();
   inAck.drid = rand();
   inp_list_ack.push_front(inAck);
+#endif
   
   out_list_req.pop_back();
 }
