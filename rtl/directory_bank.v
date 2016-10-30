@@ -1,5 +1,6 @@
 
 `include "scmem.vh"
+`define DR_PASSTHROUGH
 
 // Directory. Cache equivalent to 2MBytes/ 16 Way assoc
 //
@@ -12,16 +13,15 @@
 // If prefetch queue is full, drop oldest 
 //
 // Parameter for the # of entry to remember: 4,8,16
-//
-// The prefetches go to the mem, if they come back (no guarantee), the
-// nodeid/address indicates to what core to forward the request. The Ack is
-// passed as a ACK_P* to the L2 node
 // 
 // For replacement use HawkEye or RRIP
-
 /* verilator lint_off UNUSED */
 /* verilator lint_off UNDRIVEN */
-/* verilator lint_off UNOPT */
+//This "turn off unoptimzed warning" is not what I wanted. This warning occurred because verilator claimed
+//I had circular logic in reference to the drtomem_req_valid signal. I could not determine the exact reasoning
+//or cause of this warning, so I set this flag and it seems to work in testing. If this error is clear to anyone
+//please leave a comment or email.
+
 module directory_bank(
    input                           clk
   ,input                           reset
@@ -49,7 +49,7 @@ module directory_bank(
 
   ,input                           l2todr_snoop_ack_valid
   ,output                          l2todr_snoop_ack_retry
-  ,input  I_drsnoop_ack_type       l2todr_snoop_ack
+  ,input I_drsnoop_ack_type        l2todr_snoop_ack
 
   // Memory interface
   // If nobody has the data, send request to memory
@@ -72,33 +72,29 @@ module directory_bank(
 
   );
   
+`ifdef DR_PASSTHROUGH
   
-  
-  //This is the new valid caused by the fork operation on l2todr_req
-  logic l2todr_req_fork_valid;
+  //This valid is a combination of the input l2todr request valid as well as dependcies in the DR which need to be met
+  //in order for the operation to begin. For now, this includes the allocation of a DRID to the request. If there are no
+  //available DRIDs then this valid is driven LOW and the retry is driven HIGH.
+  logic l2todr_req_drid_valid;
   
   always_comb begin
-    l2todr_req_fork_valid = !l2todr_req_retry && l2todr_req_valid;
+    l2todr_req_drid_valid = !l2todr_req_retry && l2todr_req_valid;
   end
   
-  //This OR is because of a Fork operation on the l2todr request. The Fork consists of a fflop that
-  //holds the l2todr request temporarily and an fflop that determines a DRID to be assigned to this request.
-  //Also included is drid_valid which is a boolean which indicates if there is an available drid or not
+  //This OR forces the retry HIGH when a dependency of the l2todr request is not met. These include: a fflop which holds
+  //the output to main memory(l2_req_retry), a fflop which holds the next available DRID(drid_req_retry), and a priority encoder which determines if there
+  //are available DRIDs left(drid_valid). This solution may change because I might change the DRID fflop to a flop.
   always_comb begin
     l2todr_req_retry = l2_req_retry | drid_req_retry | ~drid_valid;
   end
-  
   
   //The fflop below uses type I_l2todr_pfreq_type as its input and output. While I_drtomem_pfreq_type is basically the same struct,
   //I divided the fflop output and assignment so there would not be any conflicts.
   I_l2todr_pfreq_type        drff_pfreq;
   assign drtomem_pfreq.paddr = drff_pfreq.paddr;
   assign drtomem_pfreq.nid = drff_pfreq.nid;
-  
-  //fflop for pfreq (prefetch request)
-  //currently, only the address of the prefetch is used and passed through to the memory (for pass through test)
-  //I do not know what to us the rest of the signals for and am not sure why main memory only has an address input
-  //for its prefetch request type. If you know the answer, feel free to comment in my Directory good doc about it.
   
   fflop #(.Size($bits(I_l2todr_pfreq_type))) pfreq_ff (
     .clk      (clk),
@@ -113,14 +109,8 @@ module directory_bank(
     .qRetry   (drtomem_pfreq_retry)
   );
   
-  //This is a little backwards, I should be changing the input of the fluid flop rather than the output
-  I_l2todr_req_type          drff_req;
-  assign drtomem_req.paddr = drff_req.paddr;
-  assign drtomem_req.cmd =   drff_req.cmd;
-  assign drtomem_req.drid =  drid_ack;
-  //connections left unused from l2todr_req: nid, l2id.
-  //These values should be sent back on the ack, drtol2_snack, but they are currently not.
-  //Also, drid should be a value rather than 0 to check the memack value to determine which L2 to return the ack to.
+  
+  
   
   //Signals that connect the DRID and l2request signals to drtomem signals
   logic inp_join_valid;
@@ -131,45 +121,81 @@ module directory_bank(
   
   logic drid_storage_req_valid;   //v3
   logic drid_storage_req_retry;   //r3
+  assign drid_storage_req_retry = arb_drid_write_retry;
   
   logic drid_ack_valid; //v2
   logic drid_ack_retry; //r2
   
   //drtomem_req_valid v4
   //drtomem_req_retry r4
+  
+  //This fat stack of assigns performs a join and fork operation.
+  //The join operands are: the fflop that holds the next drid and the fflop that holds the l2todr request
+  //The fork source is the output of the join. The output of the fork is the RAM that holds NIDs and L2IDs
+  //and the drtomem request module output. 
+  //Not sure if it is okay to perform these operations before an output rather than adding another fflop stage.
+  //Note: I wrote this before I had modules for fork and join. I plan to replace this block with the module sometime...
+  
   assign inp_join_valid = drid_ack_valid && l2todr_req_ff_valid;
   assign inp_join_retry = drid_storage_req_retry || drtomem_req_retry;
-  assign drtomem_req_valid = inp_join_valid && !(inp_join_retry);
-  assign drid_storage_req_valid = drtomem_req_valid;
+  assign drtomem_req_valid = inp_join_valid && !drid_storage_req_retry;
+  assign drid_storage_req_valid = inp_join_valid && !drtomem_req_retry;
   assign l2todr_req_ff_retry = inp_join_retry || (!inp_join_valid && l2todr_req_ff_valid);
   assign drid_ack_retry = inp_join_retry || (!inp_join_valid && drid_ack_valid);
   
   //Creating another retry signal because this fflop is the result of a fork of l2todr_req_retry
   //Sorry about poor naming.
   logic l2_req_retry;
+  
+  //This takes the output of the l2todr request fflop and assigns some of its values to the drtomem request module output.
+  //Note: the I_l2todr_req_type contains an NID and L2ID which need to be stored during the request duration for the ack.
+  //This module contains a fast RAM module which does that and these values are fed into it.
+  I_l2todr_req_type          dr_req_temp;
+  assign drtomem_req.paddr = dr_req_temp.paddr;
+  assign drtomem_req.cmd =   dr_req_temp.cmd;
+  assign drtomem_req.drid =  drid_ack;
+  
   //fflop for l2todr_req (l2 request)
   fflop #(.Size($bits(I_l2todr_req_type))) req_ff (
     .clk      (clk),
     .reset    (reset),
 
     .din      (l2todr_req),
-    .dinValid (l2todr_req_fork_valid),
+    .dinValid (l2todr_req_drid_valid),
     .dinRetry (l2_req_retry),
 
-    .q        (drff_req),
+    .q        (dr_req_temp),
     .qValid   (l2todr_req_ff_valid),
     .qRetry   (l2todr_req_ff_retry)
   );
   
-  I_memtodr_ack_type      drff_snack;
-
-  assign drtol2_snack.nid = 5'b0; //These needs to be changed to match the request nid and l2id.
-  assign drtol2_snack.l2id = 6'b0;
+  //To be Done: A join operation on the RAM output that holds NIDs and L2IDs and the fflop that holds the memtodr acknowledge.
+  //The destination of this join is the drtol2 snack output. The output also gets sent to the DRID valid bit vector to release
+  //the DRID, but that is not a fflop and can be done without a fflop.
+  //Inputs: drff_snack_valid, drid_storage_ack_valid, drtol2_snack_retry
+  //Outputs: drff_snack_retry, drid_storage_ack_retry, drtol2_snack_valid
   
-  assign drtol2_snack.drid = 6'b0; //This is not a mistake in this case because the drid is required to be 0 on acks, and we do not snoop in passthrough
-  assign drtol2_snack.paddr = 50'b0; //The address is not used during an ack.
+  always_comb begin
+    drtol2_snack_valid = drff_snack_valid && drid_storage_ack_valid;
+  end
+  
+  always_comb begin
+    drff_snack_retry        = drtol2_snack_retry || (!drtol2_snack_valid && drff_snack_valid);
+    drid_storage_ack_retry  = drtol2_snack_retry || (!drtol2_snack_valid && drid_storage_ack_valid);
+  end
+  
+  
+  I_memtodr_ack_type      drff_snack;
+  logic                   drff_snack_valid;
+  logic                   drff_snack_retry;
+
+  assign drtol2_snack.nid = drid_storage[10:6]; //These needs to be changed to match the request nid and l2id.
+  assign drtol2_snack.l2id = drid_storage[5:0];
+  
+  assign drtol2_snack.drid =  {`DR_REQIDBITS{1'b0}}; //This is not a mistake in this case because the drid is required to be 0 on acks, and we do not snoop in passthrough
+  assign drtol2_snack.paddr = {`SC_PADDRBITS{1'b0}}; //The address is not used during an ack.
   assign drtol2_snack.snack = drff_snack.ack;
-  assign drtol2_snack.line = drff_snack.line;
+  assign drtol2_snack.line =  drff_snack.line;
   //The memtodr_ack also contains a drid, but this should not be sent to the L2. This value should be used to search from a request table
   //that holds the appropriate nid and l2id and then discarded. The drid sent to the L2 on drtol2_snack only has a value on snoops and is 0 otherwise.
   
@@ -180,64 +206,212 @@ module directory_bank(
   //connections to drtol2_snack not complete. There is an assumption in this passthrough that
   //the acks are returned in order.
   //bit size of fflop is incorrect
+  
+  
   fflop #(.Size($bits(I_memtodr_ack_type))) ack_ff (
     .clk      (clk),
     .reset    (reset),
 
     .din      (memtodr_ack),
-    .dinValid (memtodr_ack_valid),
-    .dinRetry (memtodr_ack_retry),
+    .dinValid (dest_memtodr_avalid),
+    .dinRetry (dest_memtodr_aretry),
 
     .q        (drff_snack),
-    .qValid   (drtol2_snack_valid),
-    .qRetry   (drtol2_snack_retry)
+    .qValid   (drff_snack_valid),
+    .qRetry   (drff_snack_retry)
   );
   
-  I_l2todr_disp_type        drff_wb;
+  logic dest_memtodr_avalid;
+  logic dest_memtodr_aretry;
+  
+  logic dest_memtodr_bvalid;
 
-  //Unused signals: nid, l2id, drid, mask, dcmd
+  always_comb begin
+    memtodr_ack_retry = dest_memtodr_aretry || arb_drid_read_retry;
+  end
+
+  always_comb begin
+    dest_memtodr_avalid = memtodr_ack_valid && !arb_drid_read_retry;
+  end
+  
+  //I had to move this to a separate always block or I get a "Circular Logic warning".
+  //The warning is not accurate, but I just want to get rid of it.
+  always_comb begin
+    dest_memtodr_bvalid = memtodr_ack_valid && !dest_memtodr_aretry;
+  end
+  
+  
+  
+  //state and next state signals
+  logic arb_drid_sram;
+  logic arb_drid_sram_next;
+  //outputs from arbiter
+  logic arb_drid_read_retry;
+  logic arb_drid_write_retry;
+  logic arb_drid_sram_valid;
+  logic arb_drid_sram_we;
+  
+  //required inputs, where ever they maybe
+  logic arb_drid_read_valid;
+  logic arb_drid_write_valid;
+  logic arb_drid_sram_retry;
+  
+  assign arb_drid_read_valid = dest_memtodr_bvalid;
+  assign arb_drid_write_valid = drid_storage_req_valid;
+  //The below code is an arbiter that decides who will be writing or reading from the DRID sram (which actually stores l2id and nid)
+  //This was not done with typical state machine code because I would create a separate module for that but am not sure if we are
+  //allowed to clutter the rtl folder with misc modules. So it will sit here for now.
+  //This arbiter has two states: read preferred and write preferred, so being in that state will prefer that action and transistion 
+  //to the other state after the action is performed. However, a read or a write can happen in either state. 
+  
+  localparam ARBITER_READ_PREFERRED_STATE = 1'b0;
+  localparam ARBITER_WRITE_PREFERRED_STATE = 1'b1;
+  
+  //I had to separate the write enable signal into a different always block or else a warning will occur claiming circular logic. This warning appears to be a glitch
+  //and should not affect simulation, but I removed it anyway.
+  always_comb begin
+    arb_drid_sram_we = 1'b0;
+    if(arb_drid_sram == ARBITER_READ_PREFERRED_STATE) begin    
+      if(arb_drid_write_valid && !arb_drid_read_valid) begin
+        arb_drid_sram_we = 1'b1;
+      end
+      
+    end else begin //state == ARBITER_WRITE_PREFERRED_STATE
+      if(arb_drid_write_valid) begin
+        arb_drid_sram_we = 1'b1;
+      end 
+      
+    end
+  end
+  
+  always_comb begin
+    //default next state is the current state
+    arb_drid_sram_next = arb_drid_sram;
+    
+    //default retry on read or writes is the retry coming from the SRAM, however this will fail in some cases. For example,
+    //if retry from SRAM is high and both valids from retry are high then the operation that occurs after the retry falls LOW
+    //depends on which state we are in. If the SRAM retry falls low, then the fflops think that their valid goes through, but
+    //this will not occur since the state machine only allows one operations to happen. Basically, I solve this by extending
+    //the retry during a state transition. Difficult to say if this work 100%, but my notes imply this will work.
+    arb_drid_read_retry = arb_drid_sram_retry;
+    arb_drid_write_retry = arb_drid_sram_retry;
+    
+    arb_drid_sram_valid = 1'b0;
+    
+    if(arb_drid_sram == ARBITER_READ_PREFERRED_STATE) begin
+      if(arb_drid_read_valid && !arb_drid_sram_retry) begin
+        arb_drid_sram_next = ARBITER_WRITE_PREFERRED_STATE;
+      end
+      
+      if(arb_drid_read_valid) begin
+        arb_drid_sram_valid = 1'b1;      
+        arb_drid_read_retry = 1'b1; 
+      end else if(arb_drid_write_valid) begin
+        arb_drid_sram_valid = 1'b1;
+      end
+      
+    end else begin //state == ARBITER_WRITE_PREFERRED_STATE
+    
+      if(arb_drid_write_valid && !arb_drid_sram_retry) begin
+        arb_drid_sram_next = ARBITER_READ_PREFERRED_STATE;
+      end
+      
+      if(arb_drid_write_valid) begin
+        arb_drid_sram_valid = 1'b1;
+        arb_drid_write_retry = 1'b1;
+      end else if(arb_drid_read_valid) begin
+        arb_drid_sram_valid = 1'b1;
+      end
+      
+    end
+  end
+  
+  flop #(.Bits(1)) sram_arbiter_state_flop (
+    .clk      (clk)
+   ,.reset    (reset)
+   ,.d      (arb_drid_sram_next)
+   ,.q        (arb_drid_sram)
+  );
+  
+
+  I_drtomem_wb_type         drtomem_wb_next;
+  logic                     drtomem_wb_next_valid;
+  logic                     drtomem_wb_next_retry;
+  //Unused signals: nid, l2id, drid, dcmd
   //drid is a special case in passthrough and we should always expect it to be 0 since we are not snooping.
   //Also, I am not sure what mask does.
   //nid and l2id need to be remembered in order to send an ack.
-  assign drtomem_wb.line = drff_wb.line;
-  assign drtomem_wb.paddr = drff_wb.paddr;
+  
+  //Always blocks to assign values to drtomem_wb_next. Uses parts of l2todr_disp that are required for write back.
+  //Other parts are ignored (for passthrough) or are sent to the fflop that holds the ack back to the L2.
+  always_comb begin
+    drtomem_wb_next.line = l2todr_disp.line;
+    drtomem_wb_next.mask = l2todr_disp.mask;
+    drtomem_wb_next.paddr = l2todr_disp.paddr;
+  end
+  
+  //Always block to determine the valid of the memtodr_wb fflop. Depends on: the command type, the disp input valid, and the internal
+  //dack fflop retry signal.
+  always_comb begin
+    drtomem_wb_next_valid = l2todr_disp_valid && !drtol2_dack_next_retry && (l2todr_disp.dcmd != `SC_DCMD_I);  
+  end
+  
+  
+  
+  //Always blocks for the l2todr_disp_retry signal. The retry is an OR of the dack retry signal as well as the wb retry signal, but the
+  //wb retry is ignored if the command is a no displacement. (Nothing written back if there is no displacement.) I should probably include
+  //I DRID check here as well.
+  always_comb begin
+    l2todr_disp_retry = (drtomem_wb_next_retry && (l2todr_disp.dcmd != `SC_DCMD_I)) || drtol2_dack_next_retry;
+  end
   
   //fflop for memtodr_ack (memory ack request)
   //connections to drtomem_wb not complete. There is an assumption in this passthrough that the acks are returned in order.
   //The directory should also return an ack which is associated with this write back.
   //bit size of fflop is incorrect
-  fflop #(.Size($bits(I_l2todr_disp_type))) disp_ff (
+  fflop #(.Size($bits(I_drtomem_wb_type))) memtodr_wb_ff (
     .clk      (clk),
     .reset    (reset),
 
-    .din      (l2todr_disp),
-    .dinValid (l2todr_disp_valid),
-    .dinRetry (l2todr_disp_retry),
+    .din      (drtomem_wb_next),
+    .dinValid (drtomem_wb_next_valid),
+    .dinRetry (drtomem_wb_next_retry),
 
-    .q        (drff_wb),
+    .q        (drtomem_wb),
     .qValid   (drtomem_wb_valid),
     .qRetry   (drtomem_wb_retry)
   );
   
-  logic drff_dack_valid;
-  logic drff_dack_retry;
-  I_drtol2_dack_type drff_dack;
+  logic drtol2_dack_next_valid;
+  logic drtol2_dack_next_retry;
+  I_drtol2_dack_type drtol2_dack_next;
   
   //These should have actual values, but I have not implemented that yet.
-  assign drff_dack.nid = 5'b0;
-  assign drff_dack.l2id = 6'b0;
+  assign drtol2_dack_next.nid = l2todr_disp.nid;
+  assign drtol2_dack_next.l2id = l2todr_disp.l2id;
   
-  //Therefore, I am not making this valid yet.
-  assign drff_dack_valid = 1'b0;
+  //Always blocks for the drtol2_dack_next_valid signal. The fflop for this valid takes in the nid and l2id of the l2todr displacement request.
+  //This valid is similar to drtomem_wb_next_valid except it still accept the values if the command prompts no displacement.
+  //The last part of this boolean statement says "Listen to the retry signal on the wb fflop or ignore it if the command is a no displacement."
+  always_comb begin
+    drtol2_dack_next_valid = l2todr_disp_valid && (!drtomem_wb_next_retry || (l2todr_disp.dcmd != `SC_DCMD_I));  
+  end
+  
   
   //fflop for drtol2_dack (displacement acknowledge)
+  //Issues: As of now, the dack will occur even if the memory has not been written back to main memory (It is stuck in the wb fflop with a continuous retry).
+  //At this point, acking back the displacement may cause requests to occur on that address even though the data has not been actually written back.
+  //There are two ways to address this issue: (1) Check addresses on requests to see if they match the address on the writeback which will cause the request
+  //to be blocked until the writeback has completed. (2) Make sure main memory has accepted the writeback before issuing a dack. 
+  //Note: (1) needs to be implemented no matter what to enforce coherency between other caches requeseting the data (still does not solve cohereancy problem though)
+  //but (1) is not an ideal solution to solve this issue when compared to (2). (2) Will be implemented, but (1) will be implemented first.
   fflop #(.Size($bits(I_drtol2_dack_type))) dack_ff (
     .clk      (clk),
     .reset    (reset),
 
-    .din      (drff_dack),
-    .dinValid (drff_dack_valid),
-    .dinRetry (drff_dack_retry),
+    .din      (drtol2_dack_next),
+    .dinValid (drtol2_dack_next_valid),
+    .dinRetry (drtol2_dack_next_retry),
 
     .q        (drtol2_dack),
     .qValid   (drtol2_dack_valid),
@@ -249,6 +423,10 @@ module directory_bank(
   logic drff_snoop_ack_retry;
   I_drsnoop_ack_type drff_snoop_ack;
   
+
+
+  //Therefore, I am not making this valid yet.
+  assign drff_snoop_ack_retry= 1'b0;
   
   //fflop for l2todr_snoop_ack (snoop acknowledge)
   //Right now this is an output, but this is likely a type and it is actually a type.
@@ -294,7 +472,7 @@ module directory_bank(
   always_comb begin
     drid_valid_vector_next = drid_valid_vector;
     //To avoid a retry issue I would include a check against ~retry but note that the signal
-    //drid_req_valid contains l2todr_req_fork_valid which contains a !retry, so adding it here
+    //drid_req_valid contains l2todr_req_drid_valid which contains a !retry, so adding it here
     //would be redundant. Could probably add for clarity and hope it gets taken out when optimized.
     
     if(drid_req_valid) begin
@@ -323,7 +501,7 @@ module directory_bank(
 
   
   //Note this is not the final valid.
-  assign drid_req_valid = l2todr_req_fork_valid;
+  assign drid_req_valid = l2todr_req_drid_valid;
   
   //this fflop holds the drid that will be sent to main memory on a drtomem request
   //The drid_req input refers to the next drid that will be assigned. This value from the Priority encoder
@@ -357,11 +535,11 @@ module directory_bank(
     .clk         (clk)
    ,.reset       (reset)
 
-   ,.req_valid   (drid_storage_req_valid)
-   ,.req_retry   (drid_storage_req_retry)
-   ,.req_we      (drid_storage_req_valid) //basically, there are no read right now. temporary
+   ,.req_valid   (arb_drid_sram_valid)
+   ,.req_retry   (arb_drid_sram_retry)
+   ,.req_we      (arb_drid_sram_we) 
    ,.req_pos     (drid_ack)
-   ,.req_data    ({drff_req.nid,drff_req.l2id})
+   ,.req_data    ({dr_req_temp.nid,dr_req_temp.l2id})
 
    ,.ack_valid   (drid_storage_ack_valid)
    ,.ack_retry   (drid_storage_ack_retry)
@@ -400,6 +578,6 @@ module directory_bank(
  //   main memory will not ack on a write back. In the passthrough case, we can immediately ack back to the L2 when main memory takes in the write back
  //   using the NID and L2ID is gave us for the request. Two ways to implement this is to assign a DRID and store the information. However, it probably
  //   only required a fflop because the writebacks will be in order.
-  
-endmodule
 
+`endif
+endmodule
