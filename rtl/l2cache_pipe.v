@@ -204,5 +204,38 @@ fflop #(.Size($bits(I_l2tol1_snack_type))) fsnack (
     );
 `endif
 
+// -> drtol2_snack
+// l2tol1_snack ->
+`ifdef L2_PASSTHROUGH
+    logic l2tol1_snack_next_valid;
+    logic l2tol1_snack_next_retry;
+    I_l2tol1_snack_type l2tol1_snack_next;
+    assign l2tol1_snack_next_valid = drtol2_snack_valid;
+    assign drtol2_snack_retry = l2tol1_snack_next_retry;
+    always_comb begin
+        if (drtol2_snack_valid) begin
+            l2tol1_snack_next.l1id = {5{1'b0}};
+            l2tol1_snack_next.l2id = drtol2_snack.l2id;
+            l2tol1_snack_next.snack = drtol2_snack.snack;
+            l2tol1_snack_next.line = drtol2_snack.line;
+            l2tol1_snack_next.poffset = {12{1'b0}};
+            l2tol1_snack_next.hpaddr = {11{1'b0}};
+        end
+    end
+
+    fflop #(.Size($bits(I_l2tol1_snack_type))) fl2tol1_snack (
+    .clk      (clk),
+    .reset    (reset),
+
+    .din      (l2tol1_snack_next),
+    .dinValid (l2tol1_snack_next_valid),
+    .dinRetry (l2tol1_snack_next_retry),
+
+    .q        (l2tol1_snack),
+    .qValid   (l2tol1_snack_valid),
+    .qRetry   (l2tol1_snack_retry)
+    );
+// end
+`endif
 endmodule
 
