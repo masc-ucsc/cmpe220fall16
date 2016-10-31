@@ -21,94 +21,83 @@ module l2tlb_wp(
   // L2TLB listens the same L1 request (but no ack). Response sent to L2
 	,input	logic				l1tol2tlb_req_valid
 	,output	logic				l1tol2tlb_req_retry
-	//  ,input  I_l1tol2tlb_req_type     l1tol2tlb_req
-	,input	L1_reqid_type			l1tol2tlb_req_1lid
+	,input	L1_reqid_type		l1tol2tlb_req_1lid				// 5 bits
 	,input	logic				l1tol2tlb_req_prefetch
-	,input	SC_poffset_type			l1tol2tlb_req_poffset
-	,input	TLB_hpaddr_type			l1tol2tlb_req_hpaddr
+	,input	SC_poffset_type		l1tol2tlb_req_poffset			// 12 bits
+	,input	TLB_hpaddr_type		l1tol2tlb_req_hpaddr			// 11 bits
 
 	,output	logic				l2tlbtol2_fwd_valid
 	,input	logic				l2tlbtol2_fwd_retry
-	//  ,output I_l2tlbtol2_fwd_type     l2tlbtol2_fwd
-	,output	L1_reqid_type			l2tlbtol2_fwd_1lid
+	,output	L1_reqid_type		l2tlbtol2_fwd_1lid				// 5 bits
 	,output	logic				l2tlbtol2_fwd_prefetch
-	,output	SC_fault_type			l2tlbtol2_fwd_fault
-	,output	TLB_hpaddr_type			l2tlbtol2_fwd_hpaddr
-	,output	SC_paddr_type			l2tlbtol2_fwd_paddr
+	,output	SC_fault_type		l2tlbtol2_fwd_fault				// 3 bits
+	,output	TLB_hpaddr_type		l2tlbtol2_fwd_hpaddr			// 11 bits
+	,output	SC_paddr_type		l2tlbtol2_fwd_paddr				// 50 bits
 
   // l1TLB and L2TLB interface
 	,output	logic				l2tlbtol1tlb_snoop_valid
 	,input	logic				l2tlbtol1tlb_snoop_retry
-	//  ,output I_l2tlbtol1tlb_snoop_type l2tlbtol1tlb_snoop
-	,output	TLB_reqid-type			l2tlbtol1tlb_snoop_rid
-	,output	TLB_hpaddr_type			l2tlbtol1tlb_snoop_hpaddr
+	,output	TLB_reqid_type		l2tlbtol1tlb_snoop_rid			// 2 bits
+	,output	TLB_hpaddr_type		l2tlbtol1tlb_snoop_hpaddr		// 11 bits
 
 	,output	logic				l2tlbtol1tlb_ack_valid
 	,input	logic				l2tlbtol1tlb_ack_retry
-	//  ,output I_l2tlbtol1tlb_ack_type  l2tlbtol1tlb_ack
-	,output	TLB_reqid_type			l2tlbtol1tlb_ack_rid
-	,output	TLB_hpaddr_type			l2tlbtol1tlb_ack_hpaddr
-	,output	SC_ppaddr_type			l2tlbtol1tlb_ack_ppaddr
-	,output	SC_dctlbe_type			l2tlbtol1tlb_ack_dctlbe
+	,output	TLB_reqid_type		l2tlbtol1tlb_ack_rid			// 2 bits
+	,output	TLB_hpaddr_type		l2tlbtol1tlb_ack_hpaddr			// 11 bits
+	,output	SC_ppaddr_type		l2tlbtol1tlb_ack_ppaddr			// 3 bits
+	,output	SC_dctlbe_type		l2tlbtol1tlb_ack_dctlbe			// 13 bits
 
 	,input	logic				l1tlbtol2tlb_req_valid
 	,output	logic				l1tlbtol2tlb_req_retry
-	//  ,input  I_l1tlbtol2tlb_req_type  l1tlbtol2tlb_req
-	,input	TLB_reqid_type			l1tlbtol2tlb_req_rid
+	,input	TLB_reqid_type		l1tlbtol2tlb_req_rid			// 2 bits
 	,input	logic				l1tlbtol2tlb_req_disp_req
 	,input	logic				l1tlbtol2tlb_req_disp_A
 	,input	logic				l1tlbtol2tlb_req_disp_B
-	,input	TLB_hpaddr_type			l1tlbtol2tlb_req_disp_hpaddr
-	,input	SC_laddr_type			l1tlbtol2tlb_req_laddr
-	,input	SC_sptbr_type			l1tlbtol2tlb_req_sptbr
+	,input	TLB_hpaddr_type		l1tlbtol2tlb_req_disp_hpaddr	// 11 bits
+	,input	SC_laddr_type		l1tlbtol2tlb_req_laddr			// 39 bits
+	,input	SC_sptbr_type		l1tlbtol2tlb_req_sptbr			// 38 bits
 
 	,input	logic				l1tlbtol2tlb_sack_valid
 	,output	logic				l1tlbtol2tlb_sack_retry
-	//  ,input  I_l1tlbtol2tlb_sack_type l1tlbtol2tlb_sack
-	,input	TLB_reqid_type			l1tlbtol2tlb_sack_rid
+	,input	TLB_reqid_type		l1tlbtol2tlb_sack_rid			// 2 bits
   
   //---------------------------
   // Directory interface (l2 has to arbitrate between L2 and L2TLB
   // messages based on nodeid. Even nodeid is L2, odd is L2TLB)
 	,output	logic				l2todr_req_valid
 	,input	logic				l2todr_req_retry
-	//  ,output I_l2todr_req_type        l2todr_req
-	,output	SC_nodeid_type			l2todr_req_nid
-	,output	L2_reqid_type			l2todr_req_l2id
-	,output	SC_cmd_type			l2todr_req_cmd
-	,output	SC_paddr_type			l2todr_req_paddr
+	,output	SC_nodeid_type		l2todr_req_nid					// 5 bits
+	,output	L2_reqid_type		l2todr_req_l2id					// 6 bits
+	,output	SC_cmd_type			l2todr_req_cmd					// 3 bits
+	,output	SC_paddr_type		l2todr_req_paddr				// 50 bits
 
 	,input	logic				drtol2_snack_valid
 	,output	logic				drtol2_snack_retry
-	//  ,input  I_drtol2_snack_type      drtol2_snack
-	,input	SC_nodeid_type			drtol2_snack_nid
-	,input	L2_reqid_type			drtol2_snack_l2id
-	,input	DR_reqid_type			drtol2_snack_drid
-	,input	SC_snack_type			drtol2_snack_snack
-	,input	SC_line_type			drtol2_snack_line
-	,input	SC_paddr_type			drtol2_snack_paddr
+	,input	SC_nodeid_type		drtol2_snack_nid				// 5 bits
+	,input	L2_reqid_type		drtol2_snack_l2id				// 6 bits
+	,input	DR_reqid_type		drtol2_snack_drid				// 6 bits
+	,input	SC_snack_type		drtol2_snack_snack				// 5 bits
+	,input	SC_line_type		drtol2_snack_line				// 512 bits
+	,input	SC_paddr_type		drtol2_snack_paddr				// 50 bits
 
 	,output	logic				l2todr_snoop_ack_valid
 	,input	logic				l2todr_snoop_ack_retry
-	//  ,output I_l2snoop_ack_type       l2todr_snoop_ack
-	,output	L2_reqid_type			l2todr_snoop_ack_l2id
+	,output	L2_reqid_type		l2todr_snoop_ack_l2id			// 6 bits
 
 	,output	logic				l2todr_disp_valid
 	,input	logic				l2todr_disp_retry
-	//  ,output I_l2todr_disp_type       l2todr_disp
-	,output	SC_nodeid_type			l2todr_disp_nid
-	,output	L2_reqid_type			l2todr_disp_l2id
-	,output	DR_reqid_type			l2todr_disp_drid
-	,output	SC_disp_mask_type		l2todr_disp_mask
-	,output	SC_dcmd_type			l2todr_disp_dcmd
-	,output	SC_line_type			l2todr_disp_line
-	,output	SC_paddr_type			l2todr_disp_paddr
+	,output	SC_nodeid_type		l2todr_disp_nid					// 5 bits
+	,output	L2_reqid_type		l2todr_disp_l2id				// 6 bits
+	,output	DR_reqid_type		l2todr_disp_drid				// 6 bits
+	,output	SC_disp_mask_type	l2todr_disp_mask				// 64 bits
+	,output	SC_dcmd_type		l2todr_disp_dcmd				// 3 bits
+	,output	SC_line_type		l2todr_disp_line				// 512 bits
+	,output	SC_paddr_type		l2todr_disp_paddr				// 50 bits
 
 	,input	logic				drtol2_dack_valid
 	,output	logic				drtol2_dack_retry
-	//  ,input  I_drtol2_dack_type       drtol2_dack
-	,input	SC_nodeid_type			drtol2_dack_nid
-	,input	L2_reqid_type			drtol2_dack_l2id
+	,input	SC_nodeid_type		drtol2_dack_nid					// 5 bits
+	,input	L2_reqid_type		drtol2_dack_l2id				// 6 bits
   /* verilator lint_on UNUSED */
 );
 
