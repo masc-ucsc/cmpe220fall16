@@ -26,6 +26,8 @@ typedef logic [`TLB_HPADDRBITS-1:0]  TLB_hpaddr_type;
 typedef logic [`TLB_REQIDBITS-1:0]   TLB_reqid_type;
 
 typedef logic [`SC_ROBIDBITS-1:0]    SC_robid_type;
+typedef logic [`SC_DECWIDTHBITS-1:0] SC_decwidth_type;
+typedef logic [`PF_ENTRYBITS-1:0]    PF_entry_type;
 
 typedef logic [`SC_DCTLB_INDEXBITS-1:0] SC_dctlb_idx_type;
 

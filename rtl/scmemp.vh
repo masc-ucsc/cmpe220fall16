@@ -36,6 +36,8 @@
 
 // ROBID
 `define SC_ROBIDBITS   9
+`define SC_DECWIDTHBITS   16
+`define PF_ENTRYBITS   8
 
 // Physical address bits (less than 64)
 // paddr: Physical address

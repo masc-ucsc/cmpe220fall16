@@ -344,13 +344,13 @@ typedef struct packed {
 typedef struct packed {
   SC_pcsign_type   pcsign;
   SC_robid_type    rid;
-  SC_robid_type    rid_end;
+  SC_decwidth_type decmask;
 } I_coretopfm_dec_type;
 // 1}}}
 
 // {{{1 PFmTocore_pred
 typedef struct packed {
-  SC_pcsign_type   pcsign;
+  PF_entry_type    pfentry;
 
   SC_robid_type    d0_rid; // 4 LD/ST delta notified per cycle at most
   PF_delta_type    d0_val;
@@ -373,14 +373,17 @@ typedef struct packed {
 
 // {{{1 core_pfretire
 typedef struct packed {
-  SC_pcsign_type   pcsign;
-  SC_robid_type    d0_rid; // 4 LD/ST delta notified per cycle at most
+  PF_entry_type    pfentry;
+
+  SC_robid_type    d0_rid;
   PF_delta_type    d0_val;
+
   SC_robid_type    d1_rid;
   PF_delta_type    d1_val;
 `ifdef SCMEM_PFRETIRE_4
   SC_robid_type    d2_rid;
   PF_delta_type    d2_val;
+
   SC_robid_type    d3_rid;
   PF_delta_type    d3_val;
 `endif
