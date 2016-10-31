@@ -13,14 +13,11 @@
 //#define TEST_PFREQ 1
 #define TEST_REQ 1
 #define TEST_ACK 1
-
-//#define TEST_REQ_FAILURE 1
+#define TEST_DISP 1
 
 vluint64_t global_time = 0;
 VerilatedVcdC* tfp = 0;
 
-//Used for testing failure state
-int valid_count = 0;
 
 //Below is code from other tb
 void advance_half_clock(Vdirectory_bank_wp *top) {
@@ -65,6 +62,46 @@ struct InputPacket_l2todr_pfreq {
 
 struct OutputPacket_drtomem_pfreq {
   uint64_t addr; // read result
+};
+
+struct InputPacket_l2todr_disp {
+  
+  uint8_t      nid; 
+  uint8_t      l2id;
+  uint8_t      drid;
+
+  uint64_t     mask; 
+  uint8_t      dcmd;
+
+  uint64_t     line_7;
+  uint64_t     line_6;
+  uint64_t     line_5;
+  uint64_t     line_4;
+  uint64_t     line_3;
+  uint64_t     line_2;
+  uint64_t     line_1;
+  uint64_t     line_0;
+  uint64_t     paddr;
+};
+
+struct OutputPacket_drtomem_wb {
+  uint64_t     mask; // For NC disps
+
+  //not testing full line for now
+  uint64_t     line_7;
+  uint64_t     line_6;
+  uint64_t     line_5;
+  uint64_t     line_4;
+  uint64_t     line_3;
+  uint64_t     line_2;
+  uint64_t     line_1;
+  uint64_t     line_0;
+  uint64_t     paddr;
+};
+
+struct OutputPacket_drtol2_dack {
+  uint8_t      nid; 
+  uint8_t      l2id; 
 };
 
 struct InputPacket_l2todr_req {
@@ -125,6 +162,10 @@ std::list<OutputPacket_drtomem_req> out_list_req;
 std::list<InputPacket_memtodr_ack>  inp_list_ack;
 std::list<OutputPacket_drtol2_snack> out_list_ack;
 
+std::list<InputPacket_l2todr_disp>  inp_list_disp;
+std::list<OutputPacket_drtol2_dack> out_list_dack;
+std::list<OutputPacket_drtomem_wb> out_list_wb;
+
 void error_found(Vdirectory_bank_wp *top) {
   advance_half_clock(top);
   advance_half_clock(top);
@@ -146,23 +187,6 @@ void try_send_packet(Vdirectory_bank_wp *top) {
   }
   
   //req
-#ifdef TEST_REQ_FAILURE
-  if(valid_count == 1)
-    top->drtomem_req_retry = 1;
-  else
-    top->drtomem_req_retry = 0;
-  
-  if (!top->l2todr_req_retry) {
-    top->l2todr_req_paddr = rand();
-    if (inp_list_req.empty()) { // Once every 4
-      top->l2todr_req_valid = 0;
-      valid_count = 0;
-    }else{
-      top->l2todr_req_valid = 1;
-      valid_count++;
-    }
-  }
-#else
   top->drtomem_req_retry = (rand()&0x3F)==0; 
 
   if (!top->l2todr_req_retry) {
@@ -173,7 +197,20 @@ void try_send_packet(Vdirectory_bank_wp *top) {
       top->l2todr_req_valid = 1;
     }
   }
-#endif 
+  
+  //disp
+  top->drtomem_wb_retry = (rand()&0x3F)==0; 
+  top->drtol2_dack_retry = (rand()&0x3F)==0; 
+
+  if (!top->l2todr_disp_retry) {
+    top->l2todr_req_paddr = rand();
+    if (inp_list_disp.empty() || (rand() & 0x3)) { // Once every 4
+      top->l2todr_disp_valid = 0;
+    }else{
+      top->l2todr_disp_valid = 1;
+    }
+  }
+
   
   //ack
   top->drtol2_snack_retry = (rand()&0x3F)==0; 
@@ -240,6 +277,39 @@ void try_send_packet(Vdirectory_bank_wp *top) {
     
 
     inp_list_req.pop_back();
+  }
+  
+  //disp
+  if (top->l2todr_disp_valid && !top->l2todr_disp_retry) {
+    if (inp_list_disp.empty()) {
+      fprintf(stderr,"ERROR: Internal error, could not be empty inpa\n");
+      error_found(top);
+    }
+
+
+    InputPacket_l2todr_disp inp_disp   = inp_list_disp.back();
+    top->l2todr_disp_paddr = inp_disp.paddr;
+    top->l2todr_disp_nid = inp_disp.nid;
+    top->l2todr_disp_l2id = inp_disp.l2id;
+    
+    top->l2todr_disp_mask = inp_disp.mask;
+    top->l2todr_disp_line_7 = inp_disp.line_7;
+    top->l2todr_disp_drid = inp_disp.drid;
+    top->l2todr_disp_dcmd = inp_disp.dcmd;
+#ifdef DEBUG_TRACE
+    printf("@%lu disp addr, nid, l2id, mask, line, drid, dcmd :%lu, %u, %u, %lu, %lu, %u, %u  \n"
+                                                                                  ,global_time
+                                                                                  ,inp_disp.paddr
+                                                                                  ,inp_disp.nid
+                                                                                  ,inp_disp.l2id
+                                                                                  ,inp_disp.mask
+                                                                                  ,inp_disp.line_7
+                                                                                  ,inp_disp.drid
+                                                                                  ,inp_disp.dcmd);
+#endif
+     
+
+    inp_list_disp.pop_back();
   }
   
   //ack
@@ -324,6 +394,74 @@ void try_recv_packet_pfreq(Vdirectory_bank_wp *top) {
   }
 
   out_list_pfreq.pop_back();
+  
+}
+
+void try_recv_packet_wb(Vdirectory_bank_wp *top) {
+
+  //wb
+  if (top->drtomem_wb_valid && out_list_wb.empty()) {
+    printf("ERROR: unexpected wb addr, line:%lu, %lu\n",top->drtomem_wb_paddr,top->drtomem_wb_line_7);
+    error_found(top);
+    return;
+  }
+
+  if (top->drtomem_wb_retry)
+    return;
+
+  if (!top->drtomem_wb_valid)
+    return;
+
+  if (out_list_wb.empty())
+    return;
+
+#ifdef DEBUG_TRACE
+    printf("@%lu wb addr, line:%lu, %lu\n",global_time,top->drtomem_wb_paddr,top->drtomem_wb_line_7);
+#endif
+  OutputPacket_drtomem_wb o = out_list_wb.back();
+  if (top->drtomem_wb_paddr != o.paddr) {
+    printf("ERROR: expected addr:%lu but wb is %lu\n",o.paddr,top->drtomem_wb_paddr);
+    error_found(top);
+  } else if(top->drtomem_wb_line_7 != o.line_7){
+    printf("ERROR: expected line:%lu but wb is %lu\n",o.line_7,top->drtomem_wb_line_7);
+    error_found(top);
+  }
+
+  out_list_wb.pop_back();
+  
+}
+
+void try_recv_packet_dack(Vdirectory_bank_wp *top) {
+
+  //dack
+  if (top->drtol2_dack_valid && out_list_dack.empty()) {
+    printf("ERROR: unexpected dack nid, l2id:%u, %u\n",top->drtol2_dack_nid, top->drtol2_dack_l2id);
+    error_found(top);
+    return;
+  }
+
+  if (top->drtol2_dack_retry)
+    return;
+
+  if (!top->drtol2_dack_valid)
+    return;
+
+  if (out_list_dack.empty())
+    return;
+
+#ifdef DEBUG_TRACE
+    printf("@%lu dack nid, l2id:%u, %u\n",global_time, top->drtol2_dack_nid, top->drtol2_dack_l2id);
+#endif
+  OutputPacket_drtol2_dack o = out_list_dack.back();
+  if (top->drtol2_dack_nid != o.nid) {
+    printf("ERROR: expected dack nid:%u but dack is %u\n",o.nid,top->drtol2_dack_nid);
+    error_found(top);
+  } else if (top->drtol2_dack_l2id != o.l2id) {
+    printf("ERROR: expected dack l2id:%u but dack is %u\n",o.l2id,top->drtol2_dack_l2id);
+    error_found(top);
+  }
+
+  out_list_dack.pop_back();
   
 }
 
@@ -449,9 +587,8 @@ int main(int argc, char **argv, char **env) {
   Vdirectory_bank_wp *top = new Vdirectory_bank_wp;
 
   int t = (int)time(0);
-#ifdef TEST_REQ_FAILURE
-  //srand(1477551033);
-  srand(t);
+#if 0
+  srand(1477551033);
 #else
   srand(t);
 #endif
@@ -504,6 +641,11 @@ int main(int argc, char **argv, char **env) {
     try_recv_packet_req(top);
 #endif
 
+#ifdef TEST_DISP
+    try_recv_packet_wb(top);
+    try_recv_packet_dack(top);
+#endif
+
 #ifdef TEST_ACK    
     try_recv_packet_ack(top);
 #endif
@@ -525,23 +667,11 @@ int main(int argc, char **argv, char **env) {
 #endif
     
 #ifdef TEST_REQ  
-#ifdef TEST_REQ_FAILURE
-    if (inp_list_req.empty()) {
-      InputPacket_l2todr_req i;
-      i.addr = rand() & 0x0001FFFFFFFFFFFF;
-      
-      //Push multiple times, tests seems to only fails with multiple valids in a row,
-      //so we set up that condition to occur by populating the list.
-      inp_list_req.push_front(i);
-      inp_list_req.push_front(i);
-      inp_list_req.push_front(i);
-    }
-#else
     if (((rand() & 0x3)==0) && inp_list_req.size() < 3 ) {
       InputPacket_l2todr_req i;
 
-      i.nid = rand();
-      i.l2id = rand();
+      i.nid = rand() & 0x1F;
+      i.l2id = rand() & 0x3F;
       if (rand() % 3)
         i.addr = rand() & 0x0001FFFFFFFFFFFF;
       else if (!inp_list_req.empty())
@@ -552,6 +682,40 @@ int main(int argc, char **argv, char **env) {
       inp_list_req.push_front(i);
     }
 #endif
+
+
+#ifdef TEST_DISP  
+    if (((rand() & 0x3)==0) && inp_list_req.size() < 3 ) {
+      InputPacket_l2todr_disp i;
+
+      i.nid = rand() & 0x1F;
+      i.l2id = rand() & 0x3F;
+      i.dcmd = rand() & 0x7; //this is kind of wrong, but should still work.
+      i.drid = 0;
+      i.mask = 0;
+      i.line_7 = rand() & 0xFFFFFFFFFFFFFFFF;
+      if (rand() % 3)
+        i.paddr = rand() & 0x0001FFFFFFFFFFFF;
+      else if (!inp_list_req.empty())
+        i.paddr = inp_list_req.front().addr;
+      else
+        i.paddr = rand() & 0x00000000FFFFFFFF;
+
+      inp_list_disp.push_front(i);
+      
+      
+      OutputPacket_drtol2_dack o_dack;
+      o_dack.nid = i.nid;
+      o_dack.l2id = i.l2id;
+      out_list_dack.push_front(o_dack);
+      
+      if(i.dcmd != 2){
+        OutputPacket_drtomem_wb o_wb;
+        o_wb.line_7 = i.line_7;
+        o_wb.paddr = i.paddr;
+        out_list_wb.push_front(o_wb);
+      }
+    }
 #endif
     //Ack does not have one of these because every push from from the response to a request
     
