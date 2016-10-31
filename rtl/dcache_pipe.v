@@ -342,8 +342,8 @@ fflop #(.Size($bits(I_coretodc_ld_type))) ff_coretodc_ld (
   .reset    (reset),
 
   .din      (coretodc_ld),
-  .dinValid (ff_coretodc_valid_in),
-  .dinRetry (ff_coretodc_retry_out),
+  .dinValid (ff_coretodc_ld_valid_in),
+  .dinRetry (ff_coretodc_ld_retry_out),
 
   .q        (coretodc_ld_current),
   .qValid   (ff_coretodc_ld_valid_out),
@@ -398,8 +398,8 @@ fflop #(.Size($bits(I_coretodc_std_type))) ff_coretodc_std (
   .dinRetry (ff_coretodc_std_retry_out),
 
   .q        (coretodc_std_current),
-  .qValid   (coretodc_std_valid_out),
-  .qRetry   (coretodc_std_retry_in) 
+  .qValid   (ff_coretodc_std_valid_out),
+  .qRetry   (ff_coretodc_std_retry_in) 
 );
 
 
@@ -493,7 +493,7 @@ assign ff_l1tlbtol1_cmd_valid_in = l1tlbtol1_cmd_valid;
 assign l1tlbtol1_cmd_retry = ff_l1tlbtol1_cmd_retry_out;
 
 //instantiate fluid flop
-fflop #(.Size($bits(I_l1tlbtol1_fwd_type))) ff_l1tlbtol1_fwd1 (
+fflop #(.Size($bits(I_l1tlbtol1_cmd_type))) ff_l1tlbtol1_cmd (
   .clk      (clk),
   .reset    (reset),
 
@@ -703,8 +703,8 @@ end
 // break down the core request and TLB to construct L2 request
 I_l1tol2_req_type l1tol2_req_ld_current;
 always_comb begin
-  l1tol2_req_ld_current.l1id = coretodc_ld.coreid;
-  l1tol2_req_ld_current.cmd = SC_CMD_REQ_S;
+  l1tol2_req_ld_current.l1id = coretodc_ld.coreid[4:0];
+  l1tol2_req_ld_current.cmd = `SC_CMD_REQ_S;
   l1tol2_req_ld_current.pcsign = coretodc_ld.pcsign;
   l1tol2_req_ld_current.ppaddr = l1tlbtol1_fwd0.ppaddr;
 end
@@ -729,8 +729,8 @@ end
 // break down the core request and TLB to construct L2 request
 I_l1tol2_req_type l1tol2_req_std_current;
 always_comb begin
-  l1tol2_req_std_current.l1id = coretodc_std.coreid;
-  l1tol2_req_std_current.cmd = SC_CMD_REQ_S;
+  l1tol2_req_std_current.l1id = coretodc_std.coreid[4:0];
+  l1tol2_req_std_current.cmd = `SC_CMD_REQ_S;
   l1tol2_req_std_current.pcsign = coretodc_ld.pcsign;
   l1tol2_req_std_current.ppaddr = l1tlbtol1_fwd0.ppaddr;
   
