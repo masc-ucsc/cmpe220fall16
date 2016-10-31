@@ -250,6 +250,7 @@ module directory_bank(
   logic arb_drid_write_retry;
   logic arb_drid_sram_valid;
   logic arb_drid_sram_we;
+  logic [`DR_REQIDBITS-1:0] drid_ram_pos_next;
   
   //required inputs, where ever they maybe
   logic arb_drid_read_valid;
@@ -261,7 +262,7 @@ module directory_bank(
   //The below code is an arbiter that decides who will be writing or reading from the DRID sram (which actually stores l2id and nid)
   //This was not done with typical state machine code because I would create a separate module for that but am not sure if we are
   //allowed to clutter the rtl folder with misc modules. So it will sit here for now.
-  //This arbiter has two states: read preferred and write preferred, so being in that state will prefer that action and transistion 
+  //This arbiter has two states: read preferred and write preferred, so being in that state will prefer that action and transition 
   //to the other state after the action is performed. However, a read or a write can happen in either state. 
   
   localparam ARBITER_READ_PREFERRED_STATE = 1'b0;
@@ -296,16 +297,22 @@ module directory_bank(
     arb_drid_read_retry = arb_drid_sram_retry;
     arb_drid_write_retry = arb_drid_sram_retry;
     
+    //default drid to index RAM is the value used for writing to the RAM
+    drid_ram_pos_next = drid_ack;
+    
     arb_drid_sram_valid = 1'b0;
     
     if(arb_drid_sram == ARBITER_READ_PREFERRED_STATE) begin
+      //next state logic
       if(arb_drid_read_valid && !arb_drid_sram_retry) begin
         arb_drid_sram_next = ARBITER_WRITE_PREFERRED_STATE;
       end
       
+      //output logic
       if(arb_drid_read_valid) begin
         arb_drid_sram_valid = 1'b1;      
         arb_drid_write_retry = 1'b1; 
+        drid_ram_pos_next = memtodr_ack.drid;
       end else if(arb_drid_write_valid) begin
         arb_drid_sram_valid = 1'b1;
       end
@@ -321,6 +328,7 @@ module directory_bank(
         arb_drid_read_retry = 1'b1;
       end else if(arb_drid_read_valid) begin
         arb_drid_sram_valid = 1'b1;
+        drid_ram_pos_next = memtodr_ack.drid;
       end
       
     end
@@ -394,7 +402,7 @@ module directory_bank(
   //This valid is similar to drtomem_wb_next_valid except it still accept the values if the command prompts no displacement.
   //The last part of this boolean statement says "Listen to the retry signal on the wb fflop or ignore it if the command is a no displacement."
   always_comb begin
-    drtol2_dack_next_valid = l2todr_disp_valid && (!drtomem_wb_next_retry || (l2todr_disp.dcmd != `SC_DCMD_I));  
+    drtol2_dack_next_valid = l2todr_disp_valid && (!drtomem_wb_next_retry || (l2todr_disp.dcmd == `SC_DCMD_I));  
   end
   
   
@@ -465,7 +473,7 @@ module directory_bank(
   logic [`DR_REQIDS-1:0] drid_valid_vector_next;
   
   logic drid_release;
-  assign drid_release = 1'b0; //unused for now
+  assign drid_release = drtol2_snack_valid && !drtol2_snack_retry; //unused for now
   
   logic [`DR_REQIDBITS-1:0] drid_ack_addr; //unused as well
   
@@ -480,7 +488,7 @@ module directory_bank(
     end
     
     if(drid_release) begin
-      drid_valid_vector_next[drid_ack_addr] = 1'b1;
+      drid_valid_vector_next[drff_snack.drid] = 1'b1;
     end
     
   end
@@ -538,7 +546,7 @@ module directory_bank(
    ,.req_valid   (arb_drid_sram_valid)
    ,.req_retry   (arb_drid_sram_retry)
    ,.req_we      (arb_drid_sram_we) 
-   ,.req_pos     (drid_ack)
+   ,.req_pos     (drid_ram_pos_next)
    ,.req_data    ({dr_req_temp.nid,dr_req_temp.l2id})
 
    ,.ack_valid   (drid_storage_ack_valid)
