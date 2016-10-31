@@ -309,6 +309,463 @@ module dcache_pipe(
   /* verilator lint_on UNUSED */
   /* verilator lint_on UNDRIVEN */
 );
+//--------------------------------------------
+// HANDLE FLUID FLOPS
+// Flop all the inputs and outputs
+//--------------------------------------------
+//
+// Fluid flop interface
+//
+//                  ----------
+//                  |        |
+//      valid_in--->|        |--->valid_out
+//     retry_out<---|        |<---retry_in
+//                  |        |
+//                  ----------
+//
+//--------------------------------------------
+
+// CORE TO DC (LOAD)-------------------------------------------------
+I_coretodc_ld_type coretodc_ld_current; // data coming in
+logic ff_coretodc_ld_valid_in;
+logic ff_coretodc_ld_valid_out;
+logic ff_coretodc_ld_retry_in;
+logic ff_coretodc_ld_retry_out;
+
+// hook up the wires
+assign ff_coretodc_ld_valid_in = coretodc_ld_valid;
+assign coretodc_ld_retry = ff_coretodc_ld_retry_out;
+
+// instantiate fluid flop
+fflop #(.Size($bits(I_coretodc_ld_type))) ff_coretodc_ld (
+  .clk      (clk),
+  .reset    (reset),
+
+  .din      (coretodc_ld),
+  .dinValid (ff_coretodc_valid_in),
+  .dinRetry (ff_coretodc_retry_out),
+
+  .q        (coretodc_ld_current),
+  .qValid   (ff_coretodc_ld_valid_out),
+  .qRetry   (ff_coretodc_ld_retry_in) 
+);
+
+
+// DC TO CORE (LOAD)-------------------------------------------------
+I_dctocore_ld_type dctocore_ld_current; // data going out 
+logic ff_dctocore_ld_valid_in;
+logic ff_dctocore_ld_valid_out;
+logic ff_dctocore_ld_retry_in;
+logic ff_dctocore_ld_retry_out;
+
+//hook up the wires
+assign dctocore_ld_valid = ff_dctocore_ld_valid_out;
+assign ff_dctocore_ld_retry_in = dctocore_ld_retry;
+
+// instantiate fluid flop
+fflop #(.Size($bits(I_dctocore_ld_type))) ff_dctocore_ld (
+  .clk      (clk),
+  .reset    (reset),
+
+  .din      (dctocore_ld_current),
+  .dinValid (ff_dctocore_ld_valid_in),
+  .dinRetry (ff_dctocore_ld_retry_out),
+
+  .q        (dctocore_ld),
+  .qValid   (ff_dctocore_ld_valid_out),
+  .qRetry   (ff_dctocore_ld_retry_in) 
+);
+
+
+// CORE TO DC (STORE)------------------------------------------------
+I_coretodc_std_type coretodc_std_current; // data coming in
+logic ff_coretodc_std_valid_in;
+logic ff_coretodc_std_valid_out;
+logic ff_coretodc_std_retry_in;
+logic ff_coretodc_std_retry_out;
+
+// hook up the wires
+assign ff_coretodc_std_valid_in = coretodc_std_valid;
+assign coretodc_std_retry = ff_coretodc_std_retry_out;
+
+// instantiate fluid flop
+fflop #(.Size($bits(I_coretodc_std_type))) ff_coretodc_std (
+  .clk      (clk),
+  .reset    (reset),
+
+  .din      (coretodc_std),
+  .dinValid (ff_coretodc_std_valid_in),
+  .dinRetry (ff_coretodc_std_retry_out),
+
+  .q        (coretodc_std_current),
+  .qValid   (coretodc_std_valid_out),
+  .qRetry   (coretodc_std_retry_in) 
+);
+
+
+// DC TO CORE (STORE ACK)--------------------------------------------
+I_dctocore_std_ack_type dctocore_std_ack_current; // data going out
+logic ff_dctocore_std_ack_valid_in;
+logic ff_dctocore_std_ack_valid_out;
+logic ff_dctocore_std_ack_retry_in;
+logic ff_dctocore_std_ack_retry_out;
+
+// hook up the wires
+assign dctocore_std_ack_valid = ff_dctocore_std_ack_valid_out;
+assign ff_dctocore_std_ack_retry_in = dctocore_std_ack_retry;
+
+// instantiate fluid flop
+fflop #(.Size($bits(I_dctocore_std_ack_type))) ff_dctocore_std_ack (
+  .clk      (clk),
+  .reset    (reset),
+
+  .din      (dctocore_std_ack_current),
+  .dinValid (ff_dctocore_std_ack_valid_in),
+  .dinRetry (ff_dctocore_std_ack_retry_out),
+
+  .q        (dctocore_std_ack),
+  .qValid   (ff_dctocore_std_ack_valid_out),
+  .qRetry   (ff_dctocore_std_ack_retry_in) 
+);
+
+
+// L1 TLB TO L1 (LOAD)-----------------------------------------------
+I_l1tlbtol1_fwd_type l1tlbtol1_fwd0_current; // data coming in
+logic ff_l1tlbtol1_fwd0_valid_in;
+logic ff_l1tlbtol1_fwd0_valid_out;
+logic ff_l1tlbtol1_fwd0_retry_in;
+logic ff_l1tlbtol1_fwd0_retry_out;
+
+// hook up the wires
+assign ff_l1tlbtol1_fwd0_valid_in = l1tlbtol1_fwd0_valid;
+assign l1tlbtol1_fwd0_retry = ff_l1tlbtol1_fwd0_retry_out;
+
+//instantiate fluid flop
+fflop #(.Size($bits(I_l1tlbtol1_fwd_type))) ff_l1tlbtol1_fwd0 (
+  .clk      (clk),
+  .reset    (reset),
+
+  .din      (l1tlbtol1_fwd0),
+  .dinValid (ff_l1tlbtol1_fwd0_valid_in),
+  .dinRetry (ff_l1tlbtol1_fwd0_retry_out),
+
+  .q        (l1tlbtol1_fwd0_current),
+  .qValid   (ff_l1tlbtol1_fwd0_valid_out),
+  .qRetry   (ff_l1tlbtol1_fwd0_retry_in) 
+);
+
+
+// L1 TLB TO L1 (STORE)----------------------------------------------
+I_l1tlbtol1_fwd_type l1tlbtol1_fwd1_current; // data coming in
+logic ff_l1tlbtol1_fwd1_valid_in;
+logic ff_l1tlbtol1_fwd1_valid_out;
+logic ff_l1tlbtol1_fwd1_retry_in;
+logic ff_l1tlbtol1_fwd1_retry_out;
+
+// hook up the wires
+assign ff_l1tlbtol1_fwd1_valid_in = l1tlbtol1_fwd1_valid;
+assign l1tlbtol1_fwd1_retry = ff_l1tlbtol1_fwd1_retry_out;
+
+//instantiate fluid flop
+fflop #(.Size($bits(I_l1tlbtol1_fwd_type))) ff_l1tlbtol1_fwd1 (
+  .clk      (clk),
+  .reset    (reset),
+
+  .din      (l1tlbtol1_fwd1),
+  .dinValid (ff_l1tlbtol1_fwd1_valid_in),
+  .dinRetry (ff_l1tlbtol1_fwd1_retry_out),
+
+  .q        (l1tlbtol1_fwd1_current),
+  .qValid   (ff_l1tlbtol1_fwd1_valid_out),
+  .qRetry   (ff_l1tlbtol1_fwd1_retry_in) 
+);
+
+
+// L1 TLB TO L1 (NOTIFY)---------------------------------------------
+I_l1tlbtol1_cmd_type l1tlbtol1_cmd_current; // data coming in
+logic ff_l1tlbtol1_cmd_valid_in;
+logic ff_l1tlbtol1_cmd_valid_out;
+logic ff_l1tlbtol1_cmd_retry_in;
+logic ff_l1tlbtol1_cmd_retry_out;
+
+// hook up the wires
+assign ff_l1tlbtol1_cmd_valid_in = l1tlbtol1_cmd_valid;
+assign l1tlbtol1_cmd_retry = ff_l1tlbtol1_cmd_retry_out;
+
+//instantiate fluid flop
+fflop #(.Size($bits(I_l1tlbtol1_fwd_type))) ff_l1tlbtol1_fwd1 (
+  .clk      (clk),
+  .reset    (reset),
+
+  .din      (l1tlbtol1_cmd),
+  .dinValid (ff_l1tlbtol1_cmd_valid_in),
+  .dinRetry (ff_l1tlbtol1_cmd_retry_out),
+
+  .q        (l1tlbtol1_cmd_current),
+  .qValid   (ff_l1tlbtol1_cmd_valid_out),
+  .qRetry   (ff_l1tlbtol1_cmd_retry_in) 
+);
+
+
+// L1 TO L2 TLB REQUEST----------------------------------------------
+I_l1tol2tlb_req_type l1tol2tlb_req_current; // data going out
+logic ff_l1tol2tlb_req_valid_in;
+logic ff_l1tol2tlb_req_valid_out;
+logic ff_l1tol2tlb_req_retry_in;
+logic ff_l1tol2tlb_req_retry_out;
+
+// hook up the wires
+assign l1tol2tlb_req_valid = ff_l1tol2tlb_req_valid_out;
+assign ff_l1tol2tlb_req_retry_in = l1tol2tlb_req_retry;
+ 
+// instantiate fluid flop
+fflop #(.Size($bits(I_l1tol2tlb_req_type))) ff_l1tol2tlb_req (
+  .clk      (clk),
+  .reset    (reset),
+
+  .din      (l1tol2tlb_req_current),
+  .dinValid (ff_l1tol2tlb_req_valid_in),
+  .dinRetry (ff_l1tol2tlb_req_retry_out),
+
+  .q        (l1tol2tlb_req),
+  .qValid   (ff_l1tol2tlb_req_valid_out),
+  .qRetry   (ff_l1tol2tlb_req_retry_in) 
+);
+
+
+// L1 TO L2 REQUEST--------------------------------------------------
+I_l1tol2_req_type l1tol2_req_current; // data going out
+logic ff_l1tol2_req_valid_in;
+logic ff_l1tol2_req_valid_out;
+logic ff_l1tol2_req_retry_in;
+logic ff_l1tol2_req_retry_out;
+
+// hook up the wires
+assign l1tol2_req_valid = ff_l1tol2_req_valid_out;
+assign ff_l1tol2_req_retry_in = l1tol2_req_retry;
+ 
+// instantiate fluid flop
+fflop #(.Size($bits(I_l1tol2_req_type))) ff_l1tol2_req (
+  .clk      (clk),
+  .reset    (reset),
+
+  .din      (l1tol2_req_current),
+  .dinValid (ff_l1tol2_req_valid_in),
+  .dinRetry (ff_l1tol2_req_retry_out),
+
+  .q        (l1tol2_req),
+  .qValid   (ff_l1tol2_req_valid_out),
+  .qRetry   (ff_l1tol2_req_retry_in) 
+);
+
+
+// L2 to L1 (SNOOP OR ACK)-------------------------------------------
+I_l2tol1_snack_type l2tol1_snack_current; // data coming in
+logic ff_l2tol1_snack_valid_in;
+logic ff_l2tol1_snack_valid_out;
+logic ff_l2tol1_snack_retry_in;
+logic ff_l2tol1_snack_retry_out;
+
+// hook up the wires
+assign ff_l2tol1_snack_valid_in = l2tol1_snack_valid;
+assign l2tol1_snack_retry = ff_l2tol1_snack_retry_out;
+
+//instantiate fluid flop
+fflop #(.Size($bits(I_l2tol1_snack_type))) ff_l2tol1_snack (
+  .clk      (clk),
+  .reset    (reset),
+
+  .din      (l2tol1_snack),
+  .dinValid (ff_l2tol1_snack_valid_in),
+  .dinRetry (ff_l2tol1_snack_retry_out),
+
+  .q        (l2tol1_snack_current),
+  .qValid   (ff_l2tol1_snack_valid_out),
+  .qRetry   (ff_l2tol1_snack_retry_in) 
+);
+
+
+// L1 TO L2 SNOOP ACK------------------------------------------------
+I_l2snoop_ack_type l1tol2_snoop_ack_current; // data going out
+logic ff_l1tol2_snoop_ack_valid_in;
+logic ff_l1tol2_snoop_ack_valid_out;
+logic ff_l1tol2_snoop_ack_retry_in;
+logic ff_l1tol2_snoop_ack_retry_out;
+
+// hook up the wires
+assign l1tol2_snoop_ack_valid = ff_l1tol2_snoop_ack_valid_out;
+assign ff_l1tol2_snoop_ack_retry_in = l1tol2_snoop_ack_retry;
+ 
+// instantiate fluid flop
+fflop #(.Size($bits(I_l2snoop_ack_type))) ff_l1tol2_snoop_ack (
+  .clk      (clk),
+  .reset    (reset),
+
+  .din      (l1tol2_snoop_ack_current),
+  .dinValid (ff_l1tol2_snoop_ack_valid_in),
+  .dinRetry (ff_l1tol2_snoop_ack_retry_out),
+
+  .q        (l1tol2_snoop_ack),
+  .qValid   (ff_l1tol2_snoop_ack_valid_out),
+  .qRetry   (ff_l1tol2_snoop_ack_retry_in) 
+);
+
+
+// L1 TO L2 DISPLACEMENT---------------------------------------------
+I_l1tol2_disp_type l1tol2_disp_current; // data going out
+logic ff_l1tol2_disp_valid_in;
+logic ff_l1tol2_disp_valid_out;
+logic ff_l1tol2_disp_retry_in;
+logic ff_l1tol2_disp_retry_out;
+
+// hook up the wires
+assign l1tol2_disp_valid = ff_l1tol2_disp_valid_out;
+assign ff_l1tol2_disp_retry_in = l1tol2_disp_retry;
+ 
+// instantiate fluid flop
+fflop #(.Size($bits(I_l1tol2_disp_type))) ff_l1tol2_disp (
+  .clk      (clk),
+  .reset    (reset),
+
+  .din      (l1tol2_disp_current),
+  .dinValid (ff_l1tol2_disp_valid_in),
+  .dinRetry (ff_l1tol2_disp_retry_out),
+
+  .q        (l1tol2_disp),
+  .qValid   (ff_l1tol2_disp_valid_out),
+  .qRetry   (ff_l1tol2_disp_retry_in) 
+);
+
+
+// L2 to L1 (SNOOP OR ACK)-------------------------------------------
+I_l2tol1_dack_type l2tol1_dack_current; // data coming in
+logic ff_l2tol1_dack_valid_in;
+logic ff_l2tol1_dack_valid_out;
+logic ff_l2tol1_dack_retry_in;
+logic ff_l2tol1_dack_retry_out;
+
+// hook up the wires
+assign ff_l2tol1_dack_valid_in = l2tol1_dack_valid;
+assign l2tol1_dack_retry = ff_l2tol1_dack_retry_out;
+
+//instantiate fluid flop
+fflop #(.Size($bits(I_l2tol1_dack_type))) ff_l2tol1_dack (
+  .clk      (clk),
+  .reset    (reset),
+
+  .din      (l2tol1_dack),
+  .dinValid (ff_l2tol1_dack_valid_in),
+  .dinRetry (ff_l2tol1_dack_retry_out),
+
+  .q        (l2tol1_dack_current),
+  .qValid   (ff_l2tol1_dack_valid_out),
+  .qRetry   (ff_l2tol1_dack_retry_in) 
+);
+
+
+// PASSTHROUGH #1
+//                  ----------
+//                  |        |
+//  l2tol1_snack--->|        |---->dctocore_ld
+//                  |   L1   |
+//                  |        |
+//                  |        |
+//                  ----------
+// OUTPUT: L2--->core load
+// pass whatever comes from L2
+
+// break down the signals from L2-snack and construct DC-to-core signal
+always_comb begin
+  dctocore_ld_current.coreid = l2tol1_snack.l2id;
+  dctocore_ld_current.fault = 0;
+  dctocore_ld_current.data = l2tol1_snack.line;
+end
+
+// calculate valid and retry signals associated with the previous stage
+always_comb begin
+  ff_dctocore_ld_valid_in = 1;
+  //dctocore_ld_retry_out comes of the fflop module
+end
+
+
+
+// PASSTHROUGH #2
+//                    ----------
+//                    |        |
+//   coretodc_ld----->|        |---->l1tol2_req
+//   l1tlbtol2_fwd0-->|   L1   |
+//                    |        |
+//                    |        |
+//                    ----------
+// OUTPUT: core load--->L2
+// pass core load request to L2
+
+// break down the core request and TLB to construct L2 request
+I_l1tol2_req_type l1tol2_req_ld_current;
+always_comb begin
+  l1tol2_req_ld_current.l1id = coretodc_ld.coreid;
+  l1tol2_req_ld_current.cmd = SC_CMD_REQ_S;
+  l1tol2_req_ld_current.pcsign = coretodc_ld.pcsign;
+  l1tol2_req_ld_current.ppaddr = l1tlbtol1_fwd0.ppaddr;
+end
+
+// calculate valid and retry signals associated with the previous stage
+always_comb begin
+  ff_l1tol2_req_valid_in = 1;
+end
+
+
+// PASSTHROUGH #3
+//                    ----------
+//                    |        |
+//  coretodc_std----->|        |---->l1tol2_req
+//   l1tlbtol2_fwd0-->|   L1   |
+// dctocore_std_ack<--|        |
+//                    |        |
+//                    ----------
+// OUTPUT: core load--->L2
+// pass miss request to L2 and send ack to core
+
+// break down the core request and TLB to construct L2 request
+I_l1tol2_req_type l1tol2_req_std_current;
+always_comb begin
+  l1tol2_req_std_current.l1id = coretodc_std.coreid;
+  l1tol2_req_std_current.cmd = SC_CMD_REQ_S;
+  l1tol2_req_std_current.pcsign = coretodc_ld.pcsign;
+  l1tol2_req_std_current.ppaddr = l1tlbtol1_fwd0.ppaddr;
+  
+  dctocore_std_ack_current.fault = 0;
+  dctocore_std_ack_current.coreid = 0;
+end
+
+// calculate valid and retry signals associated with the previous stage
+always_comb begin
+  ff_l1tol2_req_valid_in = 1;
+end
+
+// select between coretodc_ld and coretodc_std
+// change every 4 cycles, later signals will be passed
+// accorging to priority list. i.e. loads are #1 priority
+//
+//               |\
+//               | \
+//  coretodc_ld->|  |
+//               |  |--->l1tol2_req
+// coretodc_std->|  |
+//               | /
+//               |/
+//
+logic [2:0] counter;
+always @(posedge clk) begin
+  counter <= counter+1;
+end
+
+always_comb begin
+  if (counter[2] == 1)
+    l1tol2_req_current = l1tol2_req_std_current;
+  else
+    l1tol2_req_current = l1tol2_req_ld_current;
+end
 
 
 endmodule
