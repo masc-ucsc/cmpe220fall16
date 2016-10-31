@@ -69,7 +69,6 @@ module pfengine(
     .qRetry   (pfgtopfe_op_next_retry)
   );
  
-//  `ifdef CHANGE_INTERFACE
 
   logic                 pftodc_req0_prev_retry;
   logic                 pftodc_req0_prev_valid;
@@ -263,7 +262,6 @@ module pfengine(
     .q        (pf_l2stats)
   );
 
-//`endif
 
 /* donotdothis lint_off WIDTH */
 
