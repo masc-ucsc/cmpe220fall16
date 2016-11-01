@@ -21,7 +21,7 @@ When pushing remember to:
   status of your build
 
 If you do want to commit broken code as a form of backup, you can always use
-````ifdef 0` type of statement, this will make the code available for others but
+````ifdef 0``` type of statement, this will make the code available for others but
 without breaking the build/tests of others.
 
 # Wrapper modules
