@@ -1,7 +1,7 @@
 
 // DCTLB runs parallel to the Dcache. It gets the same requests as the dcache,
 // and sends the translation a bit after. It also has a command channel to
-// notify for when checkpoints are finishd from the TLB point of view.
+// notify for when checkpoints are finished from the TLB point of view.
 //
 // The DCTLB has to track at least 4 SPBTRs at once, but no need to have
 // unlimited. This means that just 4 flops translating SBPTR to valid indexes
@@ -11,8 +11,10 @@
 //
 // The hpaddr is a way to identify a L2TLB entry. It is also a pseudo-hah of
 // the paddr. When a L2TLB entry is displaced, the dctlb gets a snoop.
-// This means that when a hpaddr gets removed, it has to dissapear from
+// This means that when a hpaddr gets removed, it has to disappear from
 // the L1 cache
+
+`define L1DT_PASSTHROUGH
 
 module dctlb(
   /* verilator lint_off UNUSED */
@@ -67,6 +69,93 @@ module dctlb(
   ,output I_l1tlbtol2tlb_sack_type l1tlbtol2tlb_sack
   /* verilator lint_on UNUSED */
 );
+
+`ifdef L1DT_PASSTHROUGH
+
+
+  // LOAD REQUESTS to FWD PORT
+
+  I_l1tlbtol1_fwd_type l1tlbtol1_fwd0_next;
+  logic l1tlbtol1_fwd0_retry_next, l1tlbtol1_fwd0_valid_next;
+
+  always_comb begin
+    if(coretodctlb_ld_valid) begin
+      l1tlbtol1_fwd0_next.coreid = coretodctlb_ld.coreid;
+      l1tlbtol1_fwd0_next.prefetch = 1'b0;
+      l1tlbtol1_fwd0_next.fault = 'b0; //FIXME: need to check what this is
+      l1tlbtol1_fwd0_next.hpaadr = coretodctlb_ld.laddr; //FIXME: this needs to be hashed
+      l1tlbtol1_fwd0_next.ppaadr = 'b0; //FIXME: need to check what this is    
+
+      l1tlbtol1_fwd0_valid_next = coretodctlb_ld_valid;
+      coretodctlb_ld_retry = l1tlbtol1_fwd0_retry_next;
+    end else if(~pfetol1tlb_req.l2) begin
+      l1tlbtol1_fwd0_next.coreid = 'b0;
+      l1tlbtol1_fwd0_next.prefetch = 1'b1;
+      l1tlbtol1_fwd0_next.fault = 'b0; //FIXME: need to check what this is
+      l1tlbtol1_fwd0_next.hpaadr = pfetol1tlb_req.laddr; //FIXME: this needs to be hashed
+      l1tlbtol1_fwd0_next.ppaadr = 'b0; //FIXME: need to check what this is    
+
+      l1tlbtol1_fwd0_valid_next = pfetol1tlb_req_valid;
+      pfetol1tlb_req_retry = l1tlbtol1_fwd0_retry_next & pfetol1tlb_req_valid;
+    end
+  end
+
+
+  fflop #(.Size($bits(I_l1tlbtol1_fwd_type))) ld_req_pt(
+    .clk(clk)
+   ,.reset(reset)
+
+   ,.dinValid(l1tlbtol1_fwd0_valid_next)
+   ,.dinRetry(l1tlbtol1_fwd0_retry_next)
+   ,.din(l1tlbtol1_fwd0_next)
+   
+   ,.qValid(l1tlbtol1_fwd0_valid)
+   ,.qRetry(l1tlbtol1_fwd0_retry)
+   ,.q(l1tlbtol1_fwd0)
+   );
+
+  // STORE REQUESTS to FWD PORT
+
+  I_l1tlbtol1_fwd_type l1tlbtol1_fwd1_next;
+  logic l1tlbtol1_fwd1_retry_next, l1tlbtol1_fwd1_valid_next;
+
+  always_comb begin
+    if(coretodctlb_st_valid) begin
+      l1tlbtol1_fwd1_next.coreid = coretodctlb_st.coreid;
+      l1tlbtol1_fwd1_next.prefetch = 1'b0;
+      l1tlbtol1_fwd1_next.fault = 'b0; //FIXME: need to check what this is
+      l1tlbtol1_fwd1_next.hpaadr = coretodctlb_st.laddr; //FIXME: this needs to be hashed
+      l1tlbtol1_fwd1_next.ppaadr = 'b0; //FIXME: need to check what this is    
+
+      l1tlbtol1_fwd1_valid_next = coretodctlb_st_valid;
+      coretodctlb_st_retry = l1tlbtol1_fwd1_retry_next;
+    end else if(~pfetol1tlb_req.l2) begin
+      l1tlbtol1_fwd1_next.coreid = 'b0;
+      l1tlbtol1_fwd1_next.prefetch = 1'b1;
+      l1tlbtol1_fwd1_next.fault = 'b0; //FIXME: need to check what this is
+      l1tlbtol1_fwd1_next.hpaadr = pfetol1tlb_req.laddr; //FIXME: this needs to be hashed
+      l1tlbtol1_fwd1_next.ppaadr = 'b0; //FIXME: need to check what this is    
+
+      l1tlbtol1_fwd1_valid_next = pfetol1tlb_req_valid;
+      pfetol1tlb_req_retry = l1tlbtol1_fwd1_retry_next & pfetol1tlb_req_valid;
+    end
+  end
+
+
+  fflop #(.Size($bits(I_l1tlbtol1_fwd_type))) st_req_pt(
+    .clk(clk)
+   ,.reset(reset)
+
+   ,.dinValid(l1tlbtol1_fwd1_valid_next)
+   ,.dinRetry(l1tlbtol1_fwd1_retry_next)
+   ,.din(l1tlbtol1_fwd1_next)
+   
+   ,.qValid(l1tlbtol1_fwd1_valid)
+   ,.qRetry(l1tlbtol1_fwd1_retry)
+   ,.q(l1tlbtol1_fwd1)
+   );
+
+`endif
 
 endmodule
 
