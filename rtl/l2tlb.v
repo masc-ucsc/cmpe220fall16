@@ -9,6 +9,7 @@
 
 module l2tlb(
   /* verilator lint_off UNUSED */
+  /* verilator lint_off UNDRIVEN */
    input                           clk
   ,input                           reset
 
@@ -60,6 +61,7 @@ module l2tlb(
   ,input                           drtol2_dack_valid
   ,output                          drtol2_dack_retry
   ,input  I_drtol2_dack_type       drtol2_dack
+  /* verilator lint_on UNDRIVEN */
   /* verilator lint_on UNUSED */
 );
 
