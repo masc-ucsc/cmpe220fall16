@@ -60,13 +60,29 @@ end
 
 
 $icache_core_interface = [
-  ["coretoic_valid        ",  "input ", "                    "], 
-  ["coretoic_retry        ",  "output", "                    "], 
-  ["coretoic_pc           ",  "input ", "SC_laddr_type       "], 
+  ["coretoic_pc_valid        ",  "input ", "                   "], 
+  ["coretoic_pc_retry        ",  "output", "                   "], 
+  ["coretoic_pc              ",  "input ", "I_coretoic_pc_type "], 
 
   ["ictocore_valid        ",  "output", "                    "], 
   ["ictocore_retry        ",  "input ", "                    "], 
   ["ictocore              ",  "output", "I_ictocore_type     "]
+]
+
+$icache_tlb_interface = [
+  ["l1tlbtol1_fwd_valid", "input ", "                     "],
+  ["l1tlbtol1_fwd_retry", "output", "                     "],
+  ["l1tlbtol1_fwd      ", "input ", " I_l1tlbtol1_fwd_type"],
+
+  ["l1tlbtol1_cmd_valid", "input ", "                     "],
+  ["l1tlbtol1_cmd_retry", "output", "                     "],
+  ["l1tlbtol1_cmd      ", "input ", " I_l1tlbtol1_cmd_type"],
+]
+
+$icache_l2tlb_interface = [
+  ["l1tol2tlb_req_valid" ,"output", "                     "],
+  ["l1tol2tlb_req_retry" ,"input ", "                     "],
+  ["l1tol2tlb_req      " ,"output", " I_l1tol2tlb_req_type"],
 ]
 
 $icache_l2_interface = [
@@ -82,9 +98,13 @@ $icache_l2_interface = [
   ["l1tol2_snoop_ack_retry",  "input ", "                    "], 
   ["l1tol2_snoop_ack      ",  "output", "I_l2snoop_ack_type  "], 
 
-  ["l1tol2_pfreq_valid    ",  "output", "                    "], 
-  ["l1tol2_pfreq_retry    ",  "input ", "                    "], 
-  ["l1tol2_pfreq          ",  "output", "I_pftocache_req_type"]
+  #["l1tol2_pfreq_valid    ",  "output", "                    "], 
+  #["l1tol2_pfreq_retry    ",  "input ", "                    "], 
+  #["l1tol2_pfreq          ",  "output", "I_pftocache_req_type"]
+]
+
+$icache_pf_interface = [
+  ["cachetopf_stats", "output", "PF_cache_stats_type", "pf_dcstats"]
 ]
 
 $missing_icache_l2_interface = [
@@ -122,12 +142,18 @@ $dcache_core_interface = [
   ["dctocore_std_ack      ", "output", " I_dctocore_std_ack_type"]
 ]
 
-$dcache_prefetch_interface = [
-  ["pftocache_req_valid   ", "input ", "                        ", "pftodc_req##_valid"],
-  ["pftocache_req_retry   ", "output", "                        ", "pftodc_req##_retry"],
-  ["pftocache_req         ", "input ", " I_pftocache_req_type   ", "pftodc_req##      "],
-                                                                                     
-  ["cachetopf_stats       ", "output", " PF_cache_stats_type    ", "pf##_dcstats      "]
+$dcache_tlb_interface = [
+  ["l1tlbtol1_fwd0_valid", "input ", "                    "],
+  ["l1tlbtol1_fwd0_retry", "output", "                    "],
+  ["l1tlbtol1_fwd0      ", "input ", "I_l1tlbtol1_fwd_type"],
+
+  ["l1tlbtol1_fwd1_valid", "input ", "                    "],
+  ["l1tlbtol1_fwd1_retry", "output", "                    "],
+  ["l1tlbtol1_fwd1      ", "input ", "I_l1tlbtol1_fwd_type"],
+
+  ["l1tlbtol1_cmd_valid ", "input ", "                    "],
+  ["l1tlbtol1_cmd_retry ", "output", "                    "],
+  ["l1tlbtol1_cmd       ", "input ", "I_l1tlbtol1_cmd_type"],
 ]
 
 $dcache_l2_interface = [
@@ -151,16 +177,21 @@ $dcache_l2_interface = [
   ["l2tol1_dack_retry     ", "output", "                        "],
   ["l2tol1_dack           ", "input ", " I_l2tol1_dack_type     "],
 
-  ["l1tol2_pfreq_valid    ", "output", "                        "],
-  ["l1tol2_pfreq_retry    ", "input ", "                        "],
-  ["l1tol2_pfreq          ", "output", " I_pftocache_req_type   "]
 ]
 
-$directory_l2_interface = [
+$dcache_l2tlb_interface = [
+  ["l1tol2tlb_req_valid",  "output", "                    "],     
+  ["l1tol2tlb_req_retry",  "input ", "                    "],     
+  ["l1tol2tlb_req      ",  "output", "I_l1tol2tlb_req_type"],     
+]
+
+$l2_directory_pfreq = [
   ["l2todr_pfreq_valid    ", "input ", "                     ", "l2##todr_pfreq_valid    "],
   ["l2todr_pfreq_retry    ", "output", "                     ", "l2##todr_pfreq_retry    "],
   ["l2todr_pfreq          ", "input ", " I_l2todr_pfreq_type ", "l2##todr_pfreq          "],
+]
 
+$directory_l2_interface = [
   ["l2todr_req_valid      ", "input ", "                     ", "l2##todr_req_valid      "],
   ["l2todr_req_retry      ", "output", "                     ", "l2##todr_req_retry      "],
   ["l2todr_req            ", "input ", " I_l2todr_req_type   ", "l2##todr_req            "],
@@ -206,6 +237,12 @@ $prefetch_core_interface = [
   ["pfgtopfe_op      ", "input ", "I_pfgtopfe_op_type  "]
 ]
 
+$dctlb_prefetch_interface = [
+  ["pfetol1tlb_req_valid   ", "input ", "                        ", "pftodc_req##_valid"],
+  ["pfetol1tlb_req_retry   ", "output", "                        ", "pftodc_req##_retry"],
+  ["pfetol1tlb_req         ", "input ", "I_pfetol1tlb_req_type   ", "pftodc_req##      "],
+]
+
 #FIXME: check whether those buses are supposed to go back to the core
 $other_prefecther = [
   ["pf_dcstats       ", "output", "PF_cache_stats_type "],
@@ -213,14 +250,64 @@ $other_prefecther = [
 ]
 
 
+$dcache_prefetch_interface = [
+  ["cachetopf_stats       ", "output", "PF_cache_stats_type    ", "pf##_dcstats      "]
+]
+
 
 $prefetch_l2cache_interface = [
-  ["pftol2_req##_valid", "output", "logic               ", "pftol2_pfreq_valid"],
-  ["pftol2_req##_retry", "input ", "logic               ", "pftol2_pfreq_retry"],
-  ["pftol2_req##      ", "output", "I_pftocache_req_type", "pftol2_pfreq      "],
+  #["pftol2_req##_valid", "output", "logic               ", "pftol2_pfreq_valid"],
+  #["pftol2_req##_retry", "input ", "logic               ", "pftol2_pfreq_retry"],
+  #["pftol2_req##      ", "output", "I_pftocache_req_type", "pftol2_pfreq      "],
 
   ["pf##_l2stats      ", "input ", "PF_cache_stats_type ", "cachetopf_stats   "]
 ]
+
+$dctlb_core_interface = [
+  ["coretodctlb_ld_valid", "input ", "                      "],
+  ["coretodctlb_ld_retry", "output", "                      "],
+  ["coretodctlb_ld      ", "input ", " I_coretodctlb_ld_type"],
+
+  ["coretodctlb_st_valid", "input ", "                      "],
+  ["coretodctlb_st_retry", "output", "                      "],
+  ["coretodctlb_st      ", "input ", " I_coretodctlb_st_type"],
+]
+
+$l1tlb_l2tlb_interface = [
+  ["l2tlbtol1tlb_snoop_valid" ,"input " ,"                         "],
+  ["l2tlbtol1tlb_snoop_retry" ,"output" ,"                         "],
+  ["l2tlbtol1tlb_snoop      " ,"input " ,"I_l2tlbtol1tlb_snoop_type"],
+
+  ["l2tlbtol1tlb_ack_valid  " ,"input " ,"                         "],
+  ["l2tlbtol1tlb_ack_retry  " ,"output" ,"                         "],
+  ["l2tlbtol1tlb_ack        " ,"input " ,"I_l2tlbtol1tlb_ack_type  "],
+
+  ["l1tlbtol2tlb_req_valid  " ,"output" ,"                         "],
+  ["l1tlbtol2tlb_req_retry  " ,"input " ,"                         "],
+  ["l1tlbtol2tlb_req        " ,"output" ," I_l1tlbtol2tlb_req_type "],
+
+  ["l1tlbtol2tlb_sack_valid " ,"output" ,"                         "],
+  ["l1tlbtol2tlb_sack_retry " ,"input " ,"                         "],
+  ["l1tlbtol2tlb_sack       " ,"output" ," I_l1tlbtol2tlb_sack_type"],
+]
+
+$ictlb_core_interface = [
+  ["coretoictlb_pc_valid" ,"input ", "                      "],
+  ["coretoictlb_pc_retry" ,"output", "                      "],
+  ["coretoictlb_pc      " ,"input ", " I_coretoictlb_pc_type"],
+]
+
+$l2tlb_l2_interface = [
+  ["l2tlbtol2_fwd_valid", "output", "                     "],
+  ["l2tlbtol2_fwd_retry", "input ", "                     "],
+  ["l2tlbtol2_fwd      ", "output", " I_l2tlbtol2_fwd_type"],
+]
+
+  #["l1tol2_pfreq_valid    ", "output", "                        "],
+  #["l1tol2_pfreq_retry    ", "input ", "                        "],
+  #["l1tol2_pfreq          ", "output", " I_pftocache_req_type   "]
+
+
 
 def icache_ios core_id, f
 
@@ -236,6 +323,9 @@ def slice_ios core_id, slice_id, f
   f.puts "   // dcache core #{core_id}, slice #{slice_id}"
   $dcache_core_interface.each do |name, direction, type|
     f.puts "  ,#{direction} #{type} core#{core_id}_slice#{slice_id}_#{name}"
+  end
+  $dctlb_core_interface.each do |name,dir,type|
+    f.puts "    ,#{dir} #{type} c#{core_id}_s#{slice_id}_#{name}"
   end
   f.puts
 end
@@ -284,8 +374,56 @@ def pf_ios core_id, f
   f.puts 
 end
 
-def dcache_instance core_id, slice_id, f
 
+def dctlb_instance core_id, slice_id, f
+  f.puts
+  f.puts
+
+  $dcache_tlb_interface.each do |name,dir,type_|
+    type = (type_ =~ /^\s*$/)? "wire" : type_
+    f.puts "  #{type} core#{core_id}_slice#{slice_id}_#{name};"
+  end
+  f.puts 
+  $l1tlb_l2tlb_interface.each do |name,dir,type_|
+    type = (type_ =~ /^\s*$/)? "wire" : type_
+    f.puts "  #{type} core#{core_id}_slice#{slice_id}_#{name};"
+  end
+  f.puts 
+
+  $dctlb_prefetch_interface.each do |name,dir,type_,_net_name|
+    type = (type_ =~ /^\s*$/)? "wire" : type_
+    net_name = _net_name.gsub("##","#{slice_id}")
+    f.puts "  #{type} core#{core_id}_slice#{slice_id}_#{net_name};"
+  end
+  f.puts 
+
+  f.puts "  dctlb dcltb_c#{core_id}s#{slice_id}("
+  f.puts "     .clk(clk)"
+  f.puts "    ,.reset(reset)"
+
+  $dctlb_core_interface.each do |name,dir,type|
+    f.puts "    ,.#{name}(c#{core_id}_s#{slice_id}_#{name})"
+  end
+
+  $dctlb_prefetch_interface.each do |name,dir,type,_net_name|
+    net_name = _net_name.gsub("##","#{slice_id}")
+    f.puts "    ,.#{name}(core#{core_id}_slice#{slice_id}_#{net_name})"
+  end
+
+  $dcache_tlb_interface.each do |name,dir,type|
+    f.puts "    ,.#{name}(core#{core_id}_slice#{slice_id}_#{name})"
+  end
+
+  $l1tlb_l2tlb_interface.each do |name,dir,type|
+    f.puts "    ,.#{name}(core#{core_id}_slice#{slice_id}_#{name})"
+  end
+
+  f.puts
+  f.puts "  );"
+  
+end
+
+def dcache_instance core_id, slice_id, f
   f.puts
   f.puts
   $dcache_l2_interface.each do |name,dir,type_|
@@ -298,6 +436,13 @@ def dcache_instance core_id, slice_id, f
     type = (type_ =~ /^\s*$/)? "wire" : type_
     f.puts "  #{type} core#{core_id}_slice#{slice_id}_#{pf_name};"
   end
+  f.puts 
+
+  $dcache_l2tlb_interface.each do |name,dir,type_|
+    type = (type_ =~ /^\s*$/)? "wire" : type_
+    f.puts "  #{type} core#{core_id}_slice#{slice_id}_#{name};"
+  end
+  f.puts
 
   f.puts
   f.puts
@@ -312,46 +457,237 @@ def dcache_instance core_id, slice_id, f
   end
 
   f.puts
+  $dcache_l2tlb_interface.each do |name,dir,type|
+    f.puts "    ,.#{name}(core#{core_id}_slice#{slice_id}_#{name})"
+  end
+  f.puts
 
   $dcache_core_interface.each do |name,dir,type|
     f.puts "    ,.#{name}(core#{core_id}_slice#{slice_id}_#{name})"
   end
 
   f.puts
-
   $dcache_prefetch_interface.each do |name,dir,type, pf_name_|
     pf_name = pf_name_.gsub("##",slice_id.to_s)
     f.puts "    ,.#{name}(core#{core_id}_slice#{slice_id}_#{pf_name})"
+  end
+
+  f.puts
+  $dcache_tlb_interface.each do |name,dir,type|
+    f.puts "    ,.#{name}(core#{core_id}_slice#{slice_id}_#{name})"
   end
 
   f.puts "  );"
   f.puts
 end
 
-def dcache_all core_id, slices, f
+def l2_arbiter_connections core_id, slice_id, f
+  f.puts
+  $directory_l2_interface.each do |name,dir,type,net_name_|
+    net_name = "#{net_name_.gsub("##","d_#{slice_id}")}"
+    f.puts "    ,.#{net_name}(core#{core_id}_slice#{slice_id}_#{name})"
+  end
+  f.puts
+  $l2_directory_pfreq.each do |name,dir,type,net_name_|
+    net_name = "#{net_name_.gsub("##","d_#{slice_id}")}"
+    f.puts "    ,.#{net_name}(core#{core_id}_slice#{slice_id}_#{name})"
+  end
+  f.puts 
+end
+
+def l2arbiter core_id, slices, f
+  f.puts
+  f.puts
+  $directory_l2_interface.each do |name,dir,type_,net_name_|
+    type = (type_ =~ /^\s*$/)? "wire" : type_
+    f.puts "  #{type} core#{core_id}_#{name};"
+  end
+  f.puts
+  $l2_directory_pfreq.each do |name,dir,type_,net_name_|
+    type = (type_ =~ /^\s*$/)? "wire" : type_
+    f.puts "  #{type} core#{core_id}_#{name};"
+  end
+  f.puts
+  f.puts "  arbl2 l2arbiter_core#{core_id}("
+  f.puts "     .clk(clk)"
+  f.puts "    ,.reset(reset)"
+  f.puts
+
+  l2_arbiter_connections core_id, 0, f
+  l2_arbiter_connections core_id, 1, f
+
+  f.puts "`ifdef SC_4PIPE"
+  l2_arbiter_connections core_id, 2, f
+  l2_arbiter_connections core_id, 3, f
+  f.puts "`endif"
+
+  f.puts
+  $directory_l2_interface.each do |name,dir,type,net_name_|
+    f.puts "    ,.#{name}(core#{core_id}_#{name})"
+  end
+  f.puts
+  $l2_directory_pfreq.each do |name,dir,type,net_name_|
+    f.puts "    ,.#{name}(core#{core_id}_#{name})"
+  end
+  f.puts 
+  f.puts ");"
+  f.puts
+
+end
+
+def l2tlb_connections core_id, slice_id, f
+  f.puts
+  $directory_l2_interface.each do |name,dir,type,net_name_|
+    net_name = net_name_.gsub("##","d_#{slice_id}")
+    f.puts "    ,.#{net_name}(core#{core_id}_slice#{slice_id}_l2tlb_#{name})"
+  end
+  f.puts
+  #$l2_directory_pfreq.each do |name,dir,type,net_name_|
+  #  net_name = "#{net_name_.gsub("##","d_#{slice_id}")}"
+  #  f.puts "    ,.#{net_name}(core#{core_id}_slice#{slice_id}_l2tlb_#{name})"
+  #end
+  #f.puts
+  
+end
+
+def l2tlbarbiter core_id, n_slices, f
+  f.puts
+  f.puts
+  $directory_l2_interface.each do |name,dir,type_,net_name_|
+    type = (type_ =~ /^\s*$/)? "wire" : type_
+    f.puts "  #{type} core#{core_id}_l2tlb_#{name};"
+  end
+  #$l2_directory_pfreq.each do |name,dir,type_,net_name_|
+  #  type = (type_ =~ /^\s*$/)? "wire" : type_
+  #  f.puts "  #{type} core#{core_id}_l2tlb_#{name};"
+  #end
+  f.puts
+  f.puts "  arbl2tlb l2tlbarbiter_core#{core_id}("
+  f.puts "     .clk(clk)"
+  f.puts "    ,.reset(reset)"
+  f.puts
+
+  l2tlb_connections core_id, 0, f
+  l2tlb_connections core_id, 1, f
+
+  f.puts
+  f.puts "`ifdef SC_4PIPE"
+  l2tlb_connections core_id, 2, f
+  l2tlb_connections core_id, 3, f
+  f.puts "`endif"
+
+  $directory_l2_interface.each do |name,dir,type,net_name_|
+    f.puts "    ,.#{name}(core#{core_id}_l2tlb_#{name})"
+  end
+  #$l2_directory_pfreq.each do |name,dir,type,net_name_|
+  #  f.puts "    ,.#{name}(core#{core_id}_l2tlb_#{name})"
+  #end
+  f.puts
+  f.puts "  );"
+end
+
+def arbiters_instances core, slices, f
+  l2arbiter core, slices, f
+  l2tlbarbiter core, slices, f
+end
+
+
+def l1cache_all core_id, slices, f
   dcache_instance core_id, 0, f
+  dctlb_instance core_id, 0, f
+
   dcache_instance core_id, 1, f
+  dctlb_instance core_id, 1, f
+
   f.puts
   f.puts "`ifdef SC_4PIPE"
   dcache_instance core_id, 2, f
+  dctlb_instance core_id, 2, f
+
   dcache_instance core_id, 3, f
+  dctlb_instance core_id, 3, f
   f.puts "`endif"
+
+  icache_instance core_id, f
 end
 
-def l2d_all core_id, slices, f
+def l2tlb_instance core_id, slice_id, f
+  f.puts
+  f.puts
+  $directory_l2_interface.each do |name,dir,type_,net_name_|
+    type = (type_ =~ /^\s*$/)? "wire" : type_
+    #net_name = "c#{core_id}_#{net_name_.gsub("##","dtlb_#{slice_id}")}"
+    f.puts "  #{type} core#{core_id}_slice#{slice_id}_l2tlb_#{name};"
+  end
+
+  f.puts "  l2tlb l2tlb_core#{core_id}_slice#{slice_id}("
+  f.puts "     .clk(clk)"
+  f.puts "    ,.reset(reset)"
+
+  f.puts
+  
+  $l1tlb_l2tlb_interface.each do |name,dir,type|
+    f.puts "    ,.#{name}(core#{core_id}_slice#{slice_id}_#{name})"
+  end
+  f.puts 
+
+  $dcache_l2tlb_interface.each do |name,dir,type|
+    f.puts "    ,.#{name}(core#{core_id}_slice#{slice_id}_#{name})"
+  end
+  f.puts
+
+  $l2tlb_l2_interface.each do |name,dir,type|
+    f.puts "    ,.#{name}(core#{core_id}_slice#{slice_id}_#{name})"
+  end
+
+  f.puts
+  $directory_l2_interface.each do |name,dir,type,net_name_|
+    #net_name = "c#{core_id}_#{net_name_.gsub("##","dtlb_#{slice_id}")}"
+    f.puts "    ,.#{name}(core#{core_id}_slice#{slice_id}_l2tlb_#{name})"
+  end
+  f.puts
+  f.puts "  );"
+end
+
+
+def l2cache_all core_id, slices, f
   l2d_instance core_id, 0, f
+  l2tlb_instance core_id, 0, f
+
   l2d_instance core_id, 1, f
+  l2tlb_instance core_id, 1, f
+
   f.puts
   f.puts "`ifdef SC_4PIPE"
   l2d_instance core_id, 2, f
+  l2tlb_instance core_id, 2, f
+
   l2d_instance core_id, 3, f
+  l2tlb_instance core_id, 3, f
   f.puts "`endif"
+
+  l2i_instance core_id, f
 end
 
 def icache_instance core_id, f
   f.puts
   f.puts
   $icache_l2_interface.each do |name,dir,type_|
+    type = (type_ =~ /^\s*$/)? "wire" : type_
+    f.puts "  #{type} core#{core_id}_#{name};"
+  end
+  f.puts
+  $icache_tlb_interface.each do |name,dir,type_|
+    type = (type_ =~ /^\s*$/)? "wire" : type_
+    f.puts "  #{type} core#{core_id}_#{name};"
+  end
+  f.puts
+  $icache_l2tlb_interface.each do |name,dir,type_|
+    type = (type_ =~ /^\s*$/)? "wire" : type_
+    f.puts "  #{type} core#{core_id}_#{name};"
+  end
+  f.puts
+  $icache_pf_interface.each do |name,dir,type_,pf_name|
     type = (type_ =~ /^\s*$/)? "wire" : type_
     f.puts "  #{type} core#{core_id}_#{name};"
   end
@@ -367,6 +703,21 @@ def icache_instance core_id, f
     f.puts "    ,.#{name}(core#{core_id}_#{name})"
   end
 
+  f.puts
+
+  $icache_tlb_interface.each do |name,dir,type|
+    f.puts "    ,.#{name}(core#{core_id}_#{name})"
+  end
+
+  f.puts
+  $icache_l2tlb_interface.each do |name,dir,type|
+    f.puts "    ,.#{name}(core#{core_id}_#{name})"
+  end
+
+  f.puts
+  $icache_pf_interface.each do |name,dir,type,pf_name|
+    f.puts "    ,.#{name}(core#{core_id}_#{name})"
+  end
   f.puts
 
   $icache_core_interface.each do |name,dir,type|
@@ -391,6 +742,22 @@ def l2d_instance core_id, slice_id, f
     type = (type_ =~ /^\s*$/)? "wire" : type_
     f.puts "  #{type} core#{core_id}_slice#{slice_id}_#{name};"
   end
+  f.puts
+  $dcache_prefetch_interface.each do |name,dir,type_, pf_name_|
+    pf_name = pf_name_.gsub("##",slice_id.to_s)
+    type = (type_ =~ /^\s*$/)? "wire" : type_
+    f.puts "  #{type} core#{core_id}_l2d_slice#{slice_id}_#{pf_name};"
+  end
+  f.puts
+  $l2_directory_pfreq.each do |name,dir,type_|
+    type = (type_ =~ /^\s*$/)? "wire" : type_
+    f.puts "  #{type} core#{core_id}_slice#{slice_id}_#{name};"
+  end
+  f.puts
+  $l2tlb_l2_interface.each do |name,dir,type_|
+    type = (type_ =~ /^\s*$/)? "wire" : type_
+    f.puts "  #{type} core#{core_id}_slice#{slice_id}_#{name};"
+  end
 
   f.puts
   f.puts "  l2cache_pipe core#{core_id}_l2d_slice#{slice_id}("
@@ -405,6 +772,17 @@ def l2d_instance core_id, slice_id, f
 
   f.puts
 
+  $l2_directory_pfreq.each do |name,dir,type|
+    f.puts "    ,.#{name}(core#{core_id}_slice#{slice_id}_#{name})"
+  end
+
+  f.puts
+
+  $l2tlb_l2_interface.each do |name,dir,type|
+    f.puts "    ,.#{name}(core#{core_id}_slice#{slice_id}_#{name})"
+  end
+
+  f.puts
   $directory_l2_interface.each do |name,dir,type|
     f.puts "    ,.#{name}(core#{core_id}_slice#{slice_id}_#{name})"
   end
@@ -426,6 +804,14 @@ def l2i_instance core_id, f
     pf_name = pf_name_.gsub("##","icache")
     type = (type_ =~ /^\s*$/)? "wire" : type_
     f.puts "  #{type} core#{core_id}_icache_#{pf_name};"
+  end
+  $l2tlb_l2_interface.each do |name,dir,type_|
+    type = (type_ =~ /^\s*$/)? "wire" : type_
+    f.puts "  #{type} core#{core_id}_icache_#{name};"
+  end
+  $l2_directory_pfreq.each do |name,dir,type_|
+    type = (type_ =~ /^\s*$/)? "wire" : type_
+    f.puts "  #{type} core#{core_id}_icache_#{name};"
   end
 
   $unconnected_icache_l2_interface.each do |name,dir,type_|
@@ -460,6 +846,16 @@ def l2i_instance core_id, f
     f.puts "    ,.#{name}(core#{core_id}_icache_#{name})"
   end
   f.puts
+  $l2tlb_l2_interface.each do |name,dir,type|
+    f.puts "    ,.#{name}(core#{core_id}_icache_#{name})"
+  end
+
+  f.puts
+  $l2_directory_pfreq.each do |name,dir,type|
+    f.puts "    ,.#{name}(core#{core_id}_icache_#{name})"
+  end
+
+  f.puts
 
   $prefetch_l2cache_interface.each do |pf_name_,dir,type,name|
     pf_name = pf_name_.gsub("##","icache")
@@ -493,7 +889,12 @@ def prefetch_instance core_id, f
     f.puts "    ,.#{name}(core#{core_id}_#{name})"
   end
 
+  #f.puts
+  #$icache_pf_interface.each do |name,dir,type,pf_name|
+  #  f.puts "    ,.#{pf_name}(core#{core_id}_#{name})"
+  #end
   f.puts
+
   2.times do |slice_id|
     $prefetch_l2cache_interface.each do |pf_name_,dir,type,name|
       pf_name = pf_name_.gsub("##",slice_id.to_s)
@@ -501,11 +902,19 @@ def prefetch_instance core_id, f
     end
 
     f.puts
-    $dcache_prefetch_interface.each do |name,dir,type, pf_name_|
-      pf_name = pf_name_.gsub("##",slice_id.to_s)
+    #$dcache_prefetch_interface.each do |name,dir,type, pf_name_|
+    $dctlb_prefetch_interface.each do |name,dir,type,_pf_name|
+      pf_name = _pf_name.gsub("##",slice_id.to_s)
       f.puts "    ,.#{pf_name}(core#{core_id}_slice#{slice_id}_#{pf_name})"
     end
     f.puts
+
+    $dcache_prefetch_interface.each do |name,dir,type,_pf_name|
+      pf_name = _pf_name.gsub("##",slice_id.to_s)
+      f.puts "    ,.#{pf_name}(core#{core_id}_slice#{slice_id}_#{pf_name})"
+    end
+    f.puts
+
   end
 
   f.puts "`ifdef SC_4PIPE"
@@ -516,11 +925,19 @@ def prefetch_instance core_id, f
     end
     f.puts
 
-    $dcache_prefetch_interface.each do |name,dir,type, pf_name_|
-      pf_name = pf_name_.gsub("##",slice_id.to_s)
+    #$dcache_prefetch_interface.each do |name,dir,type, pf_name_|
+    $dctlb_prefetch_interface.each do |name,dir,type,_pf_name|
+      pf_name = _pf_name.gsub("##",slice_id.to_s)
       f.puts "    ,.#{pf_name}(core#{core_id}_slice#{slice_id}_#{pf_name})"
     end
     f.puts
+
+    $dcache_prefetch_interface.each do |name,dir,type,_pf_name|
+      pf_name = _pf_name.gsub("##",slice_id.to_s)
+      f.puts "    ,.#{pf_name}(core#{core_id}_slice#{slice_id}_#{pf_name})"
+    end
+    f.puts
+
   end
   f.puts "`endif"
 
@@ -536,8 +953,13 @@ def network_instance n_cores, n_drs, f
 
   n_drs.times do |dr_id|
     $directory_l2_interface.each do |name,dir,type_,net_name_|
-    type = (type_ =~ /^\s*$/)? "wire" : type_
+      type = (type_ =~ /^\s*$/)? "wire" : type_
       f.puts "  #{type} dr#{dr_id}_#{name};"
+    end
+
+    $l2_directory_pfreq.each do |name,dir,type_,net_name_|
+      type = (type_ =~ /^\s*$/)? "wire" : type_
+      f.puts "  #{type} dr#{dr_id}_tlb_#{name};"
     end
   end
 
@@ -556,6 +978,44 @@ def network_instance n_cores, n_drs, f
     end
 
     f.puts
+
+    $directory_l2_interface.each do |name,dir,type,net_name_|
+      net_name = "c#{core_id}_#{net_name_.gsub("##","it")}"
+      f.puts "    ,.#{net_name}(core#{core_id}_icache_#{name})"
+    end
+
+    f.puts
+
+    $l2_directory_pfreq.each do |name,dir,type,net_name_|
+      net_name = "c#{core_id}_#{net_name_.gsub("##","i")}"
+      f.puts "    ,.#{net_name}(core#{core_id}_icache_#{name})"
+    end
+
+
+    #l2 connections from arbiter
+    f.puts
+    $directory_l2_interface.each do |name,dir,type,net_name_|
+      #net_name = "c#{core_id}_#{net_name_.gsub("##","d_#{slice_id}")}"
+      net_name = "c#{core_id}_#{net_name_.gsub("##","d_0")}"
+      f.puts "    ,.#{net_name}(core#{core_id}_#{name})"
+    end
+    $l2_directory_pfreq.each do |name,dir,type,net_name_|
+      net_name = "c#{core_id}_#{net_name_.gsub("##","d_0")}"
+      f.puts "    ,.#{net_name}(core#{core_id}_#{name})"
+    end
+
+    #l2tlb connections from arbiter
+    f.puts
+    $directory_l2_interface.each do |name,dir,type,net_name_|
+      #net_name = "c#{core_id}_#{net_name_.gsub("##","d_#{slice_id}")}"
+      net_name = "c#{core_id}_#{net_name_.gsub("##","dt_0")}"
+      f.puts "    ,.#{net_name}(core#{core_id}_l2tlb_#{name})"
+    end
+    #$l2_directory_pfreq.each do |name,dir,type,net_name_|
+    #  net_name = "c#{core_id}_#{net_name_.gsub("##","dt_0")}"
+    #  f.puts "    ,.#{net_name}(core#{core_id}_l2tlb_#{name})"
+    #end
+=begin
     2.times do |slice_id|
       f.puts "    //L2D_#{slice_id}"
       $directory_l2_interface.each do |name,dir,type,net_name_|
@@ -576,6 +1036,7 @@ def network_instance n_cores, n_drs, f
       f.puts
     end
     f.puts "`endif"
+=end
   end
 
   f.puts
@@ -586,6 +1047,11 @@ def network_instance n_cores, n_drs, f
       f.puts "    ,.#{name}(dr#{dr_id}_#{name_})"
     end
 
+    f.puts
+    $l2_directory_pfreq.each do |name_,dir,type,net_name_|
+      name = name_.gsub("drtol2","dr#{dr_id}tol2").gsub("l2todr","l2todr#{dr_id}")
+      f.puts "    ,.#{name}(dr#{dr_id}_tlb_#{name_})"
+    end
     f.puts
   end
 
@@ -602,6 +1068,10 @@ def dr_instance dr_id, f
 
   $directory_l2_interface.each do |name,dir,type,net_name_|
     f.puts "    ,.#{name}(dr#{dr_id}_#{name})"
+  end
+
+  $l2_directory_pfreq.each do |name,dir,type,net_name_|
+    f.puts "    ,.#{name}(dr#{dr_id}_tlb_#{name})"
   end
 
   $directory_memory_interface.each do |name, direction, type|
@@ -650,11 +1120,9 @@ f.puts
 f.puts ");"
 
 options[:cores].times do |core|
-  dcache_all core, options[:slices], f
-  icache_instance core, f
-
-  l2d_all core, options[:slices], f
-  l2i_instance core, f
+  l1cache_all core, options[:slices], f
+  l2cache_all core, options[:slices], f
+  arbiters_instances core, options[:slices], f
 
   prefetch_instance core, f
 end
