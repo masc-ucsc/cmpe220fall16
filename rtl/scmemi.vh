@@ -127,6 +127,7 @@ typedef struct packed {
 typedef struct packed {
   CORE_reqid_type   coreid;
   logic             prefetch; // prefetch, ignore coreid
+	logic             l2_prefetch; 
 
   SC_fault_type     fault;
   TLB_hpaddr_type   hpaddr; // hash paddr (only one hash cached at L1)
