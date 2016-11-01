@@ -325,12 +325,16 @@ module dcache_pipe(
 //
 //--------------------------------------------
 
+  /* verilator lint_off UNUSED */
+  /* verilator lint_off UNDRIVEN */
 // CORE TO DC (LOAD)-------------------------------------------------
 I_coretodc_ld_type coretodc_ld_current; // data coming in
 logic ff_coretodc_ld_valid_in;
 logic ff_coretodc_ld_valid_out;
 logic ff_coretodc_ld_retry_in;
 logic ff_coretodc_ld_retry_out;
+  /* verilator lint_on UNUSED */
+  /* verilator lint_on UNDRIVEN */
 
 // hook up the wires
 assign ff_coretodc_ld_valid_in = coretodc_ld_valid;
@@ -356,7 +360,11 @@ I_dctocore_ld_type dctocore_ld_current; // data going out
 logic ff_dctocore_ld_valid_in;
 logic ff_dctocore_ld_valid_out;
 logic ff_dctocore_ld_retry_in;
+  /* verilator lint_off UNUSED */
+  /* verilator lint_off UNDRIVEN */
 logic ff_dctocore_ld_retry_out;
+  /* verilator lint_on UNUSED */
+  /* verilator lint_on UNDRIVEN */
 
 //hook up the wires
 assign dctocore_ld_valid = ff_dctocore_ld_valid_out;
@@ -378,11 +386,15 @@ fflop #(.Size($bits(I_dctocore_ld_type))) ff_dctocore_ld (
 
 
 // CORE TO DC (STORE)------------------------------------------------
+  /* verilator lint_off UNUSED */
+  /* verilator lint_off UNDRIVEN */
 I_coretodc_std_type coretodc_std_current; // data coming in
 logic ff_coretodc_std_valid_in;
 logic ff_coretodc_std_valid_out;
 logic ff_coretodc_std_retry_in;
 logic ff_coretodc_std_retry_out;
+  /* verilator lint_on UNUSED */
+  /* verilator lint_on UNDRIVEN */
 
 // hook up the wires
 assign ff_coretodc_std_valid_in = coretodc_std_valid;
@@ -405,10 +417,14 @@ fflop #(.Size($bits(I_coretodc_std_type))) ff_coretodc_std (
 
 // DC TO CORE (STORE ACK)--------------------------------------------
 I_dctocore_std_ack_type dctocore_std_ack_current; // data going out
+  /* verilator lint_off UNUSED */
+  /* verilator lint_off UNDRIVEN */
 logic ff_dctocore_std_ack_valid_in;
 logic ff_dctocore_std_ack_valid_out;
 logic ff_dctocore_std_ack_retry_in;
 logic ff_dctocore_std_ack_retry_out;
+  /* verilator lint_on UNUSED */
+  /* verilator lint_on UNDRIVEN */
 
 // hook up the wires
 assign dctocore_std_ack_valid = ff_dctocore_std_ack_valid_out;
@@ -430,11 +446,15 @@ fflop #(.Size($bits(I_dctocore_std_ack_type))) ff_dctocore_std_ack (
 
 
 // L1 TLB TO L1 (LOAD)-----------------------------------------------
+  /* verilator lint_off UNUSED */
+  /* verilator lint_off UNDRIVEN */
 I_l1tlbtol1_fwd_type l1tlbtol1_fwd0_current; // data coming in
 logic ff_l1tlbtol1_fwd0_valid_in;
 logic ff_l1tlbtol1_fwd0_valid_out;
 logic ff_l1tlbtol1_fwd0_retry_in;
 logic ff_l1tlbtol1_fwd0_retry_out;
+  /* verilator lint_on UNUSED */
+  /* verilator lint_on UNDRIVEN */
 
 // hook up the wires
 assign ff_l1tlbtol1_fwd0_valid_in = l1tlbtol1_fwd0_valid;
@@ -456,11 +476,15 @@ fflop #(.Size($bits(I_l1tlbtol1_fwd_type))) ff_l1tlbtol1_fwd0 (
 
 
 // L1 TLB TO L1 (STORE)----------------------------------------------
+  /* verilator lint_off UNUSED */
+  /* verilator lint_off UNDRIVEN */
 I_l1tlbtol1_fwd_type l1tlbtol1_fwd1_current; // data coming in
 logic ff_l1tlbtol1_fwd1_valid_in;
 logic ff_l1tlbtol1_fwd1_valid_out;
 logic ff_l1tlbtol1_fwd1_retry_in;
 logic ff_l1tlbtol1_fwd1_retry_out;
+  /* verilator lint_on UNUSED */
+  /* verilator lint_on UNDRIVEN */
 
 // hook up the wires
 assign ff_l1tlbtol1_fwd1_valid_in = l1tlbtol1_fwd1_valid;
@@ -482,11 +506,15 @@ fflop #(.Size($bits(I_l1tlbtol1_fwd_type))) ff_l1tlbtol1_fwd1 (
 
 
 // L1 TLB TO L1 (NOTIFY)---------------------------------------------
+  /* verilator lint_off UNUSED */
+  /* verilator lint_off UNDRIVEN */
 I_l1tlbtol1_cmd_type l1tlbtol1_cmd_current; // data coming in
 logic ff_l1tlbtol1_cmd_valid_in;
 logic ff_l1tlbtol1_cmd_valid_out;
 logic ff_l1tlbtol1_cmd_retry_in;
 logic ff_l1tlbtol1_cmd_retry_out;
+  /* verilator lint_on UNUSED */
+  /* verilator lint_on UNDRIVEN */
 
 // hook up the wires
 assign ff_l1tlbtol1_cmd_valid_in = l1tlbtol1_cmd_valid;
@@ -508,11 +536,15 @@ fflop #(.Size($bits(I_l1tlbtol1_cmd_type))) ff_l1tlbtol1_cmd (
 
 
 // L1 TO L2 TLB REQUEST----------------------------------------------
+  /* verilator lint_off UNUSED */
+  /* verilator lint_off UNDRIVEN */
 I_l1tol2tlb_req_type l1tol2tlb_req_current; // data going out
 logic ff_l1tol2tlb_req_valid_in;
 logic ff_l1tol2tlb_req_valid_out;
 logic ff_l1tol2tlb_req_retry_in;
 logic ff_l1tol2tlb_req_retry_out;
+  /* verilator lint_on UNUSED */
+  /* verilator lint_on UNDRIVEN */
 
 // hook up the wires
 assign l1tol2tlb_req_valid = ff_l1tol2tlb_req_valid_out;
@@ -538,7 +570,11 @@ I_l1tol2_req_type l1tol2_req_current; // data going out
 logic ff_l1tol2_req_valid_in;
 logic ff_l1tol2_req_valid_out;
 logic ff_l1tol2_req_retry_in;
+  /* verilator lint_off UNUSED */
+  /* verilator lint_off UNDRIVEN */
 logic ff_l1tol2_req_retry_out;
+  /* verilator lint_on UNUSED */
+  /* verilator lint_on UNDRIVEN */
 
 // hook up the wires
 assign l1tol2_req_valid = ff_l1tol2_req_valid_out;
@@ -560,11 +596,15 @@ fflop #(.Size($bits(I_l1tol2_req_type))) ff_l1tol2_req (
 
 
 // L2 to L1 (SNOOP OR ACK)-------------------------------------------
+  /* verilator lint_off UNUSED */
+  /* verilator lint_off UNDRIVEN */
 I_l2tol1_snack_type l2tol1_snack_current; // data coming in
 logic ff_l2tol1_snack_valid_in;
 logic ff_l2tol1_snack_valid_out;
 logic ff_l2tol1_snack_retry_in;
 logic ff_l2tol1_snack_retry_out;
+  /* verilator lint_on UNUSED */
+  /* verilator lint_on UNDRIVEN */
 
 // hook up the wires
 assign ff_l2tol1_snack_valid_in = l2tol1_snack_valid;
@@ -586,11 +626,15 @@ fflop #(.Size($bits(I_l2tol1_snack_type))) ff_l2tol1_snack (
 
 
 // L1 TO L2 SNOOP ACK------------------------------------------------
+  /* verilator lint_off UNUSED */
+  /* verilator lint_off UNDRIVEN */
 I_l2snoop_ack_type l1tol2_snoop_ack_current; // data going out
 logic ff_l1tol2_snoop_ack_valid_in;
 logic ff_l1tol2_snoop_ack_valid_out;
 logic ff_l1tol2_snoop_ack_retry_in;
 logic ff_l1tol2_snoop_ack_retry_out;
+  /* verilator lint_on UNUSED */
+  /* verilator lint_on UNDRIVEN */
 
 // hook up the wires
 assign l1tol2_snoop_ack_valid = ff_l1tol2_snoop_ack_valid_out;
@@ -612,11 +656,15 @@ fflop #(.Size($bits(I_l2snoop_ack_type))) ff_l1tol2_snoop_ack (
 
 
 // L1 TO L2 DISPLACEMENT---------------------------------------------
+  /* verilator lint_off UNUSED */
+  /* verilator lint_off UNDRIVEN */
 I_l1tol2_disp_type l1tol2_disp_current; // data going out
 logic ff_l1tol2_disp_valid_in;
 logic ff_l1tol2_disp_valid_out;
 logic ff_l1tol2_disp_retry_in;
 logic ff_l1tol2_disp_retry_out;
+  /* verilator lint_on UNUSED */
+  /* verilator lint_on UNDRIVEN */
 
 // hook up the wires
 assign l1tol2_disp_valid = ff_l1tol2_disp_valid_out;
@@ -638,11 +686,15 @@ fflop #(.Size($bits(I_l1tol2_disp_type))) ff_l1tol2_disp (
 
 
 // L2 to L1 (SNOOP OR ACK)-------------------------------------------
+  /* verilator lint_off UNUSED */
+  /* verilator lint_off UNDRIVEN */
 I_l2tol1_dack_type l2tol1_dack_current; // data coming in
 logic ff_l2tol1_dack_valid_in;
 logic ff_l2tol1_dack_valid_out;
 logic ff_l2tol1_dack_retry_in;
 logic ff_l2tol1_dack_retry_out;
+  /* verilator lint_on UNUSED */
+  /* verilator lint_on UNDRIVEN */
 
 // hook up the wires
 assign ff_l2tol1_dack_valid_in = l2tol1_dack_valid;
