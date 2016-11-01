@@ -45,4 +45,50 @@ module ictlb(
   /* verilator lint_on UNUSED */
 );
 
+`ifdef L1IT_PASSTHROUGH
+
+
+  // LOAD REQUESTS to FWD PORT
+
+  I_l1tlbtol1_fwd_type l1tlbtol1_fwd1_next;
+  logic l1tlbtol1_fwd1_retry_next, l1tlbtol1_fwd0_valid_next;
+
+  always_comb begin
+    if(coretoictlb_ld_valid) begin
+      l1tlbtol1_fwd1_next.coreid = coretoictlb_ld.coreid;
+      l1tlbtol1_fwd1_next.prefetch = 1'b0;
+      l1tlbtol1_fwd1_next.fault = 1'b0; 
+      l1tlbtol1_fwd1_next.hpaadr = coretoictlb_ld.laddr[22:12];
+      l1tlbtol1_fwd1_next.ppaadr = coretoictlb_ld.laddr[14:12];
+
+      l1tlbtol1_fwd1_valid_next = coretoictlb_ld_valid;
+      coretoictlb_ld_retry = l1tlbtol1_fwd1_retry_next;
+
+    end else if(~pfetol1tlb_req.l2) begin
+      l1tlbtol1_fwd1_next.coreid = 'b0;
+      l1tlbtol1_fwd1_next.prefetch = 1'b1;
+      l1tlbtol1_fwd1_next.fault = 1'b0;
+      l1tlbtol1_fwd1_next.hpaadr = pfetol1tlb_req.laddr[22:12];
+      l1tlbtol1_fwd1_next.ppaadr = pfetol1tlb_req.laddr[14:12];
+
+      l1tlbtol1_fwd1_valid_next = pfetol1tlb_req_valid;
+      pfetol1tlb_req_retry = l1tlbtol1_fwd1_retry_next & pfetol1tlb_req_valid;
+    end
+  end
+
+
+  fflop #(.Size($bits(I_l1tlbtol1_fwd_type))) ld_req_pt(
+    .clk(clk)
+   ,.reset(reset)
+
+   ,.dinValid(l1tlbtol1_fwd1_valid_next)
+   ,.dinRetry(l1tlbtol1_fwd1_retry_next)
+   ,.din(l1tlbtol1_fwd1_next)
+   
+   ,.qValid(l1tlbtol1_fwd1_valid)
+   ,.qRetry(l1tlbtol1_fwd1_retry)
+   ,.q(l1tlbtol1_fwd1)
+   );
+
+`endif
 endmodule
