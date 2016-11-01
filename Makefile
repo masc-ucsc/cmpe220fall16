@@ -89,7 +89,7 @@ run_integration_2core2dr: integration_2core2dr
 
 REGLIST+=integration_2core2dr
 ###########################
-regression: lint $(REGLIST)
+regression: $(REGLIST)
 	ruby scripts/regcheck.rb $(REGLIST)
 
 clean:
