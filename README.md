@@ -11,18 +11,17 @@ Commit your code as often as possible. Remember that only committed code can be
 evaluated and used by others.
 
 Before committing, try to make sure your code at least builds (for now), and
-passes basic testing (once you have coded the tests). If you have a piece of
-code that needs to be committed but does not meet these standards, use an ifdef,
-if or separate module, so it does not break other people work.
-
+passes basic testing (once you have coded the tests).
+ 
 When pushing remember to:
 * Before pushing, do ```make lint``` to check if the code passes lint
 * After puching click on the status button (on top of this page) to check the
   status of your build
 
-If you do want to commit broken code as a form of backup, you can always use
-````ifdef 0``` type of statement, this will make the code available for others but
-without breaking the build/tests of others.
+If you have a piece of code that needs to be committed, or you do want to
+commit, but does not meet these standards, you can always use ````ifdef 0```
+type of statement, this will make the code available for others but without
+breaking the build/tests of others.
 
 # Wrapper modules
 
