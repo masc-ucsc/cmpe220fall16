@@ -82,18 +82,18 @@ module dctlb(
     if(coretodctlb_ld_valid) begin
       l1tlbtol1_fwd0_next.coreid = coretodctlb_ld.coreid;
       l1tlbtol1_fwd0_next.prefetch = 1'b0;
-      l1tlbtol1_fwd0_next.fault = 'b0; //FIXME: need to check what this is
-      l1tlbtol1_fwd0_next.hpaadr = coretodctlb_ld.laddr; //FIXME: this needs to be hashed
-      l1tlbtol1_fwd0_next.ppaadr = 'b0; //FIXME: need to check what this is    
+      l1tlbtol1_fwd0_next.fault = 1'b0; 
+      l1tlbtol1_fwd0_next.hpaadr = coretodctlb_ld.laddr[22:12];
+      l1tlbtol1_fwd0_next.ppaadr = coretodctlb_ld.laddr[14:12];
 
       l1tlbtol1_fwd0_valid_next = coretodctlb_ld_valid;
       coretodctlb_ld_retry = l1tlbtol1_fwd0_retry_next;
     end else if(~pfetol1tlb_req.l2) begin
       l1tlbtol1_fwd0_next.coreid = 'b0;
       l1tlbtol1_fwd0_next.prefetch = 1'b1;
-      l1tlbtol1_fwd0_next.fault = 'b0; //FIXME: need to check what this is
-      l1tlbtol1_fwd0_next.hpaadr = pfetol1tlb_req.laddr; //FIXME: this needs to be hashed
-      l1tlbtol1_fwd0_next.ppaadr = 'b0; //FIXME: need to check what this is    
+      l1tlbtol1_fwd0_next.fault = 1'b0;
+      l1tlbtol1_fwd0_next.hpaadr = pfetol1tlb_req.laddr[22:12];
+      l1tlbtol1_fwd0_next.ppaadr = pfetol1tlb_req.laddr[14:12];
 
       l1tlbtol1_fwd0_valid_next = pfetol1tlb_req_valid;
       pfetol1tlb_req_retry = l1tlbtol1_fwd0_retry_next & pfetol1tlb_req_valid;
@@ -123,18 +123,18 @@ module dctlb(
     if(coretodctlb_st_valid) begin
       l1tlbtol1_fwd1_next.coreid = coretodctlb_st.coreid;
       l1tlbtol1_fwd1_next.prefetch = 1'b0;
-      l1tlbtol1_fwd1_next.fault = 'b0; //FIXME: need to check what this is
-      l1tlbtol1_fwd1_next.hpaadr = coretodctlb_st.laddr; //FIXME: this needs to be hashed
-      l1tlbtol1_fwd1_next.ppaadr = 'b0; //FIXME: need to check what this is    
+      l1tlbtol1_fwd1_next.fault = 1'b0;
+      l1tlbtol1_fwd1_next.hpaadr = coretodctlb_st.laddr[22:12];
+      l1tlbtol1_fwd1_next.ppaadr = coretodctlb_st.laddr[14:12];
 
       l1tlbtol1_fwd1_valid_next = coretodctlb_st_valid;
       coretodctlb_st_retry = l1tlbtol1_fwd1_retry_next;
-    end else if(~pfetol1tlb_req.l2) begin
+    end else if(coretodctlb_ld_valid & ~pfetol1tlb_req.l2) begin
       l1tlbtol1_fwd1_next.coreid = 'b0;
       l1tlbtol1_fwd1_next.prefetch = 1'b1;
-      l1tlbtol1_fwd1_next.fault = 'b0; //FIXME: need to check what this is
-      l1tlbtol1_fwd1_next.hpaadr = pfetol1tlb_req.laddr; //FIXME: this needs to be hashed
-      l1tlbtol1_fwd1_next.ppaadr = 'b0; //FIXME: need to check what this is    
+      l1tlbtol1_fwd1_next.fault = 1'b0; 
+      l1tlbtol1_fwd1_next.hpaadr = pfetol1tlb_req.laddr[22:12];
+      l1tlbtol1_fwd1_next.ppaadr = pfetol1tlb_req.laddr[14:12];
 
       l1tlbtol1_fwd1_valid_next = pfetol1tlb_req_valid;
       pfetol1tlb_req_retry = l1tlbtol1_fwd1_retry_next & pfetol1tlb_req_valid;
