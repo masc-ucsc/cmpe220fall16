@@ -196,6 +196,7 @@ typedef struct packed {
   SC_nodeid_type    nid; 
   L2_reqid_type     l2id; // !=0 ACK
   DR_reqid_type     drid; // !=0 snoop
+	DR_ndirs_type     directory_id; 
 
   SC_snack_type     snack;
   SC_line_type      line;
@@ -227,6 +228,7 @@ typedef struct packed {
 // {{{1 drsnoop_ack
 typedef struct packed {
   DR_reqid_type     drid; // If data was present, a disp is triggered
+	DR_ndirs_type     directory_id; 
 } I_drsnoop_ack_type;
 // 1}}}
 

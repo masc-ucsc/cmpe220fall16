@@ -98,5 +98,6 @@ typedef logic [`L2_REQIDBITS-1:0]    L2_reqid_type;
 // L2 or L2TLB id (L2TLB is odd, L2 is even. E.g: L2=0,2,4... L2TLB=1,3,5...)
 // when talking between L2 and DR
 typedef logic [`SC_NODEIDBITS-1:0]   SC_nodeid_type; 
+typedef logic [`DR_NDIRSBITS-1:0]    DR_ndirs_type; 
 
 `endif
