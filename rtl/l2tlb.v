@@ -82,7 +82,7 @@ module l2tlb(
    
 	l2tlbtol2_fwd_next.1lid = l1tol2tlb_req.l1id;
 	l2tlbtol2_fwd_next.prefetch = l1tol2tlb_req.prefetch;
-	l2tlbtol2_fwd_next.fault = 3b'000;
+	l2tlbtol2_fwd_next.fault = 3'b000;
 	l2tlbtol2_fwd_next.hpaddr = l1tol2tlb_req.hpaddr;
 	l2tlbtol2_fwd_next.paddr[11:0] = l1tol2tlb_req.poffset;
 	l2tlbtol2_fwd_next.paddr[22:12] = l1tol2tlb_req.hpaddr;
