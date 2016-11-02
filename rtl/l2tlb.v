@@ -8,6 +8,7 @@
 
 module l2tlb(
   /* verilator lint_off UNUSED */
+	/* verilator lint_off UNDRIVEN */
    input                           clk
   ,input                           reset
 
@@ -59,9 +60,11 @@ module l2tlb(
   ,input                           drtol2_dack_valid
   ,output                          drtol2_dack_retry
   ,input  I_drtol2_dack_type       drtol2_dack
+  /* verilator lint_on UNDRIVEN */
   /* verilator lint_on UNUSED */
 );
 
+`ifdef THIS_DOES_NOT_LINT
 
   // l2tlb -> l2 fwd
   I_l2tlbtol2_fwd_type l2tlbtol2_fwd_next;
@@ -80,14 +83,14 @@ module l2tlb(
    ,.q(l2tlbtol2_fwd)
    );
    
-	l2tlbtol2_fwd_next.1lid = l1tol2tlb_req.l1id;
-	l2tlbtol2_fwd_next.prefetch = l1tol2tlb_req.prefetch;
-	l2tlbtol2_fwd_next.fault = 3'b000;
-	l2tlbtol2_fwd_next.hpaddr = l1tol2tlb_req.hpaddr;
-	l2tlbtol2_fwd_next.paddr[11:0] = l1tol2tlb_req.poffset;
-	l2tlbtol2_fwd_next.paddr[22:12] = l1tol2tlb_req.hpaddr;
+  l2tlbtol2_fwd_next.1lid = l1tol2tlb_req.l1id;
+  l2tlbtol2_fwd_next.prefetch = l1tol2tlb_req.prefetch;
+  l2tlbtol2_fwd_next.fault = 3'b000;
+  l2tlbtol2_fwd_next.hpaddr = l1tol2tlb_req.hpaddr;
+  l2tlbtol2_fwd_next.paddr[11:0] = l1tol2tlb_req.poffset;
+  l2tlbtol2_fwd_next.paddr[22:12] = l1tol2tlb_req.hpaddr;
 
-	
+  
   // l2tlb -> l1tlb snoop
   I_l2tlbtol1tlb_snoop_type l2tlbtol1tlb_snoop_next;
   logic l2tlbtol1tlb_snoop_valid_next, l2tlbtol1tlb_snoop_retry_next;
@@ -105,8 +108,8 @@ module l2tlb(
    ,.q(l2tlbtol1tlb_snoop)
    );
    
-	l2tlbtol1tlb_snoop_next.rid = l1tlbtol2tlb_sack.rid;
-	l2tlbtol1tlb_snoop_next.hpaddr = l1tlbtol2tlb_req.hpaddr;
+  l2tlbtol1tlb_snoop_next.rid = l1tlbtol2tlb_sack.rid;
+  l2tlbtol1tlb_snoop_next.hpaddr = l1tlbtol2tlb_req.hpaddr;
 
 
   // l2tlb -> l1tlb ack
@@ -126,10 +129,10 @@ module l2tlb(
    ,.q(l2tlbtol1tlb_ack)
    );
 
-	l2tlbtol1tlb_ack_next.rid = l1tlbtol2tlb_req.rid;
-	l2tlbtol1tlb_ack_next.hpaddr = l1tlbtol2tlb_req.hpaddr;
-	l2tlbtol1tlb_ack_next.ppaddr = l1tlbtol2tlb_req.hpaddr[2:0];
-	l2tlbtol1tlb_ack_next.dctlbe = 13'b0_0000_0000_0000;
+  l2tlbtol1tlb_ack_next.rid = l1tlbtol2tlb_req.rid;
+  l2tlbtol1tlb_ack_next.hpaddr = l1tlbtol2tlb_req.hpaddr;
+  l2tlbtol1tlb_ack_next.ppaddr = l1tlbtol2tlb_req.hpaddr[2:0];
+  l2tlbtol1tlb_ack_next.dctlbe = 13'b0_0000_0000_0000;
 
 
   // l2 -> dr req
@@ -149,10 +152,10 @@ module l2tlb(
    ,.q(l2todr_req)
    );
 
-	l2todr_req_next.nid = drtol2_snack. nid;
-	l2todr_req_next.l2id = drtol2_snack.l2id;
-	l2todr_req_next.cmd = 3'b000;
-	l2todr_req_next.paddr = drtol2_snack.paddr;
+  l2todr_req_next.nid = drtol2_snack. nid;
+  l2todr_req_next.l2id = drtol2_snack.l2id;
+  l2todr_req_next.cmd = 3'b000;
+  l2todr_req_next.paddr = drtol2_snack.paddr;
 
 
   // l2 -> dr ack
@@ -172,7 +175,7 @@ module l2tlb(
    ,.q(l2todr_snoop_ack)
    );
 
-	l2todr_snoop_ack_next.l2id = drtol2_snack.l2id;
+  l2todr_snoop_ack_next.l2id = drtol2_snack.l2id;
 
 
   // l2 -> dr disp
@@ -192,12 +195,14 @@ module l2tlb(
    ,.q(l2todr_disp)
    );
 
-	l2todr_disp_next.nid = drtol2_snack.nid;
-	l2todr_disp_next.l2id = drtol2_snack.l2id;
-	l2todr_disp_next.drid = drtol2_snack.drid;
-	l2todr_disp_next.mask = 64'h0000_0000_0000_0000;
-	l2todr_disp_next.dcmd = 3'b000;
-	l2todr_disp_next.line = drtol2_snack.line;
-	l2todr_disp_next.paddr = drtol2_snack.paddr;
+  l2todr_disp_next.nid = drtol2_snack.nid;
+  l2todr_disp_next.l2id = drtol2_snack.l2id;
+  l2todr_disp_next.drid = drtol2_snack.drid;
+  l2todr_disp_next.mask = 64'h0000_0000_0000_0000;
+  l2todr_disp_next.dcmd = 3'b000;
+  l2todr_disp_next.line = drtol2_snack.line;
+  l2todr_disp_next.paddr = drtol2_snack.paddr;
+
+`endif
 
 endmodule
