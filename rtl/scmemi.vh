@@ -178,6 +178,7 @@ typedef struct packed {
 // {{{1 l2snoop_ack
 typedef struct packed {
   L2_reqid_type     l2id; // If data was present, a disp is triggered
+	DR_ndirs_type     directory_id; 
 } I_l2snoop_ack_type;
 // 1}}}
 
