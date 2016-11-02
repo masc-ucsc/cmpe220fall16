@@ -82,7 +82,7 @@ module l2tlb(
    
 	l2tlbtol2_fwd_next.1lid = l1tol2tlb_req.l1id;
 	l2tlbtol2_fwd_next.prefetch = l1tol2tlb_req.prefetch;
-	l2tlbtol2_fwd_next.fault = l1tol2tlb_req.1b'0;
+	l2tlbtol2_fwd_next.fault = l1tol2tlb_req.3b'000;
 	l2tlbtol2_fwd_next.hpaddr = l1tol2tlb_req.hpaddr;
 	l2tlbtol2_fwd_next.paddr[11:0] = l1tol2tlb_req.poffset;
 	l2tlbtol2_fwd_next.paddr[22:12] = l1tol2tlb_req.hpaddr;
@@ -129,7 +129,7 @@ module l2tlb(
 	l2tlbtol1tlb_ack_next.rid = l1tlbtol2tlb_req.rid;
 	l2tlbtol1tlb_ack_next.hpaddr = l1tlbtol2tlb_req.hpaddr;
 	l2tlbtol1tlb_ack_next.ppaddr = l1tlbtol2tlb_req.hpaddr[2:0];
-	l2tlbtol1tlb_ack_next.dctlbe = 
+	l2tlbtol1tlb_ack_next.dctlbe = 13'b0_0000_0000_0000;
 
 
   // l2 -> dr req
@@ -151,7 +151,7 @@ module l2tlb(
 
 	l2todr_req_next.nid = drtol2_snack. nid;
 	l2todr_req_next.l2id = drtol2_snack.l2id;
-	l2todr_req_next.cmd = 
+	l2todr_req_next.cmd = 3'b000;
 	l2todr_req_next.paddr = drtol2_snack.paddr;
 
 
@@ -195,8 +195,8 @@ module l2tlb(
 	l2todr_disp_next.nid = drtol2_snack.nid;
 	l2todr_disp_next.l2id = drtol2_snack.l2id;
 	l2todr_disp_next.drid = drtol2_snack.drid;
-	l2todr_disp_next.mask = 
-	l2todr_disp_next.dcmd = 
+	l2todr_disp_next.mask = 64'h0000_0000_0000_0000;
+	l2todr_disp_next.dcmd = 3'b000;
 	l2todr_disp_next.line = drtol2_snack.line;
 	l2todr_disp_next.paddr = drtol2_snack.paddr;
 
