@@ -95,7 +95,7 @@ module dctlb_wp(
     ,input  logic               l2tlbtol1tlb_snoop_valid
     ,output logic               l2tlbtol1tlb_snoop_retry
     //  ,input I_l2tlbtol1tlb_snoop_type l2tlbtol1tlb_snoop
-    ,input  TLB_reqid-type      l2tlbtol1tlb_snoop_rid
+    ,input  TLB_reqid_type      l2tlbtol1tlb_snoop_rid
     ,input  TLB_hpaddr_type     l2tlbtol1tlb_snoop_hpaddr
 
     ,input  logic               l2tlbtol1tlb_ack_valid
