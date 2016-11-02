@@ -47,6 +47,10 @@ module ictlb(
 
 `ifdef L1IT_PASSTHROUGH
 
+  assign l1tlbtol1_cmd_valid     = 1'b0;
+  assign l1tlbtol2tlb_req_valid  = 1'b0;
+  assign l1tlbtol2tlb_sack_valid = 1'b0;
+
 
   // LOAD REQUESTS to FWD PORT
 

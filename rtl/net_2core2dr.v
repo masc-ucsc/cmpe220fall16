@@ -106,10 +106,6 @@ module net_2core2dr(
   ,output logic                    c0_drtol2dt_0_dack_retry
   ,input  I_drtol2_dack_type       c0_drtol2dt_0_dack
 
-  ,input  logic                    c0_l2dt_0todr_pfreq_valid
-  ,output logic                    c0_l2dt_0todr_pfreq_retry
-  ,input  I_l2todr_pfreq_type      c0_l2dt_0todr_pfreq
-
   // c1 core L2I
   ,input  logic                    c1_l2itodr_req_valid
   ,output logic                    c1_l2itodr_req_retry

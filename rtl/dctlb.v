@@ -47,6 +47,7 @@ module dctlb(
   ,output I_l1tlbtol1_fwd_type     l1tlbtol1_fwd1
 
   // Notify the L1 that the index of the TLB is gone
+  /* verilator lint_off UNDRIVEN */
   ,output                          l1tlbtol1_cmd_valid
   ,input                           l1tlbtol1_cmd_retry
   ,output I_l1tlbtol1_cmd_type     l1tlbtol1_cmd
@@ -67,11 +68,15 @@ module dctlb(
   ,output                          l1tlbtol2tlb_sack_valid
   ,input                           l1tlbtol2tlb_sack_retry
   ,output I_l1tlbtol2tlb_sack_type l1tlbtol2tlb_sack
+  /* verilator lint_on UNDRIVEN */
   /* verilator lint_on UNUSED */
 );
 
 `ifdef L1DT_PASSTHROUGH
 
+  assign l1tlbtol1_cmd_valid     = 1'b0;
+  assign l1tlbtol2tlb_req_valid  = 1'b0;
+  assign l1tlbtol2tlb_sack_valid = 1'b0;
 
   // LOAD REQUESTS to FWD PORT
 
@@ -82,18 +87,22 @@ module dctlb(
     if(coretodctlb_ld_valid) begin
       l1tlbtol1_fwd0_next.coreid = coretodctlb_ld.coreid;
       l1tlbtol1_fwd0_next.prefetch = 1'b0;
-      l1tlbtol1_fwd0_next.fault = 1'b0; 
-      l1tlbtol1_fwd0_next.hpaadr = coretodctlb_ld.laddr[22:12];
-      l1tlbtol1_fwd0_next.ppaadr = coretodctlb_ld.laddr[14:12];
+      l1tlbtol1_fwd0_next.l2_prefetch = 1'b0;
+
+      l1tlbtol1_fwd0_next.fault = 3'b000; 
+      l1tlbtol1_fwd0_next.hpaddr = coretodctlb_ld.laddr[22:12];
+      l1tlbtol1_fwd0_next.ppaddr = coretodctlb_ld.laddr[14:12];
 
       l1tlbtol1_fwd0_valid_next = coretodctlb_ld_valid;
       coretodctlb_ld_retry = l1tlbtol1_fwd0_retry_next;
     end else if(~pfetol1tlb_req.l2) begin
       l1tlbtol1_fwd0_next.coreid = 'b0;
       l1tlbtol1_fwd0_next.prefetch = 1'b1;
-      l1tlbtol1_fwd0_next.fault = 1'b0;
-      l1tlbtol1_fwd0_next.hpaadr = pfetol1tlb_req.laddr[22:12];
-      l1tlbtol1_fwd0_next.ppaadr = pfetol1tlb_req.laddr[14:12];
+      l1tlbtol1_fwd0_next.l2_prefetch = 1'b1;
+
+      l1tlbtol1_fwd0_next.fault = 3'b000;
+      l1tlbtol1_fwd0_next.hpaddr = pfetol1tlb_req.laddr[22:12];
+      l1tlbtol1_fwd0_next.ppaddr = pfetol1tlb_req.laddr[14:12];
 
       l1tlbtol1_fwd0_valid_next = pfetol1tlb_req_valid;
       pfetol1tlb_req_retry = l1tlbtol1_fwd0_retry_next & pfetol1tlb_req_valid;
@@ -123,18 +132,22 @@ module dctlb(
     if(coretodctlb_st_valid) begin
       l1tlbtol1_fwd1_next.coreid = coretodctlb_st.coreid;
       l1tlbtol1_fwd1_next.prefetch = 1'b0;
-      l1tlbtol1_fwd1_next.fault = 1'b0;
-      l1tlbtol1_fwd1_next.hpaadr = coretodctlb_st.laddr[22:12];
-      l1tlbtol1_fwd1_next.ppaadr = coretodctlb_st.laddr[14:12];
+      l1tlbtol1_fwd1_next.l2_prefetch = 1'b0;
+
+      l1tlbtol1_fwd1_next.fault = 3'b000;
+      l1tlbtol1_fwd1_next.hpaddr = coretodctlb_st.laddr[22:12];
+      l1tlbtol1_fwd1_next.ppaddr = coretodctlb_st.laddr[14:12];
 
       l1tlbtol1_fwd1_valid_next = coretodctlb_st_valid;
       coretodctlb_st_retry = l1tlbtol1_fwd1_retry_next;
     end else if(coretodctlb_ld_valid & ~pfetol1tlb_req.l2) begin
       l1tlbtol1_fwd1_next.coreid = 'b0;
       l1tlbtol1_fwd1_next.prefetch = 1'b1;
-      l1tlbtol1_fwd1_next.fault = 1'b0; 
-      l1tlbtol1_fwd1_next.hpaadr = pfetol1tlb_req.laddr[22:12];
-      l1tlbtol1_fwd1_next.ppaadr = pfetol1tlb_req.laddr[14:12];
+      l1tlbtol1_fwd1_next.l2_prefetch = 1'b1;
+
+      l1tlbtol1_fwd1_next.fault = 3'b000; 
+      l1tlbtol1_fwd1_next.hpaddr = pfetol1tlb_req.laddr[22:12];
+      l1tlbtol1_fwd1_next.ppaddr = pfetol1tlb_req.laddr[14:12];
 
       l1tlbtol1_fwd1_valid_next = pfetol1tlb_req_valid;
       pfetol1tlb_req_retry = l1tlbtol1_fwd1_retry_next & pfetol1tlb_req_valid;
