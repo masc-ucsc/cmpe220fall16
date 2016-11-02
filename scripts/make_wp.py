@@ -10,8 +10,8 @@
 
 import sys
 
-modulename = 'top_2core2dr'
-instancename = 'top'
+modulename = 'ictlb'
+instancename = 'ictlb_dut'
 
 dict = {'I_drtol2_snack_type': [
             ('SC_nodeid_type\t', 'nid'),
@@ -32,7 +32,7 @@ dict = {'I_drtol2_snack_type': [
 	    ('TLB_hpaddr_type\t', 'hpaddr'),
 	    ('SC_paddr_type\t', 'paddr')],
 	'I_l2tlbtol1tlb_snoop_type': [
-	    ('TLB_reqid-type\t', 'rid'),
+	    ('TLB_reqid_type\t', 'rid'),
 	    ('TLB_hpaddr_type\t', 'hpaddr')],
 	'I_l2tlbtol1tlb_ack_type': [
 	    ('TLB_reqid_type\t', 'rid'),
@@ -41,9 +41,9 @@ dict = {'I_drtol2_snack_type': [
 	    ('SC_dctlbe_type\t', 'dctlbe')],
 	'I_l1tlbtol2tlb_req_type': [
 	    ('TLB_reqid_type\t', 'rid'),
-	    ('logic\t', 'disp_req'),
-	    ('logic\t', 'disp_A'),
-	    ('logic\t', 'disp_B'),
+	    ('logic\t\t\t', 'disp_req'),
+	    ('logic\t\t\t', 'disp_A'),
+	    ('logic\t\t\t', 'disp_B'),
 	    ('TLB_hpaddr_type\t', 'disp_hpaddr'),
 	    ('SC_laddr_type\t', 'laddr'),
 	    ('SC_sptbr_type\t', 'sptbr')],
@@ -120,6 +120,42 @@ dict = {'I_drtol2_snack_type': [
             ('CORE_reqid_type\t', 'coreid'),
             ('SC_fault_type\t', 'fault'),
             ('SC_line_type\t', 'data')],
+        'I_coretodctlb_ld_type':[
+            ('DC_ckpid_type\t', 'ckpid'),
+            ('CORE_reqid_type\t', 'coreid'),
+            ('CORE_lop_type\t', 'lop'),
+            ('logic\t\t\t', 'pnr'),
+            ('SC_laddr_type\t', 'laddr'),
+            ('SC_imm_type\t\t', 'imm'),
+            ('SC_sptbr_type\t', 'sptbr'),
+            ('logic\t\t\t', 'user')],
+        'I_coretodctlb_st_type':[
+            ('DC_ckpid_type\t', 'ckpid'),
+            ('CORE_reqid_type\t', 'coreid'),
+            ('CORE_mop_type\t', 'mop'),
+            ('logic\t\t\t', 'pnr'),
+            ('SC_laddr_type\t', 'laddr'),
+            ('SC_imm_type\t\t', 'imm'),
+            ('SC_sptbr_type\t', 'sptbr'),
+            ('logic\t\t\t', 'user')],
+        'I_pfetol1tlb_req_type':[
+            ('logic\t\t\t', 'l2'),
+            ('SC_laddr_type\t', 'laddr'),
+            ('SC_sptbr_type\t', 'sptbr')],
+        'I_l1tlbtol1_fwd_type':[
+            ('CORE_reqid_type\t', 'coreid'),
+            ('logic\t\t\t', 'prefetch'),
+            ('logic\t\t\t', 'l2_prefetch'),
+            ('SC_fault_type\t', 'fault'),
+            ('TLB_hpaddr_type\t', 'hpaddr'),
+            ('SC_ppaddr_type\t', 'ppaddr')],
+        'I_l1tlbtol1_cmd_type':[
+            ('logic\t\t\t', 'flush'),
+            ('TLB_hpaddr_type\t', 'hpaddr')],
+        'I_coretoictlb_pc_type':[
+            ('CORE_reqid_type\t', 'coreid'),
+            ('SC_laddr_type\t', 'laddr'),
+            ('SC_sptbr_type\t', 'sptbr')],
         }
 
 content = []
