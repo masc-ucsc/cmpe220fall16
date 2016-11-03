@@ -7,6 +7,7 @@ typedef struct packed {
   SC_cmd_type       cmd;
 
   SC_pcsign_type    pcsign;
+  SC_poffset_type   poffset;  // L1 does only 4KB pages, This is the page offset needed to compute the paddr using the hpaddr
   // The paddr comes from the *l2tlb_fwd
   SC_ppaddr_type    ppaddr; // predicted PADDR
 } I_l1tol2_req_type;
@@ -18,7 +19,6 @@ typedef struct packed {
 
   logic             prefetch; // prefetch, ignore l1id
 
-  SC_poffset_type   poffset;  // L1 does only 4KB pages, This is the page offset needed to compute the paddr using the hpaddr
   TLB_hpaddr_type   hpaddr; // hash paddr (only one hash cached at L1)
 } I_l1tol2tlb_req_type;
 // 1}}}

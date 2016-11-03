@@ -758,6 +758,7 @@ always_comb begin
   l1tol2_req_ld_current.l1id = coretodc_ld.coreid[4:0];
   l1tol2_req_ld_current.cmd = `SC_CMD_REQ_S;
   l1tol2_req_ld_current.pcsign = coretodc_ld.pcsign;
+  l1tol2_req_ld_current.poffset = coretodc_ld.poffset;
   l1tol2_req_ld_current.ppaddr = l1tlbtol1_fwd0.ppaddr;
 end
 
@@ -781,12 +782,13 @@ end
 // break down the core request and TLB to construct L2 request
 I_l1tol2_req_type l1tol2_req_std_current;
 always_comb begin
-  l1tol2_req_std_current.l1id = coretodc_std.coreid[4:0];
-  l1tol2_req_std_current.cmd = `SC_CMD_REQ_S;
-  l1tol2_req_std_current.pcsign = coretodc_ld.pcsign;
-  l1tol2_req_std_current.ppaddr = l1tlbtol1_fwd0.ppaddr;
+  l1tol2_req_std_current.l1id     = coretodc_std.coreid[4:0];
+  l1tol2_req_std_current.cmd      = `SC_CMD_REQ_S;
+  l1tol2_req_std_current.pcsign   = coretodc_std.pcsign;
+  l1tol2_req_std_current.poffset  = coretodc_std.poffset;
+  l1tol2_req_std_current.ppaddr   = l1tlbtol1_fwd0.ppaddr;
   
-  dctocore_std_ack_current.fault = 0;
+  dctocore_std_ack_current.fault  = 0;
   dctocore_std_ack_current.coreid = 0;
 end
 
