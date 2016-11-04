@@ -102,17 +102,28 @@ std::list<OutputPacket> out_pf_list;
 
 
 void try_send_packet(Vdctlb_wp *top) {
- /* static int set_retry_for = 0;
-  if ((rand()&0xF)==0 && set_retry_for == 0) {
-    set_retry_for = rand()&0x1F;
+  static int set_retry_for_ld = 0;
+  if ((rand()&0xF)==0 && set_retry_for_ld == 0) {
+    set_retry_for_ld = rand()&0x1F;
   }
-  if (set_retry_for) {
-    set_retry_for--;
-    top->sumRetry = 1;
+  if (set_retry_for_ld) {
+    set_retry_for_ld--;
+    top->l1tlbtol1_fwd0_retry = 1;
   }else{
-    top->sumRetry = (rand()&0xF)==0; // randomly, one every 8 packets
+    top->l1tlbtol1_fwd0_retry = (rand()&0xF)==0; // randomly, one every 8 packets
   }
-  */
+
+  static int set_retry_for_st = 0;
+  if ((rand()&0xF)==0 && set_retry_for_st == 0) {
+    set_retry_for_st = rand()&0x1F;
+  }
+  if (set_retry_for_st) {
+    set_retry_for_ld--;
+    top->l1tlbtol1_fwd1_retry = 1;
+  }else{
+    top->l1tlbtol1_fwd1_retry = (rand()&0xF)==0; // randomly, one every 8 packets
+  }
+  
 
   if (!top->coretodctlb_ld_retry) {
     top->coretodctlb_ld_ckpid = rand();
@@ -176,13 +187,13 @@ void try_send_packet(Vdctlb_wp *top) {
     top->coretodctlb_ld_user = in_ld.user;
 #ifdef DEBUG_TRACE
     printf("@%lld \tin_ld_ckpid=%X\n",global_time, in_ld.ckpid);
-    printf("\t\tin_ld_coreid=%X\n", in_ld.coreid);
-    printf("\t\tin_ld_lop=%X\n", in_ld.lop);
-    printf("\t\tin_ld_pnr=%X\n", in_ld.pnr);
-    printf("\t\tin_ld_laddr=%X\n", in_ld.laddr);
-    printf("\t\tin_ld_imm=%X\n", in_ld.imm);
-    printf("\t\tin_ld_sptbr=%X\n", in_ld.sptbr);
-    printf("\t\tin_ld_user=%X\n", in_ld.user);
+    printf("\tin_ld_coreid=%X\n", in_ld.coreid);
+    printf("\tin_ld_lop=%X\n", in_ld.lop);
+    printf("\tin_ld_pnr=%X\n", in_ld.pnr);
+    printf("\tin_ld_laddr=%X\n", in_ld.laddr);
+    printf("\tin_ld_imm=%X\n", in_ld.imm);
+    printf("\tin_ld_sptbr=%X\n", in_ld.sptbr);
+    printf("\tin_ld_user=%X\n", in_ld.user);
 #endif
     in_ld_list.pop_back();
   }
@@ -202,13 +213,13 @@ void try_send_packet(Vdctlb_wp *top) {
     top->coretodctlb_st_user = in_st.user;
 #ifdef DEBUG_TRACE
     printf("@%lld in_st_ckpid=%X\n",global_time, in_st.ckpid);
-    printf("\t\tin_st_coreid=%X\n", in_st.coreid);
-    printf("\t\tin_st_mop=%X\n", in_st.mop);
-    printf("\t\tin_st_pnr=%X\n", in_st.pnr);
-    printf("\t\tin_st_laddr=%X\n", in_st.laddr);
-    printf("\t\tin_st_imm=%X\n", in_st.imm);
-    printf("\t\tin_st_sptbr=%X\n", in_st.sptbr);
-    printf("\t\tin_st_user=%X\n", in_st.user);
+    printf("\tin_st_coreid=%X\n", in_st.coreid);
+    printf("\tin_st_mop=%X\n", in_st.mop);
+    printf("\tin_st_pnr=%X\n", in_st.pnr);
+    printf("\tin_st_laddr=%X\n", in_st.laddr);
+    printf("\tin_st_imm=%X\n", in_st.imm);
+    printf("\tin_st_sptbr=%X\n", in_st.sptbr);
+    printf("\tin_st_user=%X\n", in_st.user);
 #endif
     in_st_list.pop_back();
   }
@@ -223,8 +234,8 @@ void try_send_packet(Vdctlb_wp *top) {
     top->pfetol1tlb_req_sptbr = in_pf.sptbr;
 #ifdef DEBUG_TRACE
     printf("@%lld in_pf_l2=%X\n",global_time, in_pf.l2);
-    printf("\t\tin_pf_laddr=%X\n", in_pf.laddr);
-    printf("\t\tin_pf_sptbr=%X\n", in_pf.sptbr);
+    printf("\tin_pf_laddr=%X\n", in_pf.laddr);
+    printf("\tin_pf_sptbr=%X\n", in_pf.sptbr);
 #endif
     in_pf_list.pop_back();
   }
@@ -240,13 +251,13 @@ void error_found(Vdctlb_wp *top) {
 void try_recv_packet(Vdctlb_wp *top) {
 
   if (top->l1tlbtol1_fwd0_valid && out_ld_list.empty() && out_pf_list.empty()) {
-    printf("ERROR: unexpected result in fwd ld: hpaddr=%X, ppaddr=%X\n",top->l1tlbtol1_fwd0_hpaddr, top->l1tlbtol1_fwd0_ppaddr);
+    printf("ERROR: unexpected result in fwd ld: hpaddr=%X, ppaddr=%X\n .",top->l1tlbtol1_fwd0_hpaddr, top->l1tlbtol1_fwd0_ppaddr);
     error_found(top);
     return;
   }
 
   if (top->l1tlbtol1_fwd1_valid && out_st_list.empty() && out_pf_list.empty()) {
-    printf("ERROR: unexpected result in fwd st: hpaddr=%X, ppaddr=%X\n",top->l1tlbtol1_fwd1_hpaddr, top->l1tlbtol1_fwd1_ppaddr);
+    printf("ERROR: unexpected result in fwd st: hpaddr=%X, ppaddr=%X\n .",top->l1tlbtol1_fwd1_hpaddr, top->l1tlbtol1_fwd1_ppaddr);
     error_found(top);
     return;
   }
@@ -434,10 +445,12 @@ int main(int argc, char **argv, char **env) {
 
 #if 1
     for(int i =0;i<1024;i++) {
-      try_send_packet(top);
-      advance_clock(top,1);
-      try_recv_packet(top);
-      advance_clock(top,1);
+      //try_send_packet(top);
+      //advance_clock(top,1);
+      //try_recv_packet(top);
+      //advance_clock(top,1);
+      
+      //printf("test %d\n", i);
 
       if (((rand() & 0x3)==0) && in_ld_list.size() < 3 && in_st_list.size() < 3 && in_pf_list.size() < 3) {
         InputPacket_Load in_ld;
@@ -454,9 +467,9 @@ int main(int argc, char **argv, char **env) {
         OutputPacket out_ld;
         out_ld.coreid   = in_ld.coreid;
         out_ld.prefetch = 0;
-        out_ld.hpaddr   = in_ld.laddr & 0x7FF000;
+        out_ld.hpaddr   = (in_ld.laddr >> 12) & 0x7FF;
         printf("ld hpaddr = %X\n", out_ld.hpaddr);
-        out_ld.ppaddr   = in_ld.laddr & 0x7000;
+        out_ld.ppaddr   = (in_ld.laddr >> 12) & 0x7;
         printf("ld ppaddr = %X\n", out_ld.ppaddr);
         out_ld_list.push_front(out_ld);
 
@@ -475,9 +488,9 @@ int main(int argc, char **argv, char **env) {
         OutputPacket out_st;
         out_st.coreid   = in_st.coreid;
         out_st.prefetch = 0;
-        out_st.hpaddr   = in_st.laddr & 0x7FF000;
+        out_st.hpaddr   = (in_st.laddr >> 12) & 0x7FF;
         printf("st hpaddr = %X\n", out_st.hpaddr);
-        out_st.ppaddr   = in_st.laddr & 0x7000;
+        out_st.ppaddr   = (in_st.laddr >> 12) & 0x7;
         printf("st ppaddr = %X\n", out_st.ppaddr);
         out_st_list.push_front(out_st);
 
@@ -490,14 +503,19 @@ int main(int argc, char **argv, char **env) {
         OutputPacket out_pf;
         out_pf.coreid   = 0;
         out_pf.prefetch = 1;
-        out_pf.hpaddr   = in_pf.laddr & 0x7FF000;
+        out_pf.hpaddr   = (in_pf.laddr >> 12) & 0x7FF;
         printf("pf hpaddr = %X\n", out_pf.hpaddr);
-        out_pf.ppaddr   = in_pf.laddr & 0x7000;
+        out_pf.ppaddr   = (in_pf.laddr >> 12) & 0x7;
         printf("pf ppaddr = %X\n", out_pf.ppaddr);
         out_pf_list.push_front(out_pf);
 
       }
       //advance_clock(top,1);
+
+      try_send_packet(top);
+      advance_clock(top,1);
+      try_recv_packet(top);
+      advance_clock(top,1);
     }
 #endif
   }
