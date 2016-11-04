@@ -80,6 +80,15 @@ run_directory_bank_wp: directory_bank_wp
 
 #REGLIST+=directory_bank_wp
 ###########################
+dctlb_wp:
+	verilator --assert --debug-check -I./rtl --Wall --cc --trace --top-module dctlb_wp ./tests/dctlb_wp.v ./rtl/dctlb.v ./rtl/fflop.v --exe tests/dctlb_wp_tb.cpp -CFLAGS -DTRACE=1
+	make -C obj_dir/ -f Vdctlb_wp.mk Vdctlb_wp
+
+run_dctlb_wp: dctlb_wp
+	./obj_dir/Vdctlb_wp
+
+#REGLIST+=dctlb_wp
+###########################
 integration_2core2dr:
 	verilator --assert --debug-check -I./rtl --Wall --cc --trace --top-module integration_2core2dr ./tests/integration_2core2dr.v ./rtl/top_2core2dr.v ./rtl/fflop.v --exe tests/integration_2core2dr_tests.cpp -CFLAGS -DTRACE=1
 	make -C obj_dir/ -f Vintegration_2core2dr.mk Vintegration_2core2dr

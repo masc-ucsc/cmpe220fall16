@@ -19,7 +19,7 @@
 // the paddr. When a L2TLB entry is displaced, the dctlb gets a snoop.
 // This means that when a hpaddr gets removed, it has to disappear from
 // the L1 cache
-
+`include "scmem.vh"
 `define L1DT_PASSTHROUGH
 
 module dctlb_wp(
@@ -112,7 +112,7 @@ module dctlb_wp(
     ,output TLB_reqid_type      l1tlbtol2tlb_req_rid
     ,output logic               l1tlbtol2tlb_req_disp_req
     ,output logic               l1tlbtol2tlb_req_disp_A
-    ,output logic               l1tlbtol2tlb_req_disp_B
+    ,output logic               l1tlbtol2tlb_req_disp_D
     ,output TLB_hpaddr_type     l1tlbtol2tlb_req_disp_hpaddr
     ,output SC_laddr_type       l1tlbtol2tlb_req_laddr
     ,output SC_sptbr_type       l1tlbtol2tlb_req_sptbr
@@ -187,7 +187,7 @@ module dctlb_wp(
     assign l1tlbtol2tlb_req_rid = l1tlbtol2tlb_req.rid;
     assign l1tlbtol2tlb_req_disp_req = l1tlbtol2tlb_req.disp_req;
     assign l1tlbtol2tlb_req_disp_A = l1tlbtol2tlb_req.disp_A;
-    assign l1tlbtol2tlb_req_disp_B = l1tlbtol2tlb_req.disp_B;
+    assign l1tlbtol2tlb_req_disp_D = l1tlbtol2tlb_req.disp_D;
     assign l1tlbtol2tlb_req_disp_hpaddr = l1tlbtol2tlb_req.disp_hpaddr;
     assign l1tlbtol2tlb_req_laddr = l1tlbtol2tlb_req.laddr;
     assign l1tlbtol2tlb_req_sptbr = l1tlbtol2tlb_req.sptbr;
