@@ -2,7 +2,7 @@
 `include "scmem.vh"
 
 //check
-// Gets a pfgtopfe and triggers the prefetches over the caches
+//Gets a pfgtopfe and triggers the prefetches over the caches
 
 module pfengine(
   /* verilator lint_off UNUSED */
