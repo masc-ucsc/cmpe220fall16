@@ -43,7 +43,7 @@ dict = {'I_drtol2_snack_type': [
 	    ('TLB_reqid_type\t', 'rid'),
 	    ('logic\t\t\t', 'disp_req'),
 	    ('logic\t\t\t', 'disp_A'),
-	    ('logic\t\t\t', 'disp_B'),
+	    ('logic\t\t\t', 'disp_D'),
 	    ('TLB_hpaddr_type\t', 'disp_hpaddr'),
 	    ('SC_laddr_type\t', 'laddr'),
 	    ('SC_sptbr_type\t', 'sptbr')],
