@@ -37,6 +37,7 @@ module directory_bank_wp(
   ,output SC_nodeid_type           drtol2_snack_nid 
   ,output L2_reqid_type            drtol2_snack_l2id // !=0 ACK
   ,output DR_reqid_type            drtol2_snack_drid // !=0 snoop
+  ,output DR_ndirs_type            drtol2_snack_directory_id 
   ,output SC_snack_type            drtol2_snack_snack
   ,output logic [`SC_LINEBYTES-1:0]              drtol2_snack_line_7 //yeah, I know the spacing is off...
   ,output logic [`SC_LINEBYTES-1:0]              drtol2_snack_line_6
@@ -70,9 +71,10 @@ module directory_bank_wp(
   ,output SC_nodeid_type           drtol2_dack_nid
   ,output L2_reqid_type            drtol2_dack_l2id
 
-  ,input                           l2todr_snoop_ack_valid //should these set of signals 
+  ,input                           l2todr_snoop_ack_valid 
   ,output                          l2todr_snoop_ack_retry
-  ,input  DR_reqid_type            l2todr_snoop_ack_drid  //should this be an input? This guess is based on the l2todr naming and they appear to be the ack from a directory snoops   
+  ,input  DR_reqid_type            l2todr_snoop_ack_drid   
+  ,input  DR_ndirs_type            l2todr_snoop_ack_directory_id 
 
   // Memory interface
   // If nobody has the data, send request to memory
@@ -301,6 +303,7 @@ module directory_bank_wp(
     .q       ({     drtol2_snack_nid
                    ,drtol2_snack_l2id
                    ,drtol2_snack_drid
+                   ,drtol2_snack_directory_id
                    ,drtol2_snack_snack
                    ,drtol2_snack_line_7
                    ,drtol2_snack_line_6
@@ -344,7 +347,8 @@ module directory_bank_wp(
 
    ,.l2todr_snoop_ack_valid(l2todr_snoop_ack_valid)
    ,.l2todr_snoop_ack_retry(l2todr_snoop_ack_retry)
-   ,.l2todr_snoop_ack(l2todr_snoop_ack_drid)
+   ,.l2todr_snoop_ack({l2todr_snoop_ack_drid
+                      ,l2todr_snoop_ack_directory_id})
 
   // Memory interface
   // If nobody has the data, send request to memory
