@@ -22,7 +22,9 @@
 /* verilator lint_off UNDRIVEN */
 
 
-module directory_bank(
+module directory_bank
+#(parameter Directory_Id=0)
+(
    input                           clk
   ,input                           reset
 
@@ -249,7 +251,9 @@ module directory_bank(
   assign drtol2_snack_next.drid =  {`DR_REQIDBITS{1'b0}}; //This is not a mistake in this case because the drid is required to be 0 on acks, and we do not snoop in passthrough
   assign drtol2_snack_next.snack = memtodr_ack_ff.ack;
   assign drtol2_snack_next.line =  memtodr_ack_ff.line;
-
+  
+  //need to set param to assign directory id to input parameter.
+  assign drtol2_snack_next.directory_id = Directory_Id[`DR_NDIRSBITS-1:0];
   
   
   fflop #(.Size($bits(I_drtol2_snack_type))) drotol2_snack_ff (

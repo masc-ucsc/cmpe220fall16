@@ -319,6 +319,7 @@ module directory_bank_wp(
   );
   
   directory_bank 
+  #(.Directory_Id(0))
   dr(
     .clk(clk)
    ,.reset(reset)
