@@ -398,6 +398,7 @@ void try_send_l1_to_l2_snoop_ack_packet (Vl2cache_pipe_wp *top) {
 
 void try_send_l1_to_l2_disp_packet (Vl2cache_pipe_wp *top) {
     top->l2todr_disp_retry = (rand()&0xF)==0; // randomly,
+    top->l2tol1_dack_retry = (rand()&0xF)==0; // randomly,
     if ( !top-> l1tol2_disp_retry ) {
         top->l1tol2_disp_l1id = rand();
         top->l1tol2_disp_l2id = rand();
@@ -478,7 +479,6 @@ void try_send_l1_to_l2_disp_packet (Vl2cache_pipe_wp *top) {
 }
 
 void try_send_dr_to_l2_dack_packet (Vl2cache_pipe_wp *top) {
-    top->l2tol1_dack_retry = (rand()&0xF)==0; // randomly,
     if ( !top-> drtol2_dack_retry ) {
         top->drtol2_dack_nid = rand();
         top->drtol2_dack_l2id = rand();
