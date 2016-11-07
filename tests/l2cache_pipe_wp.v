@@ -149,7 +149,7 @@ module l2cache_pipe_wp(
     output  logic [63:0]                  l2todr_disp_line2,
     output  logic [63:0]                  l2todr_disp_line1,
     output  logic [63:0]                  l2todr_disp_line0,
-    output  SC_paddr_type                 l2todr_disp_paddr,
+    output  SC_paddr_type                 l2todr_disp_paddr, // 50
 
     // input  I_drtol2_dack_type            drtol2_dack,
     input                                 drtol2_dack_valid,
@@ -162,8 +162,8 @@ module l2cache_pipe_wp(
     output                                l2todr_pfreq_valid,
     input                                 l2todr_pfreq_retry,
       // Dispatching
-    output  SC_paddr_type                 l2todr_pfreq_nid, // 5
-    output  SC_nodeid_type                l2todr_pfreq_paddr // 50
+    output  SC_nodeid_type                l2todr_pfreq_nid, // 5
+    output  SC_paddr_type                 l2todr_pfreq_paddr // 50
 
 );
 
