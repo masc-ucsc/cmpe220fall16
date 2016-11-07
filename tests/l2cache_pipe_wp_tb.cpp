@@ -82,6 +82,7 @@ struct DrtoL2SnackPacket { // input
     uint8_t nid;
     uint8_t l2id;
     uint8_t drid;
+    uint8_t directory_id;
     uint8_t snack;
     uint64_t line7;
     uint64_t line6;
@@ -161,8 +162,13 @@ struct L2toDrPfreqPacket {
 
 std::list<L1toL2ReqPacket> l1tol2_req_list;
 std::list<L2toDrReqPacket> l2todr_req_list;
-std::list<L2toL1SnackPacket> l2tol1_snack_list;
-std::list<DrtoL2SnackPacket> drtol2_snack_list;
+
+std::list<L2toL1SnackPacket> l2tol1_ack_only_list;
+std::list<L2toL1SnackPacket> l2tol1_snoop_only_list;
+
+std::list<DrtoL2SnackPacket> drtol2_ack_only_list;
+std::list<DrtoL2SnackPacket> drtol2_snoop_only_list;
+
 std::list<L1toL2SnoopAckPacket> l1tol2_snoop_ack_list;
 std::list<L2toDrSnoopAckPacket> l2todr_snoop_ack_list;
 std::list<L1toL2DispPacket> l1tol2_disp_list;
@@ -173,8 +179,11 @@ std::list<L2tlbtoL2FwdPacket> l2tlbtol2_fwd_list;
 std::list<L2toDrPfreqPacket> l2todr_pfreq_list;
 int count_l1tol2_req = 0;
 int count_l2todr_req = 0;
-int count_l2tol1_snack = 0;
-int count_drtol2_snack = 0;
+int count_l2tol1_snoop_only = 0;
+int count_l2tol1_ack_only = 0;
+
+int count_drtol2_ack_only = 0;
+int count_drtol2_snoop_only = 0;
 int count_l1tol2_snoop_ack = 0;
 int count_l2todr_snoop_ack = 0;
 int count_l1tol2_disp = 0;
@@ -224,13 +233,33 @@ void try_send_l1_to_l2_req_packet (Vl2cache_pipe_wp *top) {
                     // TODO
         }
         else{
-          // Generated reference result
+          // Generated 1st reference result: l2todr_req
           L2toDrReqPacket l2todr_reqp;
           l2todr_reqp.nid = rand();
           l2todr_reqp.l2id = rand();
           l2todr_reqp.cmd = l1tol2_reqp.cmd;
           // l2todr_reqp.paddr = l1tol2_reqp.laddr;
           l2todr_req_list.push_front(l2todr_reqp);
+
+          // Generated following response: drtol2_snack
+        DrtoL2SnackPacket drtol2_snackp;
+        drtol2_snackp.nid = l2todr_reqp.nid;
+      drtol2_snackp.l2id = l2todr_reqp.l2id;
+      drtol2_snackp.drid = rand() & 0x3F;
+      drtol2_snackp.snack = rand() & 0x1F & 0x0F; // Make sure this is an ack
+      drtol2_snackp.line7 = rand() & 0xFFFFFFFFFFFFFFFF;
+      drtol2_snackp.line6 = rand() & 0xFFFFFFFFFFFFFFFF;
+      drtol2_snackp.line5 = rand() & 0xFFFFFFFFFFFFFFFF;
+      drtol2_snackp.line4 = rand() & 0xFFFFFFFFFFFFFFFF;
+      drtol2_snackp.line3 = rand() & 0xFFFFFFFFFFFFFFFF;
+      drtol2_snackp.line2 = rand() & 0xFFFFFFFFFFFFFFFF;
+      drtol2_snackp.line2 = rand() & 0xFFFFFFFFFFFFFFFF;
+      drtol2_snackp.line0 = rand() & 0xFFFFFFFFFFFFFFFF;
+      drtol2_snackp.paddr = rand() & 0x3FFFFFFFFFFFF;
+      drtol2_ack_only_list.push_front(drtol2_snackp);
+#ifdef DEBUG_TRACE
+        printf("@%lld drtol2_snack nid:%x l2id:%x drid:%x snack:%x line7:%x line6:%x line5:%x line4:%x line3:%x line2:%x line1:%x line0:%x paddr:%x\n",global_time, drtol2_snackp.nid, drtol2_snackp.l2id, drtol2_snackp.drid, drtol2_snackp.snack, drtol2_snackp.line7, drtol2_snackp.line6, drtol2_snackp.line5, drtol2_snackp.line4, drtol2_snackp.line3, drtol2_snackp.line2, drtol2_snackp.line1, drtol2_snackp.line0, drtol2_snackp.paddr);
+#endif
         }
         l1tol2_req_list.pop_back();
     }
@@ -243,6 +272,7 @@ void try_send_dr_to_l2_snack_packet (Vl2cache_pipe_wp *top) {
         top->drtol2_snack_nid = rand();
         top->drtol2_snack_l2id = rand();
         top->drtol2_snack_drid = rand();
+        top->drtol2_snack_directory_id = rand();
         top->drtol2_snack_snack = rand();
         top->drtol2_snack_line7 = rand();
         top->drtol2_snack_line6 = rand();
@@ -253,7 +283,7 @@ void try_send_dr_to_l2_snack_packet (Vl2cache_pipe_wp *top) {
         top->drtol2_snack_line1 = rand();
         top->drtol2_snack_line0 = rand();
         top->drtol2_snack_paddr = rand();
-        if (drtol2_snack_list.empty() || (rand() & 0x3==0)) { // Once every 4
+        if ((drtol2_snoop_only_list.empty() && drtol2_ack_only_list.empty()) || (rand() & 0x3==0)) { // Once every 4
           top->drtol2_snack_valid = 0;
         }else{
           top->drtol2_snack_valid = 1;
@@ -261,14 +291,27 @@ void try_send_dr_to_l2_snack_packet (Vl2cache_pipe_wp *top) {
     }
     
     if (top->drtol2_snack_valid && !top->drtol2_snack_retry){
-        if (drtol2_snack_list.empty()) {
+        DrtoL2SnackPacket drtol2_snackp;
+        int snoop_or_ack; // -1: snoop; +1: ack
+        // Send packet from drtol2_ack_only_list first
+        if (drtol2_ack_only_list.empty() == 0) {
+            snoop_or_ack = 1;
+            drtol2_snackp = drtol2_ack_only_list.back();
+            count_drtol2_ack_only++;
+        }
+        else if (drtol2_snoop_only_list.empty()) {
             fprintf(stderr,"ERROR: Internal error, could not be empty drtol2_snack_list\n");
         }
-        DrtoL2SnackPacket drtol2_snackp = drtol2_snack_list.back();
-        count_drtol2_snack++;
+        // Then Send packet from drtol2_snoop_only_list
+        else{
+            snoop_or_ack = -1;
+            drtol2_snackp = drtol2_snoop_only_list.back();
+            count_drtol2_snoop_only++;
+        }
         top->drtol2_snack_nid = drtol2_snackp.nid;
         top->drtol2_snack_l2id = drtol2_snackp.l2id;
         top->drtol2_snack_drid = drtol2_snackp.drid;
+        top->drtol2_snack_directory_id = drtol2_snackp.directory_id;
         top->drtol2_snack_snack = drtol2_snackp.snack;
         top->drtol2_snack_line7 = drtol2_snackp.line7;
         top->drtol2_snack_line6 = drtol2_snackp.line6;
@@ -280,7 +323,7 @@ void try_send_dr_to_l2_snack_packet (Vl2cache_pipe_wp *top) {
         top->drtol2_snack_line0 = drtol2_snackp.line0;
         top->drtol2_snack_paddr = drtol2_snackp.paddr;
 #ifdef DEBUG_TRACE
-        printf("@%lld drtol2_snack nid:%x l2id:%x drid:%x snack:%x line7:%x line6:%x line5:%x line4:%x line3:%x line2:%x line1:%x line0:%x paddr:%x\n",global_time, drtol2_snackp.nid, drtol2_snackp.l2id, drtol2_snackp.drid, drtol2_snackp.snack, drtol2_snackp.line7, drtol2_snackp.line6, drtol2_snackp.line5, drtol2_snackp.line4, drtol2_snackp.line3, drtol2_snackp.line2, drtol2_snackp.line1, drtol2_snackp.line0, drtol2_snackp.paddr);
+        printf("@%lld drtol2_snack snoop_or_ack:%d nid:%x l2id:%x drid:%x snack:%x line7:%x line6:%x line5:%x line4:%x line3:%x line2:%x line1:%x line0:%x paddr:%x\n",global_time,snoop_or_ack, drtol2_snackp.nid, drtol2_snackp.l2id, drtol2_snackp.drid, drtol2_snackp.snack, drtol2_snackp.line7, drtol2_snackp.line6, drtol2_snackp.line5, drtol2_snackp.line4, drtol2_snackp.line3, drtol2_snackp.line2, drtol2_snackp.line1, drtol2_snackp.line0, drtol2_snackp.paddr);
 #endif
         if (0) { // If it's write
                     // TODO
@@ -288,7 +331,7 @@ void try_send_dr_to_l2_snack_packet (Vl2cache_pipe_wp *top) {
         else{
           L2toL1SnackPacket l2tol1_snackp;
           l2tol1_snackp.l1id = rand();
-          l2tol1_snackp.l2id = rand();
+          l2tol1_snackp.l2id = drtol2_snackp.l2id;
           l2tol1_snackp.snack = drtol2_snackp.snack;
           l2tol1_snackp.line7 = drtol2_snackp.line7;
           l2tol1_snackp.line6 = drtol2_snackp.line6;
@@ -300,9 +343,19 @@ void try_send_dr_to_l2_snack_packet (Vl2cache_pipe_wp *top) {
           l2tol1_snackp.line0 = drtol2_snackp.line0;
           l2tol1_snackp.poffset = rand();
           l2tol1_snackp.hpaddr = rand();
-          l2tol1_snack_list.push_front(l2tol1_snackp);
+          if (snoop_or_ack == 1) {
+            l2tol1_ack_only_list.push_front(l2tol1_snackp);
+          }
+          else if (snoop_or_ack == -1) {
+            l2tol1_snoop_only_list.push_front(l2tol1_snackp);              
+          }
         }
-        drtol2_snack_list.pop_back();
+        if (snoop_or_ack == 1) {
+            drtol2_ack_only_list.pop_back();
+        }
+        else if (snoop_or_ack == -1){
+            drtol2_snoop_only_list.pop_back();
+        }
     }
 }
 
@@ -521,7 +574,7 @@ void try_receive_l2_to_dr_req_packet (Vl2cache_pipe_wp *top) {
 }
 
 void try_receive_l2_to_l1_snack_packet (Vl2cache_pipe_wp *top) {
-    if(top->l2tol1_snack_valid && l2tol1_snack_list.empty()){
+    if(top->l2tol1_snack_valid && l2tol1_snoop_only_list.empty() && l2tol1_ack_only_list.empty()){
         printf("ERROR: unexpected l2tol1_snack l1id:%x l2id:%x snack:%x line7:%x line6:%x line5:%x line4:%x line3:%x line2:%x line1:%x line0:%x poffset:%x hpaddr:%x\n",top->l2tol1_snack_l1id, top->l2tol1_snack_l2id, top->l2tol1_snack_snack, top->l2tol1_snack_line7, top->l2tol1_snack_line6, top->l2tol1_snack_line5, top->l2tol1_snack_line4, top->l2tol1_snack_line3, top->l2tol1_snack_line2, top->l2tol1_snack_line1, top->l2tol1_snack_line0, top->l2tol1_snack_poffset, top->l2tol1_snack_hpaddr);
         error_found(top);
         return;
@@ -535,14 +588,25 @@ void try_receive_l2_to_l1_snack_packet (Vl2cache_pipe_wp *top) {
         return;
     }
     
-    if (l2tol1_snack_list.empty())
+    if (l2tol1_snoop_only_list.empty() && l2tol1_ack_only_list.empty())
         return;
 
     #ifdef DEBUG_TRACE
     printf("@%lld l2tol1_snack l1id:%x l2id:%x snack:%x line7:%x line6:%x line5:%x line4:%x line3:%x line2:%x line1:%x line0:%x poffset:%x hpaddr:%x\n",global_time, top->l2tol1_snack_l1id, top->l2tol1_snack_l2id, top->l2tol1_snack_snack, top->l2tol1_snack_line7, top->l2tol1_snack_line6, top->l2tol1_snack_line5, top->l2tol1_snack_line4, top->l2tol1_snack_line3, top->l2tol1_snack_line2, top->l2tol1_snack_line1, top->l2tol1_snack_line0, top->l2tol1_snack_poffset, top->l2tol1_snack_hpaddr);
 
     #endif
-    L2toL1SnackPacket l2tol1_snackp = l2tol1_snack_list.back();
+    L2toL1SnackPacket l2tol1_snackp;
+    int snoop_or_ack;
+    if (top->l2tol1_snack_snack >= 16) {
+        // This is a snoop
+        l2tol1_snackp = l2tol1_snoop_only_list.back();      
+        snoop_or_ack = -1;
+    }
+    else {
+        // This is an Ack
+        l2tol1_snackp = l2tol1_ack_only_list.back();
+        snoop_or_ack = 1;
+    }
     if (top->l2tol1_snack_snack != l2tol1_snackp.snack ||
         top->l2tol1_snack_line7 != l2tol1_snackp.line7 ||
         top->l2tol1_snack_line6 != l2tol1_snackp.line6 ||
@@ -568,8 +632,14 @@ void try_receive_l2_to_l1_snack_packet (Vl2cache_pipe_wp *top) {
         printf("ERROR: expected l2tol1_snack_hpaddr:%x but actual l2tol1_snack_hpaddr is %x\n", l2tol1_snackp.hpaddr,top->l2tol1_snack_hpaddr);
         error_found(top);
       }
-    l2tol1_snack_list.pop_back();
-    count_l2tol1_snack++;
+    if (snoop_or_ack == -1) {
+        l2tol1_snoop_only_list.pop_back();  
+        count_l2tol1_snoop_only++;
+    }
+    else if (snoop_or_ack == 1) {
+        l2tol1_ack_only_list.pop_back();    
+        count_l2tol1_ack_only++;        
+    }
 }
 
 void try_receive_l2_to_dr_snoop_ack_packet (Vl2cache_pipe_wp *top) {
@@ -771,13 +841,14 @@ int main(int argc, char **argv, char **env) {
       l1tol2_req_list.push_front(l1tol2_reqp);
     }
 
-    if(((rand() & 0x3)==0) && drtol2_snack_list.size() < 3 ) {
+    if(((rand() & 0x3)==0) && drtol2_snoop_only_list.size() < 3 ) {
       //DrtoL2SnackPacket drtol2_snackp = DrtoL2SnackPacket();
       DrtoL2SnackPacket drtol2_snackp;
       drtol2_snackp.nid = rand() & 0x1F;
       drtol2_snackp.l2id = rand() & 0x3F;
       drtol2_snackp.drid = rand() & 0x3F;
-      drtol2_snackp.snack = rand() & 0x1F;
+      drtol2_snackp.directory_id = rand() & 0X3;
+      drtol2_snackp.snack = rand() & 0x1F | 0x10; // Make sure this is a snoop
       drtol2_snackp.line7 = rand() & 0xFFFFFFFFFFFFFFFF;
       drtol2_snackp.line6 = rand() & 0xFFFFFFFFFFFFFFFF;
       drtol2_snackp.line5 = rand() & 0xFFFFFFFFFFFFFFFF;
@@ -787,7 +858,7 @@ int main(int argc, char **argv, char **env) {
       drtol2_snackp.line2 = rand() & 0xFFFFFFFFFFFFFFFF;
       drtol2_snackp.line0 = rand() & 0xFFFFFFFFFFFFFFFF;
       drtol2_snackp.paddr = rand() & 0x3FFFFFFFFFFFF;
-      drtol2_snack_list.push_front(drtol2_snackp);
+      drtol2_snoop_only_list.push_front(drtol2_snackp);
     }
 
     if (((rand() & 0x3)==0) && l1tol2_snoop_ack_list.size() < 3 ) {
@@ -836,7 +907,9 @@ int main(int argc, char **argv, char **env) {
     }
   }
 #endif
-  printf("Test Statistics: l1tol2_req count: %d\n l2todr_req count: %d\n l2tol1_snack count: %d\n drtol2_snack count: %d\n l1tol2_snoop_ack count: %d\n l2todr_snoop_ack count %d\n l1tol2_disp count: %d\n l2todr_disp count: %d\n l2tol1_dack count: %d\n drtol2_dack count: %d\n l2tlbtol2_fwd count: %d\n l2todr_pfreq count: %d\n",count_l1tol2_req, count_l2todr_req, count_l2tol1_snack, count_drtol2_snack, count_l1tol2_snoop_ack, count_l2todr_snoop_ack, count_l1tol2_disp, count_l2todr_disp, count_l2tol1_dack, count_drtol2_dack, count_l2tlbtol2_fwd, count_l2todr_pfreq);
+  printf("Test Statistics:\n l1tol2_req count: %d\n l2todr_req count: %d\n l2tol1_snoop_only count: %d\n l2tol1_ack_only count: %d\n drtol2_snoop_only count: %d\n drtol2_ack_only count: %d\n l1tol2_snoop_ack count: %d\n l2todr_snoop_ack count %d\n l1tol2_disp count: %d\n l2todr_disp count: %d\n l2tol1_dack count: %d\n drtol2_dack count: %d\n l2tlbtol2_fwd count: %d\n l2todr_pfreq count: %d\n",
+          count_l1tol2_req, count_l2todr_req, count_l2tol1_snoop_only, count_l2tol1_ack_only, count_drtol2_snoop_only, count_drtol2_ack_only,
+          count_l1tol2_snoop_ack, count_l2todr_snoop_ack, count_l1tol2_disp, count_l2todr_disp, count_l2tol1_dack, count_drtol2_dack, count_l2tlbtol2_fwd, count_l2todr_pfreq);
   sim_finish(true);
 
 }

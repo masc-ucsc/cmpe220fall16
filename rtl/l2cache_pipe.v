@@ -176,10 +176,14 @@ fflop #(.Size($bits(I_l2tol1_snack_type))) fsnack (
     assign l2tol1_snack_valid = 1;
     assign l2tol1_snack = 0;
     assign l2tlbtol2_fwd_retry = 0;
-    
-    
     // Temp drive End
+    
+    // (1) l1tol2_req
+    // (2) l2todr_req
+    // (3) drtol2_snack
+    // (4) l2tol1_snack
     always_comb begin
+        // l1tol2_req
         if (l1tol2_req_valid) begin
             l2todr_req_next.nid = 5'b00000; // Could be wrong
             l2todr_req_next.l2id = 6'b00_0000;
