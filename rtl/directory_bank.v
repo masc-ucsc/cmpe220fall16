@@ -18,11 +18,16 @@
 // Parameter for the # of entry to remember: 4,8,16
 // 
 // For replacement use HawkEye or RRIP
+
+//This has to be here for snoop acks. Current unused signals are allf ro snoop acks which the passthrough does not use
+//because the directory does not snoop in the passthrough.
 /* verilator lint_off UNUSED */
-/* verilator lint_off UNDRIVEN */
 
 
-module directory_bank(
+
+module directory_bank
+#(parameter Directory_Id=0)
+(
    input                           clk
   ,input                           reset
 
@@ -133,8 +138,6 @@ module directory_bank(
   logic [`DR_REQIDS-1:0] drid_valid_vector;
   logic [`DR_REQIDS-1:0] drid_valid_vector_next;
   
-  
-  logic [`DR_REQIDBITS-1:0] drid_ack_addr; //unused as well
   
   //This always block combined with the flop represents the logic used to maintain a vector which remembers which DRIDs are in use 
   //and which are available. This valid is sent to a priority encoder which determines the next available DRID to be used in the pending
@@ -249,7 +252,9 @@ module directory_bank(
   assign drtol2_snack_next.drid =  {`DR_REQIDBITS{1'b0}}; //This is not a mistake in this case because the drid is required to be 0 on acks, and we do not snoop in passthrough
   assign drtol2_snack_next.snack = memtodr_ack_ff.ack;
   assign drtol2_snack_next.line =  memtodr_ack_ff.line;
-
+  
+  //need to set param to assign directory id to input parameter.
+  assign drtol2_snack_next.directory_id = Directory_Id[`DR_NDIRSBITS-1:0];
   
   
   fflop #(.Size($bits(I_drtol2_snack_type))) drotol2_snack_ff (
@@ -662,7 +667,6 @@ module directory_bank(
   logic drid_release;
   assign drid_release = drtol2_snack_valid && !drtol2_snack_retry; //unused for now
   
-  logic [`DR_REQIDBITS-1:0] drid_ack_addr; //unused as well
   
   always_comb begin
     drid_valid_vector_next = drid_valid_vector;
