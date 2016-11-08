@@ -1,6 +1,10 @@
 `ifndef SCMEMI_H
 `define SCMEMI_H
 
+`include "scmemp.vh"
+`include "scmemc.vh"
+`include "scmemt.vh"
+
 // {{{1 l1tol2_req
 typedef struct packed {
   L1_reqid_type     l1id;
