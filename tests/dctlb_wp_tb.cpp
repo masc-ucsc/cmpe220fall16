@@ -57,7 +57,7 @@ struct InputPacket_Load { //coretodctlb_ld_type
   int coreid;
   int lop;
   int pnr;
-  int laddr;
+  uint64_t laddr;
   int imm;
   int sptbr;
   int user;
@@ -68,7 +68,7 @@ struct InputPacket_Store { //coretodctlb_st_type
   int coreid;
   int mop;
   int pnr;
-  int laddr;
+  uint64_t laddr;
   int imm;
   int sptbr;
   int user;
@@ -76,7 +76,7 @@ struct InputPacket_Store { //coretodctlb_st_type
 
 struct InputPacket_Prefetch { // prefetch request
   int l2;
-  int laddr;
+  uint64_t laddr;
   int sptbr;
 };
 
@@ -168,6 +168,7 @@ void try_send_packet(Vdctlb_wp *top) {
     if (in_pf_list.empty() || (rand() & 0x3)) { // Once every 4 cycles
       top->pfetol1tlb_req_valid = 0;
     }else{
+      printf("pf request should not be\n");
       top->pfetol1tlb_req_valid = 1;
     }
   }
@@ -262,13 +263,15 @@ void try_recv_packet(Vdctlb_wp *top) {
     return;
   }
 
+  /*
   if (top->l1tlbtol1_fwd0_retry || top->l1tlbtol1_fwd1_retry)
     return;
+    */
 
-  if (!top->l1tlbtol1_fwd0_valid || !top->l1tlbtol1_fwd1_valid)
+  if (!top->l1tlbtol1_fwd0_valid && !top->l1tlbtol1_fwd1_valid)
     return;
 
-  if (out_ld_list.empty() || out_st_list.empty())
+  if (out_ld_list.empty() && out_st_list.empty())
     return;
 
 #ifdef DEBUG_TRACE
@@ -285,44 +288,54 @@ void try_recv_packet(Vdctlb_wp *top) {
   int out_st_hpaddr = top->l1tlbtol1_fwd1_hpaddr;
   int out_st_ppaddr = top->l1tlbtol1_fwd1_ppaddr;
 
-  if(out_ld_hpaddr != out_ld.hpaddr || out_ld_ppaddr != out_ld_ppaddr){
+  if(top->l1tlbtol1_fwd0_valid) {
+    if(out_ld_hpaddr != out_ld.hpaddr || out_ld_ppaddr != out_ld_ppaddr){
+      out_ld_list.pop_back();
+
+    } else {
       is_in_pf = false;
+      /*
+       * no pf requests for now
       while(!out_pf_list.empty()){
         out_pf = out_pf_list.back();
         out_pf_list.pop_back();
         if(out_ld_hpaddr == out_pf.hpaddr && out_ld_ppaddr == out_pf.ppaddr){
-            is_in_pf = true;
-            break;
+          is_in_pf = true;
+          break;
         }
-      }
+      }*/
       if(!is_in_pf){
-          printf("ERROR: got %X but expected out_ld.hpaddr = %X\n", out_ld_hpaddr, out_ld.hpaddr);
-          printf("\t got %X but expected out_ld.ppaddr = %X\n", out_ld_ppaddr, out_ld.ppaddr);
-          printf("\t value not sent as a prefetch\n");
-          error_found(top);
+        printf("ERROR: got %X but expected out_ld.hpaddr = %X\n", out_ld_hpaddr, out_ld.hpaddr);
+        printf("\t got %X but expected out_ld.ppaddr = %X\n", out_ld_ppaddr, out_ld.ppaddr);
+        printf("\t value not sent as a prefetch\n");
+        error_found(top);
       }
+    }
   }
 
-  if(out_st_hpaddr != out_st.hpaddr || out_st_ppaddr != out_st_ppaddr){
+  if(top->l1tlbtol1_fwd1_valid) {
+    if(out_st_hpaddr != out_st.hpaddr || out_st_ppaddr != out_st_ppaddr){
+      out_st_list.pop_back();
+
+    } else {
       is_in_pf = false;
       while(!out_pf_list.empty()){
         out_pf = out_pf_list.back();
         out_pf_list.pop_back();
         if(out_st_hpaddr == out_pf.hpaddr && out_st_ppaddr == out_pf.ppaddr){
-            is_in_pf = true;
-            break;
+          is_in_pf = true;
+          break;
         }
       }
       if(!is_in_pf){
-          printf("ERROR: got %X but expected out_st.hpaddr = %X\n", out_st_hpaddr, out_st.hpaddr);
-          printf("\t got %X but expected out_st.ppaddr = %X\n", out_st_ppaddr, out_st.ppaddr);
-          printf("\t value not sent as a prefetch\n");
-          error_found(top);
+        printf("ERROR: got %X but expected out_st.hpaddr = %X\n", out_st_hpaddr, out_st.hpaddr);
+        printf("\t got %X but expected out_st.ppaddr = %X\n", out_st_ppaddr, out_st.ppaddr);
+        printf("\t value not sent as a prefetch\n");
+        error_found(top);
       }
+    }
   }
 
-  out_ld_list.pop_back();
-  out_st_list.pop_back();
   ntests++;
 }
 
@@ -368,9 +381,9 @@ int main(int argc, char **argv, char **env) {
     out_ld_list.clear();
     out_st_list.clear();
 
-    top->coretodctlb_ld_valid = 1;
-    top->coretodctlb_st_valid = 1;
-    top->pfetol1tlb_req_valid = 1;
+    top->coretodctlb_ld_valid = 0;
+    top->coretodctlb_st_valid = 0;
+    top->pfetol1tlb_req_valid = 0;
     int ncycles= rand() & 0xFF;
     ncycles++; // At least one cycle reset
     for(int i =0;i<ncycles;i++) {
@@ -438,8 +451,8 @@ int main(int argc, char **argv, char **env) {
     top->pfetol1tlb_req_laddr   = 0;
     top->pfetol1tlb_req_sptbr   = 0;
 
-    top->l1tlbtol1_fwd0_retry   = 1;
-    top->l1tlbtol1_fwd1_retry   = 1;
+    top->l1tlbtol1_fwd0_retry   = 0;
+    top->l1tlbtol1_fwd1_retry   = 0;
 
     advance_clock(top,1);
 
@@ -454,14 +467,14 @@ int main(int argc, char **argv, char **env) {
 
       if (((rand() & 0x3)==0) && in_ld_list.size() < 3 && in_st_list.size() < 3 && in_pf_list.size() < 3) {
         InputPacket_Load in_ld;
-        in_ld.ckpid  = rand() & 0xF;
+        in_ld.ckpid  = 0;//rand() & 0xF;
         in_ld.coreid = rand() & 0x3F;
-        in_ld.lop    = rand() & 0x5F;
-        in_ld.pnr    = rand() & 0x1;
-        in_ld.laddr  = rand() & 0x7FFFFFFFFF;
-        in_ld.imm    = rand() & 0xFFF;
-        in_ld.sptbr  = rand() & 0x3FFFFFFFFF;
-        in_ld.user   = rand() & 0x1;
+        in_ld.lop    = 0;//rand() & 0x5F;
+        in_ld.pnr    = 0;//rand() & 0x1;
+        in_ld.laddr  = 0;//((rand() << 32) | rand()) & 0x7FFFFFFFFF;
+        in_ld.imm    = 0;//rand() & 0xFFF;
+        in_ld.sptbr  = 0;//rand() & 0x3FFFFFFFFF;
+        in_ld.user   = 0;//rand() & 0x1;
         in_ld_list.push_front(in_ld);
 
         OutputPacket out_ld;
@@ -473,13 +486,13 @@ int main(int argc, char **argv, char **env) {
         printf("ld ppaddr = %X\n", out_ld.ppaddr);
         out_ld_list.push_front(out_ld);
 
-
+/*
         InputPacket_Store in_st;
         in_st.ckpid  = rand() & 0xF;
         in_st.coreid = rand() & 0x3F;
         in_st.mop    = rand() & 0x5F;
         in_st.pnr    = rand() & 0x1;
-        in_st.laddr  = rand() & 0x7FFFFFFFFF;
+        in_st.laddr  = ((rand() << 32) | rand()) & 0x7FFFFFFFFF;
         in_st.imm    = rand() & 0xFFF;
         in_st.sptbr  = rand() & 0x3FFFFFFFFF;
         in_st.user   = rand() & 0x1;
@@ -496,7 +509,7 @@ int main(int argc, char **argv, char **env) {
 
         InputPacket_Prefetch in_pf;
         in_pf.l2     = rand() & 1;
-        in_pf.laddr  = rand() & 0x7FFFFFFFFF;
+        in_pf.laddr  = ((rand() << 32) | rand()) & 0x7FFFFFFFFF;
         in_pf.sptbr  = rand() & 0x3FFFFFFFFF;
         in_pf_list.push_front(in_pf);
 
@@ -508,14 +521,14 @@ int main(int argc, char **argv, char **env) {
         out_pf.ppaddr   = (in_pf.laddr >> 12) & 0x7;
         printf("pf ppaddr = %X\n", out_pf.ppaddr);
         out_pf_list.push_front(out_pf);
-
+*/
       }
       //advance_clock(top,1);
 
       try_send_packet(top);
-      advance_clock(top,1);
+      advance_half_clock(top);
       try_recv_packet(top);
-      advance_clock(top,1);
+      advance_half_clock(top);
     }
 #endif
   }

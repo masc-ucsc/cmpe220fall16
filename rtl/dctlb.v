@@ -95,6 +95,7 @@ module dctlb(
 
       l1tlbtol1_fwd0_valid_next = coretodctlb_ld_valid;
       coretodctlb_ld_retry = l1tlbtol1_fwd0_retry_next;
+      pfetol1tlb_req_retry = 1'b0;
     end else if(~pfetol1tlb_req.l2) begin
       l1tlbtol1_fwd0_next.coreid = 'b0;
       l1tlbtol1_fwd0_next.prefetch = 1'b1;
@@ -106,6 +107,7 @@ module dctlb(
 
       l1tlbtol1_fwd0_valid_next = pfetol1tlb_req_valid;
       pfetol1tlb_req_retry = l1tlbtol1_fwd0_retry_next & pfetol1tlb_req_valid;
+      coretodctlb_ld_retry = 1'b0;
     end
   end
 
@@ -140,6 +142,7 @@ module dctlb(
 
       l1tlbtol1_fwd1_valid_next = coretodctlb_st_valid;
       coretodctlb_st_retry = l1tlbtol1_fwd1_retry_next;
+      pfetol1tlb_req_retry = 1'b0;
     end else if(coretodctlb_ld_valid & ~pfetol1tlb_req.l2) begin
       l1tlbtol1_fwd1_next.coreid = 'b0;
       l1tlbtol1_fwd1_next.prefetch = 1'b1;
@@ -151,6 +154,7 @@ module dctlb(
 
       l1tlbtol1_fwd1_valid_next = pfetol1tlb_req_valid;
       pfetol1tlb_req_retry = l1tlbtol1_fwd1_retry_next & pfetol1tlb_req_valid;
+      coretodctlb_st_retry = 1'b0;
     end
   end
 
