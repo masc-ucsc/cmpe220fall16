@@ -365,7 +365,7 @@ int main(int argc, char **argv, char **env) {
   tfp = new VerilatedVcdC;
 
   top->trace(tfp, 99);
-  tfp->open("output.vcd");
+  tfp->open("dctlb_output.vcd");
 #endif
 
   // initialize simulation inputs

@@ -94,7 +94,7 @@ dctlb_wp:
 run_dctlb_wp: dctlb_wp
 	./obj_dir/Vdctlb_wp
 
-#REGLIST+=dctlb_wp
+REGLIST+=dctlb_wp
 ###########################
 integration_2core2dr:
 	verilator --assert --debug-check -I./rtl --Wall --cc --trace --top-module integration_2core2dr ./tests/integration_2core2dr.v ./rtl/top_2core2dr.v ./rtl/fflop.v --exe tests/integration_2core2dr_tests.cpp -CFLAGS -DTRACE=1
