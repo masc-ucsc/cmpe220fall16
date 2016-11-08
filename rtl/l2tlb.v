@@ -84,12 +84,11 @@ module l2tlb(
    );
   
   always_comb begin
-	  l2tlbtol2_fwd_next.1lid = l1tol2tlb_req.l1id;
+	  l2tlbtol2_fwd_next.l1id = l1tol2tlb_req.l1id;
 	  l2tlbtol2_fwd_next.prefetch = l1tol2tlb_req.prefetch;
 	  l2tlbtol2_fwd_next.fault = 3'b000;
 	  l2tlbtol2_fwd_next.hpaddr = l1tol2tlb_req.hpaddr;
-	  l2tlbtol2_fwd_next.paddr[11:0] = l1tol2tlb_req.poffset;
-	  l2tlbtol2_fwd_next.paddr[22:12] = l1tol2tlb_req.hpaddr;
+		l2tlbtol2_fwd_next.paddr = {27'b0, l1tol2tlb_req.hpaddr, 12'b0};
   end
 
   // l2tlb -> l1tlb ack
@@ -111,8 +110,8 @@ module l2tlb(
 
   always_comb begin
 	  l2tlbtol1tlb_ack_next.rid = l1tlbtol2tlb_req.rid;
-	  l2tlbtol1tlb_ack_next.hpaddr = l1tlbtol2tlb_req.hpaddr;
-	  l2tlbtol1tlb_ack_next.ppaddr = l1tlbtol2tlb_req.hpaddr[2:0];
+	  l2tlbtol1tlb_ack_next.hpaddr = l1tlbtol2tlb_req.laddr;
+	  l2tlbtol1tlb_ack_next.ppaddr = l1tlbtol2tlb_req.laddr[14:12];
 	  l2tlbtol1tlb_ack_next.dctlbe = 13'b0_0000_0000_0000;
   end
 
