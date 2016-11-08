@@ -289,7 +289,12 @@ void try_recv_packet(Vdctlb_wp *top) {
   int out_st_ppaddr = top->l1tlbtol1_fwd1_ppaddr;
 
   if(top->l1tlbtol1_fwd0_valid) {
-    if(out_ld_hpaddr != out_ld.hpaddr || out_ld_ppaddr != out_ld_ppaddr){
+    if(top->l1tlbtol1_fwd0_hpaddr == out_ld.hpaddr &&
+          top->l1tlbtol1_fwd0_ppaddr == out_ld_ppaddr &&
+          top->l1tlbtol1_fwd0_coreid == out_ld.coreid){
+
+      printf("success pop %d\n",out_ld.coreid);
+
       out_ld_list.pop_back();
 
     } else {
