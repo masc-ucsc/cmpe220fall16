@@ -1,4 +1,3 @@
-
 .PHONY: all lint join_fadd run_join_fadd
 
 all: 
@@ -34,6 +33,14 @@ l2:
 
 run_l2: l2
 	./obj_dir/Vl2cache_pipe_wp
+
+###########################
+l2tlb:
+	verilator --assert --debug-check -I./rtl --Wall --cc --trace --top-module l2tlb_wp ./tests/l2tlb_wp.v ./rtl/fflop.v --exe ./tests/l2tlb_wp_tb.cpp -CFLAGS -DTRACE=1 #--exe tests/ram_1port_fast_wp_tb.cpp -CFLAGS -DTRACE=1
+	make -C obj_dir/ -f Vl2tlbe_wp.mk Vl2tlb_wp
+
+run_l2tlb: l2tlb
+	./obj_dir/Vl2tlb_wp
 
 ###########################
 net_2core2dr:
@@ -80,6 +87,15 @@ run_directory_bank_wp: directory_bank_wp
 
 #REGLIST+=directory_bank_wp
 ###########################
+dctlb_wp:
+	verilator --assert --debug-check -I./rtl --Wall --cc --trace --top-module dctlb_wp ./tests/dctlb_wp.v ./rtl/dctlb.v ./rtl/fflop.v --exe tests/dctlb_wp_tb.cpp -CFLAGS -DTRACE=1
+	make -C obj_dir/ -f Vdctlb_wp.mk Vdctlb_wp
+
+run_dctlb_wp: dctlb_wp
+	./obj_dir/Vdctlb_wp
+
+#REGLIST+=dctlb_wp
+###########################
 integration_2core2dr:
 	verilator --assert --debug-check -I./rtl --Wall --cc --trace --top-module integration_2core2dr ./tests/integration_2core2dr.v ./rtl/top_2core2dr.v ./rtl/fflop.v --exe tests/integration_2core2dr_tests.cpp -CFLAGS -DTRACE=1
 	make -C obj_dir/ -f Vintegration_2core2dr.mk Vintegration_2core2dr
@@ -94,4 +110,3 @@ regression: $(REGLIST)
 
 clean:
 	rm -rf obj_dir *.vcd a.out
-

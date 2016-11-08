@@ -156,31 +156,21 @@ fflop #(.Size($bits(I_l2tol1_snack_type))) fsnack (
     assign  l1tol2_req_retry = l2todr_req_next_retry;
 
     // Temp drive Begin
-    assign l1tol2_snoop_ack_retry = 0;
-    assign l1tol2_disp_retry = 0;
-    assign l2tol1_dack_valid = 1;
-    assign l2tol1_dack = 0;
     //assign l1tol2_pfreq_retry = 0;
     //assign pftol2_pfreq_retry = 0;
     assign cachetopf_stats = 0;
-    assign drtol2_snack_retry = 0;
-    assign l2todr_snoop_ack_valid = 1;
-    assign l2todr_snoop_ack = 0;
-    assign l2todr_disp_valid = 1;
-    assign l2todr_disp = 0;
     assign drtol2_dack_retry = 0;
-    assign l2todr_pfreq_valid = 1;
-    assign l2todr_pfreq = 0;
-    //assign l2tol1_snack_next_valid = 1;
-    //assign l2tol1_snack_next = 0;
-    assign l2tol1_snack_valid = 1;
-    assign l2tol1_snack = 0;
     assign l2tlbtol2_fwd_retry = 0;
-    
-    
     // Temp drive End
+    
+    // (1) l1tol2_req
+    // (2) l2todr_req
+    // (3) drtol2_snack
+    // (4) l2tol1_snack
     always_comb begin
-        if (l1tol2_req_valid) begin
+        // -> l1tol2_req
+        // l2todr_req ->
+        if (l2todr_req_next_valid) begin
             l2todr_req_next.nid = 5'b00000; // Could be wrong
             l2todr_req_next.l2id = 6'b00_0000;
             l2todr_req_next.cmd = l1tol2_req.cmd;
@@ -213,7 +203,7 @@ fflop #(.Size($bits(I_l2tol1_snack_type))) fsnack (
     assign l2tol1_snack_next_valid = drtol2_snack_valid;
     assign drtol2_snack_retry = l2tol1_snack_next_retry;
     always_comb begin
-        if (drtol2_snack_valid) begin
+        if (l2tol1_snack_next_valid) begin
             l2tol1_snack_next.l1id = {5{1'b0}};
             l2tol1_snack_next.l2id = drtol2_snack.l2id;
             l2tol1_snack_next.snack = drtol2_snack.snack;
@@ -237,5 +227,131 @@ fflop #(.Size($bits(I_l2tol1_snack_type))) fsnack (
     );
 // end
 `endif
+
+`ifdef L2_PASSTHROUGH
+// -> l1tol2_snoop_ack
+// l2todr_snoop_ack ->
+    logic l2todr_snoop_ack_next_valid;
+    assign l2todr_snoop_ack_next_valid = l1tol2_snoop_ack_valid;
+    logic l2todr_snoop_ack_next_retry;
+    assign l1tol2_snoop_ack_retry = l2todr_snoop_ack_next_retry;
+    I_l2snoop_ack_type l2todr_snoop_ack_next;
+    always_comb begin
+        if (l2todr_snoop_ack_next_valid) begin
+            l2todr_snoop_ack_next.l2id = l1tol2_snoop_ack.l2id;
+            l2todr_snoop_ack_next.directory_id = l1tol2_snoop_ack.directory_id;
+        end
+    end
+
+    fflop #(.Size($bits(I_l2snoop_ack_type))) fl2todr_snoop_ack (
+    .clk      (clk),
+    .reset    (reset),
+
+    .din      (l2todr_snoop_ack_next),
+    .dinValid (l2todr_snoop_ack_next_valid),
+    .dinRetry (l2todr_snoop_ack_next_retry),
+
+    .q        (l2todr_snoop_ack),
+    .qValid   (l2todr_snoop_ack_valid),
+    .qRetry   (l2todr_snoop_ack_retry)
+    );
+`endif
+
+`ifdef L2_PASSTHROUGH
+// -> l2tlbtol2_fwd
+// l2todr_pfreq ->
+    logic l2todr_pfreq_next_valid;
+    assign l2todr_pfreq_next_valid = l2tlbtol2_fwd_valid && l2tlbtol2_fwd.prefetch;
+    logic l2todr_pfreq_next_retry;
+    assign l2tlbtol2_fwd_retry = l2todr_pfreq_next_retry;
+    I_l2todr_pfreq_type l2todr_pfreq_next;
+    always_comb begin
+        if (l2todr_pfreq_next_valid) begin
+            l2todr_pfreq_next.nid = {5{1'b0}};
+            l2todr_pfreq_next.paddr = l2tlbtol2_fwd.paddr;
+        end
+    end
+
+    fflop #(.Size($bits(I_l2todr_pfreq_type))) fl2todr_pfreq (
+    .clk      (clk),
+    .reset    (reset),
+
+    .din      (l2todr_pfreq_next),
+    .dinValid (l2todr_pfreq_next_valid),
+    .dinRetry (l2todr_pfreq_next_retry),
+
+    .q        (l2todr_pfreq),
+    .qValid   (l2todr_pfreq_valid),
+    .qRetry   (l2todr_pfreq_retry)
+    );
+
+`endif
+
+`ifdef L2_PASSTHROUGH
+// (1) -> l1tol2_disp
+// (2) l2todr_disp ->
+// (2) l2tol1_dack ->
+    logic l2todr_disp_next_valid;
+    assign l2todr_disp_next_valid = l1tol2_disp_valid;
+    logic l2todr_disp_next_retry;
+    assign l1tol2_disp_retry = l2todr_disp_next_retry | l2tol1_dack_next_retry; // Note this is BUGGYYYYY!
+    I_l2todr_disp_type l2todr_disp_next;
+    always_comb begin
+        if (l2todr_disp_next_valid) begin
+            l2todr_disp_next.nid =  {5{1'b0}};
+            l2todr_disp_next.l2id = l1tol2_disp.l2id;
+            l2todr_disp_next.drid =  {6{1'b0}};
+            l2todr_disp_next.mask = l1tol2_disp.mask;
+            l2todr_disp_next.dcmd = l1tol2_disp.dcmd;
+            l2todr_disp_next.line = l1tol2_disp.line;
+            l2todr_disp_next.paddr = {{35{1'b0}},
+                l1tol2_disp.ppaddr,
+                {12{1'b0}}}; //35 + 3bit + 12bit
+        end
+    end
+
+    fflop #(.Size($bits(I_l2todr_disp_type))) fl2todr_disp (
+    .clk      (clk),
+    .reset    (reset),
+
+    .din      (l2todr_disp_next),
+    .dinValid (l2todr_disp_next_valid),
+    .dinRetry (l2todr_disp_next_retry),
+
+    .q        (l2todr_disp),
+    .qValid   (l2todr_disp_valid),
+    .qRetry   (l2todr_disp_retry)
+    );
+`endif
+
+`ifdef L2_PASSTHROUGH
+// (1) -> l1tol2_disp
+// (2) l2todr_disp ->
+// (2) l2tol1_dack ->
+    logic l2tol1_dack_next_valid;
+    assign l2tol1_dack_next_valid = l1tol2_disp_valid;
+    logic l2tol1_dack_next_retry;
+    I_l2tol1_dack_type l2tol1_dack_next;
+    always_comb begin
+        if (l2tol1_dack_next_valid) begin
+            l2tol1_dack_next.l1id =  l1tol2_disp.l1id;
+        end
+    end
+
+    fflop #(.Size($bits(I_l2tol1_dack_type))) fl2tol1_dack (
+    .clk      (clk),
+    .reset    (reset),
+
+    .din      (l2tol1_dack_next),
+    .dinValid (l2tol1_dack_next_valid),
+    .dinRetry (l2tol1_dack_next_retry),
+
+    .q        (l2tol1_dack),
+    .qValid   (l2tol1_dack_valid),
+    .qRetry   (l2tol1_dack_retry)
+    );
+`endif
+
+
 endmodule
 

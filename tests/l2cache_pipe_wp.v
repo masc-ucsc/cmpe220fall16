@@ -17,6 +17,7 @@ module l2cache_pipe_wp(
     input   SC_cmd_type                   l1tol2_req_cmd, // 3 bit
     input   SC_pcsign_type                l1tol2_req_pcsign, // 13 bit
     input   SC_ppaddr_type                l1tol2_req_ppaddr, // 3 bit
+    input   SC_poffset_type               l1tol2_req_poffset, // 12 bit
     
     // output I_l2tol1_snack_type           l2tol1_snack,
     output                                l2tol1_snack_valid,
@@ -42,7 +43,8 @@ module l2cache_pipe_wp(
     output                                l1tol2_snoop_ack_retry,
       // Dispatching
     input   L2_reqid_type                 l1tol2_snoop_ack_l2id, // 6
-    
+    input   DR_ndirs_type                 l1tol2_snoop_ack_directory_id, // 2
+
     // input I_l1tol2_disp_type             l1tol2_disp,
     input                                 l1tol2_disp_valid,
     output                                l1tol2_disp_retry,
@@ -110,6 +112,7 @@ module l2cache_pipe_wp(
     input   SC_nodeid_type                drtol2_snack_nid, // 5
     input   L2_reqid_type                 drtol2_snack_l2id, // 6
     input   DR_reqid_type                 drtol2_snack_drid, // 6
+	input   DR_ndirs_type                 drtol2_snack_directory_id, // 2
     input   SC_snack_type                 drtol2_snack_snack, // 5
         // input  SC_line_type              drtol2_snack_line,
     input   logic [63:0]                  drtol2_snack_line7, // 64
@@ -126,6 +129,7 @@ module l2cache_pipe_wp(
     output                                l2todr_snoop_ack_valid,
     input                                 l2todr_snoop_ack_retry,
     output  L2_reqid_type                 l2todr_snoop_ack_l2id, // 6
+	output  DR_ndirs_type                  l2todr_snoop_ack_directory_id, // 2   
 
     // output I_l2todr_disp_type            l2todr_disp,
     output                                l2todr_disp_valid,
@@ -145,7 +149,7 @@ module l2cache_pipe_wp(
     output  logic [63:0]                  l2todr_disp_line2,
     output  logic [63:0]                  l2todr_disp_line1,
     output  logic [63:0]                  l2todr_disp_line0,
-    output  SC_paddr_type                 l2todr_disp_paddr,
+    output  SC_paddr_type                 l2todr_disp_paddr, // 50
 
     // input  I_drtol2_dack_type            drtol2_dack,
     input                                 drtol2_dack_valid,
@@ -158,8 +162,8 @@ module l2cache_pipe_wp(
     output                                l2todr_pfreq_valid,
     input                                 l2todr_pfreq_retry,
       // Dispatching
-    output  SC_paddr_type                 l2todr_pfreq_nid, // 5
-    output  SC_nodeid_type                l2todr_pfreq_paddr // 50
+    output  SC_nodeid_type                l2todr_pfreq_nid, // 5
+    output  SC_paddr_type                 l2todr_pfreq_paddr // 50
 
 );
 
@@ -174,6 +178,7 @@ module l2cache_pipe_wp(
       .l1tol2_req({     l1tol2_req_l1id,
                         l1tol2_req_cmd,
                         l1tol2_req_pcsign,
+                        l1tol2_req_poffset,
                         l1tol2_req_ppaddr}),
       
       .l2tol1_snack_valid(l2tol1_snack_valid),
@@ -194,7 +199,8 @@ module l2cache_pipe_wp(
 
        .l1tol2_snoop_ack_valid(l1tol2_snoop_ack_valid),
        .l1tol2_snoop_ack_retry(l1tol2_snoop_ack_retry),
-       .l1tol2_snoop_ack(      l1tol2_snoop_ack_l2id),
+       .l1tol2_snoop_ack( {     l1tol2_snoop_ack_l2id,
+                                l1tol2_snoop_ack_directory_id}),
 
        .l1tol2_disp_valid(l1tol2_disp_valid),
        .l1tol2_disp_retry(l1tol2_disp_retry),
@@ -245,6 +251,7 @@ module l2cache_pipe_wp(
         .drtol2_snack({     drtol2_snack_nid, 
                             drtol2_snack_l2id,
                             drtol2_snack_drid,
+                            drtol2_snack_directory_id,
                             drtol2_snack_snack,
                             drtol2_snack_line7,
                             drtol2_snack_line6,
@@ -258,7 +265,7 @@ module l2cache_pipe_wp(
 
         .l2todr_snoop_ack_valid(l2todr_snoop_ack_valid),
         .l2todr_snoop_ack_retry(l2todr_snoop_ack_retry),
-        .l2todr_snoop_ack(      l2todr_snoop_ack_l2id),
+        .l2todr_snoop_ack(      {l2todr_snoop_ack_l2id, l2todr_snoop_ack_directory_id}),
 
         .l2todr_disp_valid(l2todr_disp_valid),
         .l2todr_disp_retry(l2todr_disp_retry),

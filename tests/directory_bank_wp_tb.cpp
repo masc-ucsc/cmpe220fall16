@@ -58,12 +58,12 @@ void sim_finish(bool pass) {
 
 struct InputPacket_l2todr_pfreq {
   uint8_t  nid;
-  uint64_t addr;
+  uint64_t paddr;
 };
 
 struct OutputPacket_drtomem_pfreq {
   uint8_t  nid;
-  uint64_t addr; // read result
+  uint64_t paddr; // read result
 };
 
 struct InputPacket_l2todr_disp {
@@ -110,17 +110,19 @@ struct InputPacket_l2todr_req {
   uint8_t nid;
   uint8_t l2id;
   uint8_t cmd;
-  uint64_t addr;
+  uint64_t paddr;
 };
 
 struct OutputPacket_drtomem_req {
   uint8_t drid;
   uint8_t cmd;
-  uint64_t addr; // read result
+  uint64_t paddr; // read result
 };
 
 struct InputPacket_memtodr_ack {
   uint8_t drid;
+  uint8_t nid;
+  uint64_t paddr;
   uint8_t ack_cmd;
   uint64_t line_7;
   uint64_t line_6;
@@ -144,8 +146,9 @@ struct OutputPacket_drtol2_snack {
   uint8_t nid;
   uint8_t l2id;
   uint8_t drid;
+  uint8_t directory_id;
   uint8_t ack_cmd;
-  uint64_t addr; // read result
+  uint64_t paddr; // read result
   uint64_t line_7;
   uint64_t line_6;
   uint64_t line_5;
@@ -253,10 +256,10 @@ void try_send_packet(Vdirectory_bank_wp *top) {
 
 
     InputPacket_l2todr_pfreq inp1 = inp_list_pfreq.back();
-    top->l2todr_pfreq_paddr = inp1.addr;
+    top->l2todr_pfreq_paddr = inp1.paddr;
     top->l2todr_pfreq_nid = inp1.nid;
 #ifdef DEBUG_TRACE
-    printf("@%lu pfreq addr:%lu, nid: %u \n",global_time, inp1.addr, inp1.nid);
+    printf("@%lu pfreq paddr:%lu, nid: %u \n",global_time, inp1.paddr, inp1.nid);
 #endif
    
     inp_list_pfreq.pop_back();
@@ -271,15 +274,15 @@ void try_send_packet(Vdirectory_bank_wp *top) {
 
 
     InputPacket_l2todr_req inp2 = inp_list_req.back();
-    top->l2todr_req_paddr = inp2.addr;
+    top->l2todr_req_paddr = inp2.paddr;
     top->l2todr_req_nid = inp2.nid;
     top->l2todr_req_l2id = inp2.l2id;
 #ifdef DEBUG_TRACE
-    printf("@%lu l2todr req paddr:%lu, nid: %u, l2id: %u\n",global_time, inp2.addr, inp2.nid, inp2.l2id);
+    printf("@%lu l2todr req paddr:%lu, nid: %u, l2id: %u\n",global_time, inp2.paddr, inp2.nid, inp2.l2id);
 #endif
    
     OutputPacket_drtomem_req out2;
-    out2.addr = inp2.addr;
+    out2.paddr = inp2.paddr;
     out_list_req.push_front(out2);
     
 
@@ -327,10 +330,13 @@ void try_send_packet(Vdirectory_bank_wp *top) {
     }
 
 #ifdef TEST_ACK
+    
+
     InputPacket_memtodr_ack inp3 = inp_list_ack.back();
     top->memtodr_ack_drid = inp3.drid;
     top->memtodr_ack_ack = inp3.ack_cmd;
-    
+    top->memtodr_ack_nid = inp3.nid;
+    top->memtodr_ack_paddr = inp3.paddr;
     top->memtodr_ack_line_7 = inp3.line_7;
     top->memtodr_ack_line_6 = inp3.line_6;
     top->memtodr_ack_line_5 = inp3.line_5;
@@ -341,7 +347,12 @@ void try_send_packet(Vdirectory_bank_wp *top) {
     top->memtodr_ack_line_0 = inp3.line_0;
 
 #ifdef DEBUG_TRACE
-    printf("@%lu memtodr ack drid: %u acmd: %u, data:%lu,%lu,%lu,%lu,%lu,%lu,%lu,%lu\n",global_time ,inp3.drid ,inp3.ack_cmd
+    printf("@%lu memtodr ack paddr: %lu, nid: %u, drid: %u, ack_cmd: %u, data:%lu,%lu,%lu,%lu,%lu,%lu,%lu,%lu\n"
+                                                                             ,global_time 
+                                                                             ,inp3.paddr
+                                                                             ,inp3.nid
+                                                                             ,inp3.drid 
+                                                                             ,inp3.ack_cmd
                                                                              ,inp3.line_7
                                                                              ,inp3.line_6
                                                                              ,inp3.line_5
@@ -353,17 +364,10 @@ void try_send_packet(Vdirectory_bank_wp *top) {
                                                                              ); //change
 #endif
    
-    //the output expection should expect a specific nid and l2id. Not fully implemented yet.
-    OutputPacket_drtol2_snack out3;    
-    out3.line_7 = inp3.line_7;
-    out3.line_6 = inp3.line_6;
-    out3.line_5 = inp3.line_5;
-    out3.line_4 = inp3.line_4;
-    out3.line_3 = inp3.line_3;
-    out3.line_2 = inp3.line_2;
-    out3.line_1 = inp3.line_1;
-    out3.line_0 = inp3.line_0;
-    out_list_ack.push_front(out3);
+
+    
+    
+    
 #endif    
 
 
@@ -397,13 +401,48 @@ void try_recv_packet_pfreq(Vdirectory_bank_wp *top) {
 #ifdef DEBUG_TRACE
     printf("@%lu drtomem pfreq paddr:%lu, nid: %u\n",global_time, top->drtomem_pfreq_paddr, top->drtomem_pfreq_nid);
 #endif
-  OutputPacket_drtomem_pfreq o1 = out_list_pfreq.back();
-  if (top->drtomem_pfreq_paddr != o1.addr) {
-    printf("ERROR: expected drtomem paddr:%lu but actual is %lu\n",o1.addr,top->drtomem_pfreq_paddr);
+  OutputPacket_drtomem_pfreq o = out_list_pfreq.back();
+  if (top->drtomem_pfreq_paddr != o.paddr) {
+    printf("ERROR: expected drtomem paddr:%lu but actual is %lu\n",o.paddr,top->drtomem_pfreq_paddr);
     error_found(top);
-  } else if (top->drtomem_pfreq_nid != o1.nid) {
-    printf("ERROR: expected drtomem nid:%u but actual is %u\n",o1.nid,top->drtomem_pfreq_nid);
+  } else if (top->drtomem_pfreq_nid != o.nid) {
+    printf("ERROR: expected drtomem nid:%u but actual is %u\n",o.nid,top->drtomem_pfreq_nid);
     error_found(top);
+  }
+  
+  //Randomly choose for a prefetch acknowledgement to occur
+  if(rand() % 5){
+        InputPacket_memtodr_ack i_ack;
+        i_ack.drid = 0;
+        i_ack.nid = o.nid;
+        i_ack.paddr = o.paddr;
+        i_ack.ack_cmd = 4;
+        i_ack.line_7 = rand() & 0xFFFFFFFFFFFFFFFF;
+        i_ack.line_6 = rand() & 0xFFFFFFFFFFFFFFFF;
+        i_ack.line_5 = rand() & 0xFFFFFFFFFFFFFFFF;
+        i_ack.line_4 = rand() & 0xFFFFFFFFFFFFFFFF;
+        i_ack.line_3 = rand() & 0xFFFFFFFFFFFFFFFF;
+        i_ack.line_2 = rand() & 0xFFFFFFFFFFFFFFFF;
+        i_ack.line_1 = rand() & 0xFFFFFFFFFFFFFFFF;
+        i_ack.line_0 = rand() & 0xFFFFFFFFFFFFFFFF;
+        inp_list_ack.push_front(i_ack);
+               
+        OutputPacket_drtol2_snack o_ack;
+        o_ack.drid = i_ack.drid;
+        o_ack.nid = i_ack.nid;
+        o_ack.l2id = 0;
+        o_ack.directory_id = 0; //not defined in the verilog code currently
+        o_ack.paddr = i_ack.paddr;
+        o_ack.ack_cmd = i_ack.ack_cmd;
+        o_ack.line_7 = i_ack.line_7;
+        o_ack.line_6 = i_ack.line_6;
+        o_ack.line_5 = i_ack.line_5;
+        o_ack.line_4 = i_ack.line_4;
+        o_ack.line_3 = i_ack.line_3;
+        o_ack.line_2 = i_ack.line_2;
+        o_ack.line_1 = i_ack.line_1;
+        o_ack.line_0 = i_ack.line_0;
+        out_list_ack.push_front(o_ack);
   }
 
   out_list_pfreq.pop_back();
@@ -500,13 +539,14 @@ void try_recv_packet_req(Vdirectory_bank_wp *top) {
     printf("@%lu drtomem req paddr:%lu, drid: %u, cmd: %u\n",global_time, top->drtomem_req_paddr, top->drtomem_req_drid, top->drtomem_req_cmd);
 #endif
   OutputPacket_drtomem_req o2 = out_list_req.back();
-  if (top->drtomem_req_paddr != o2.addr) {
-    printf("ERROR: expected drtomem paddr:%lu but actual is %lu\n",o2.addr,top->drtomem_req_paddr);
+  if (top->drtomem_req_paddr != o2.paddr) {
+    printf("ERROR: expected drtomem paddr:%lu but actual is %lu\n",o2.paddr,top->drtomem_req_paddr);
     error_found(top);
   }
   
 #ifdef TEST_ACK
   //When we receive a request, push an ack
+  
   InputPacket_memtodr_ack inAck;    
   inAck.line_7 = rand();
   inAck.line_6 = rand();
@@ -517,8 +557,33 @@ void try_recv_packet_req(Vdirectory_bank_wp *top) {
   inAck.line_1 = rand();
   inAck.line_0 = rand();
   inAck.drid = top->drtomem_req_drid;
-  inAck.ack_cmd = rand() & 0x1F;
+  inAck.nid = 0;
+  inAck.paddr = 0;
+  inAck.ack_cmd = rand() & 0x1B; //this prevents prefetch command from being generated.
   inp_list_ack.push_front(inAck);
+  
+  OutputPacket_drtol2_snack out3;    
+  out3.line_7 = inAck.line_7;
+  out3.line_6 = inAck.line_6;
+  out3.line_5 = inAck.line_5;
+  out3.line_4 = inAck.line_4;
+  out3.line_3 = inAck.line_3;
+  out3.line_2 = inAck.line_2;
+  out3.line_1 = inAck.line_1;
+  out3.line_0 = inAck.line_0;
+  out3.drid = 0;
+  out3.directory_id = 0;
+  out3.ack_cmd = inAck.ack_cmd;
+  out3.paddr = 0;
+  
+  //This pop should never fail because we only get to this stage is a request has occurred which would mean
+  //an ID has been pushed to the list.
+  OutputPacket_drtol2_ack_ids o_id = out_list_ack_ids.back();
+  out3.nid = o_id.nid;
+  out3.l2id = o_id.l2id;
+  
+  out_list_ack.push_front(out3);
+  out_list_ack_ids.pop_back();
 #endif
   
   out_list_req.pop_back();
@@ -526,8 +591,9 @@ void try_recv_packet_req(Vdirectory_bank_wp *top) {
 
 //ack
 void try_recv_packet_ack(Vdirectory_bank_wp *top) {
-
-  if (top->drtol2_snack_valid && out_list_ack.empty() && out_list_ack_ids.empty()) {
+  //this error check may be a little off. The OR is checking for non-prefetch acks where the values are stored in two different
+  //lists.
+  if (top->drtol2_snack_valid && out_list_ack.empty()) {
     printf("ERROR: unexpected drtol2 ack nid: %u, l2id: %u, data:%lu,%lu,%lu,%lu,%lu,%lu,%lu,%lu\n"
                                                                              ,top->drtol2_snack_nid
                                                                              ,top->drtol2_snack_l2id
@@ -551,11 +617,17 @@ void try_recv_packet_ack(Vdirectory_bank_wp *top) {
 
   if (out_list_ack.empty())
     return;
+  
+
 
 #ifdef DEBUG_TRACE
-    printf("@%lu drtol2 ack nid: %u, l2id: %u, data:%lu,%lu,%lu,%lu,%lu,%lu,%lu,%lu\n",global_time 
+  printf("@%lu drtol2 ack paddr: %lu, nid: %u, l2id: %u, drid: %u, directory_id: %u, snack_cmd: %u, data:%lu,%lu,%lu,%lu,%lu,%lu,%lu,%lu\n",global_time 
+                                                                             ,top->drtol2_snack_paddr
                                                                              ,top->drtol2_snack_nid
                                                                              ,top->drtol2_snack_l2id
+                                                                             ,top->drtol2_snack_drid
+                                                                             ,top->drtol2_snack_directory_id
+                                                                             ,top->drtol2_snack_snack
                                                                              ,top->drtol2_snack_line_7
                                                                              ,top->drtol2_snack_line_6
                                                                              ,top->drtol2_snack_line_5
@@ -565,45 +637,57 @@ void try_recv_packet_ack(Vdirectory_bank_wp *top) {
                                                                              ,top->drtol2_snack_line_1
                                                                              ,top->drtol2_snack_line_0); //change
 #endif
-  OutputPacket_drtol2_snack o3 = out_list_ack.back();
-  if (top->drtol2_snack_line_7 != o3.line_7) {
-    printf("ERROR: expected drtol2 ack data:%lu but ack is %lu\n",o3.line_7,top->drtol2_snack_line_7);
+
+
+  OutputPacket_drtol2_snack o = out_list_ack.back();
+  if (top->drtol2_snack_line_7 != o.line_7) {
+    printf("ERROR: expected drtol2 ack data:%lu but ack is %lu\n",o.line_7,top->drtol2_snack_line_7);
     error_found(top);
-  } else if (top->drtol2_snack_line_6 != o3.line_6) {
-    printf("ERROR: expected drtol2 ack data:%lu but ack is %lu\n",o3.line_6,top->drtol2_snack_line_6);
+  } else if (top->drtol2_snack_line_6 != o.line_6) {
+    printf("ERROR: expected drtol2 ack data:%lu but ack is %lu\n",o.line_6,top->drtol2_snack_line_6);
     error_found(top);
-  } else if (top->drtol2_snack_line_5 != o3.line_5) {
-    printf("ERROR: expected drtol2 ack data:%lu but ack is %lu\n",o3.line_5,top->drtol2_snack_line_5);
+  } else if (top->drtol2_snack_line_5 != o.line_5) {
+    printf("ERROR: expected drtol2 ack data:%lu but ack is %lu\n",o.line_5,top->drtol2_snack_line_5);
     error_found(top);
-  } else if (top->drtol2_snack_line_4 != o3.line_4) {
-    printf("ERROR: expected drtol2 ack data:%lu but ack is %lu\n",o3.line_4,top->drtol2_snack_line_4);
+  } else if (top->drtol2_snack_line_4 != o.line_4) {
+    printf("ERROR: expected drtol2 ack data:%lu but ack is %lu\n",o.line_4,top->drtol2_snack_line_4);
     error_found(top);
-  } else if (top->drtol2_snack_line_3 != o3.line_3) {
-    printf("ERROR: expected drtol2 ack data:%lu but ack is %lu\n",o3.line_3,top->drtol2_snack_line_3);
+  } else if (top->drtol2_snack_line_3 != o.line_3) {
+    printf("ERROR: expected drtol2 ack data:%lu but ack is %lu\n",o.line_3,top->drtol2_snack_line_3);
     error_found(top);
-  } else if (top->drtol2_snack_line_2 != o3.line_2) {
-    printf("ERROR: expected drtol2 ack data:%lu but ack is %lu\n",o3.line_2,top->drtol2_snack_line_2);
+  } else if (top->drtol2_snack_line_2 != o.line_2) {
+    printf("ERROR: expected drtol2 ack data:%lu but ack is %lu\n",o.line_2,top->drtol2_snack_line_2);
     error_found(top);
-  } else if (top->drtol2_snack_line_1 != o3.line_1) {
-    printf("ERROR: expected drtol2 ack data:%lu but ack is %lu\n",o3.line_1,top->drtol2_snack_line_1);
+  } else if (top->drtol2_snack_line_1 != o.line_1) {
+    printf("ERROR: expected drtol2 ack data:%lu but ack is %lu\n",o.line_1,top->drtol2_snack_line_1);
     error_found(top);
-  } else if (top->drtol2_snack_line_0 != o3.line_0) {
-    printf("ERROR: expected drtol2 ack data:%lu but ack is %lu\n",o3.line_0,top->drtol2_snack_line_0);
+  } else if (top->drtol2_snack_line_0 != o.line_0) {
+    printf("ERROR: expected drtol2 ack data:%lu but ack is %lu\n",o.line_0,top->drtol2_snack_line_0);
     error_found(top);
   }
   
-  OutputPacket_drtol2_ack_ids o_id = out_list_ack_ids.back();
-  if (top->drtol2_snack_nid != o_id.nid) {
-    printf("ERROR: expected drtol2 ack nid:%u but actual is %u\n",o_id.nid,top->drtol2_snack_nid);
+  if (top->drtol2_snack_nid != o.nid) {
+    printf("ERROR: expected drtol2 ack nid:%u but actual is %u\n",o.nid,top->drtol2_snack_nid);
     error_found(top);
-  } else if (top->drtol2_snack_l2id != o_id.l2id) {
-    printf("ERROR: expected drtol2 ack l2id:%u but actual is %u\n",o_id.l2id,top->drtol2_snack_l2id);
+  } else if (top->drtol2_snack_l2id != o.l2id) {
+    printf("ERROR: expected drtol2 ack l2id:%u but actual is %u\n",o.l2id,top->drtol2_snack_l2id);
+    error_found(top);
+  } else if (top->drtol2_snack_drid != o.drid) {
+    printf("ERROR: expected drtol2 ack drid:%u but actual is %u\n",o.drid,top->drtol2_snack_drid);
+    error_found(top);
+  } else if (top->drtol2_snack_directory_id != o.directory_id) {
+    printf("ERROR: expected drtol2 ack directory_id:%u but actual is %u\n",o.directory_id,top->drtol2_snack_directory_id);
+    error_found(top);
+  } else if (top->drtol2_snack_snack != o.ack_cmd) {
+    printf("ERROR: expected drtol2 ack snack :%u but actual is %u\n",o.ack_cmd,top->drtol2_snack_snack );
+    error_found(top);
+  } else if (top->drtol2_snack_paddr != o.paddr) {
+    printf("ERROR: expected drtol2 ack paddr:%lu but actual is %lu\n",o.paddr,top->drtol2_snack_paddr);
     error_found(top);
   }
-
+  
 
   out_list_ack.pop_back();
-  out_list_ack_ids.pop_back();
 }
 
 
@@ -687,49 +771,19 @@ int main(int argc, char **argv, char **env) {
       i.nid = rand() & 0x1F;
 
       if (rand() % 3)
-        i.addr = rand() & 0x0001FFFFFFFFFFFF;
+        i.paddr = rand() & 0x0001FFFFFFFFFFFF;
       else if (!inp_list_pfreq.empty())
-        i.addr = inp_list_pfreq.front().addr;
+        i.paddr = inp_list_pfreq.front().paddr;
       else
-        i.addr = rand() & 0x00000000FFFFFFFF;
+        i.paddr = rand() & 0x00000000FFFFFFFF;
 
       inp_list_pfreq.push_front(i);
       
       OutputPacket_drtomem_pfreq o;
-      o.addr = i.addr;
+      o.paddr = i.paddr;
       o.nid = i.nid;
       out_list_pfreq.push_front(o);
-      
-      //not ready yet, will choose randomly to push an ack for the prefetch
-      if(0){
-        InputPacket_memtodr_ack i_ack;
-        i_ack.drid = 0;
-        i_ack.ack_cmd = 4;
-        i_ack.line_7 = rand() & 0xFFFFFFFFFFFFFFFF;
-        i_ack.line_6 = rand() & 0xFFFFFFFFFFFFFFFF;
-        i_ack.line_5 = rand() & 0xFFFFFFFFFFFFFFFF;
-        i_ack.line_4 = rand() & 0xFFFFFFFFFFFFFFFF;
-        i_ack.line_3 = rand() & 0xFFFFFFFFFFFFFFFF;
-        i_ack.line_2 = rand() & 0xFFFFFFFFFFFFFFFF;
-        i_ack.line_1 = rand() & 0xFFFFFFFFFFFFFFFF;
-        i_ack.line_0 = rand() & 0xFFFFFFFFFFFFFFFF;
-        inp_list_ack.push_front(i_ack);
-        
-        OutputPacket_drtol2_snack o_ack;
-        i_ack.drid = i_ack.drid;
-        i_ack.ack_cmd = i_ack.ack_cmd;
-        i_ack.line_7 = i_ack.line_7;
-        i_ack.line_6 = i_ack.line_6;
-        i_ack.line_5 = i_ack.line_5;
-        i_ack.line_4 = i_ack.line_4;
-        i_ack.line_3 = i_ack.line_3;
-        i_ack.line_2 = i_ack.line_2;
-        i_ack.line_1 = i_ack.line_1;
-        i_ack.line_0 = i_ack.line_0;
-        out_list_ack.push_front(o_ack);
-      }
-      
-    
+         
     }
 #endif
     
@@ -738,13 +792,13 @@ int main(int argc, char **argv, char **env) {
       InputPacket_l2todr_req i;
 
       i.nid = rand() & 0x1F;
-      i.l2id = rand() & 0x3F;
+      i.l2id = (rand()%63) + 1; //in the range 1-63
       if (rand() % 3)
-        i.addr = rand() & 0x0001FFFFFFFFFFFF;
+        i.paddr = rand() & 0x0001FFFFFFFFFFFF;
       else if (!inp_list_req.empty())
-        i.addr = inp_list_req.front().addr;
+        i.paddr = inp_list_req.front().paddr;
       else
-        i.addr = rand() & 0x00000000FFFFFFFF;
+        i.paddr = rand() & 0x00000000FFFFFFFF;
 
       inp_list_req.push_front(i);
       
@@ -769,7 +823,7 @@ int main(int argc, char **argv, char **env) {
       if (rand() % 3)
         i.paddr = rand() & 0x0001FFFFFFFFFFFF;
       else if (!inp_list_req.empty())
-        i.paddr = inp_list_req.front().addr;
+        i.paddr = inp_list_req.front().paddr;
       else
         i.paddr = rand() & 0x00000000FFFFFFFF;
 
