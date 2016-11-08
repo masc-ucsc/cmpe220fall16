@@ -77,6 +77,8 @@ module ictlb(
 
       l1tlbtol1_fwd1_valid_next = pfetol1tlb_req_valid;
       pfetol1tlb_req_retry = l1tlbtol1_fwd1_retry_next & pfetol1tlb_req_valid;
+    end else begin
+      l1tlbtol1_fwd1_valid_next = 1'b0;
     end
   end
 
