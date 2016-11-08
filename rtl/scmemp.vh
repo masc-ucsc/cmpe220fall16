@@ -59,7 +59,6 @@
 `define SC_PPADDRBITS   3 // predicted lower paddr bits [n:12]
 `define SC_IMMBITS     12
 
-`define SC_L2DRHPADDRBITS (8+`SC_PPADDRBITS+12)
 
 `define SC_PCSIGNBITS  13
 
@@ -101,6 +100,19 @@
 
 // VALID CONFIGURATION OPTIONS (2 or 4 pipes)
 `define SC_4PIPE 1 // 1..4 pipes
+`ifdef SC_4PIPE
+`define SC_NPIPESBITS 2
+`else
+`define SC_NPIPESBITS 1
+`endif
+`define SC_NPIPES     (1<<`SC_NPIPESBITS)
+
+// SC_PPADDRBITS+12 = The L2 needs 14 bits for index+offset (256 entries or 8 bits index + 6 bits cache line)
+// 2 slices need 1 exta index bit, 2 bits for 4 slices
+// Extra 8 bits of hash bits partial tag
+`define DR_HPADDR_BASEBITS (`SC_NPIPESBITS+`SC_PPADDRBITS+12)
+`define DR_HPADDR_HASHBITS (8)
+`define DR_HPADDRBITS (`DR_HPADDR_BASEBITS+`DR_HPADDR_HASHBITS)
 
 //-------------------
 // Prefetching Parameters

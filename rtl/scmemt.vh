@@ -100,12 +100,30 @@ typedef logic [`L2_REQIDBITS-1:0]    L2_reqid_type;
 typedef logic [`SC_NODEIDBITS-1:0]   SC_nodeid_type;
 typedef logic [`DR_NDIRSBITS-1:0]    DR_ndirs_type;
 
-typedef logic [`SC_L2DRHPADDRBITS-1:0] SC_l2drhpaddr_type;
+typedef logic [`DR_HPADDR_BASEBITS-1:0] DR_hpaddr_base_type;
+typedef logic [`DR_HPADDR_HASHBITS-1:0] DR_hpaddr_hash_type;
+typedef logic [`DR_HPADDRBITS-1:0]      DR_hpaddr_type;
 
-function SC_l2drhpaddr_type compute_sc_l2dr_phash(input SC_paddr_type paddr);
-  // Lower bits as paddr, upper bits hash of paddr 8bits + PPADDR + 12
-  SC_l2drhpaddr_type p;
-  p = {paddr[19:12] ^ paddr[27:20] ^ paddr[35:28] ^ paddr[43:36] ^ {2'b0, paddr[49:44]}, paddr[`SC_PPADDRBITS+12-1:0]};
+//`define USE_HPADDR_DR 1
+/* verilator lint_off UNUSED */
+function DR_hpaddr_base_type compute_dr_hpaddr_base(input SC_paddr_type paddr);
+	DR_hpaddr_base_type b;
+	b = paddr[`DR_HPADDR_BASEBITS-1:0];
+  return b;
+endfunction
+function DR_hpaddr_hash_type compute_dr_hpaddr_hash(input SC_paddr_type paddr);
+	DR_hpaddr_hash_type h;
+	h = paddr[19:12] ^ paddr[27:20] ^ paddr[35:28] ^ paddr[43:36] ^ {2'b0, paddr[49:44]};
+  return h;
+endfunction
+/* verilator lint_on UNUSED */
+function DR_hpaddr_type compute_dr_hpaddr(input SC_paddr_type paddr);
+  DR_hpaddr_type p;
+	DR_hpaddr_base_type b;
+	DR_hpaddr_hash_type h;
+	b = compute_dr_hpaddr_base(paddr);
+	h = compute_dr_hpaddr_hash(paddr);
+	p = {h,b};
   return p;
 endfunction
 

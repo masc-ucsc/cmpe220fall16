@@ -208,7 +208,8 @@ typedef struct packed {
 
 `ifdef USE_HPADDR_DR
   // hash paddr to check in L2 and DR tag. Many lines may hit in a snoop. 
-  SC_l2drhpaddr_type l2drhpaddr; 
+  DR_hpaddr_base_type hpaddr_base; 
+  DR_hpaddr_hash_type hpaddr_hash; 
 `else
 	SC_paddr_type      paddr;
 `endif
