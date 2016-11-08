@@ -172,5 +172,5 @@ module l2tlb_wp(
 	assign drtol2_dack.l2id = drtol2_dack_l2id;
 
 
-top_2core2dr top(.*);
+l2tlb top(.*);
 endmodule
