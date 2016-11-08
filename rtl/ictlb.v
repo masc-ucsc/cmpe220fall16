@@ -71,6 +71,7 @@ module ictlb(
 
       l1tlbtol1_fwd_valid_next = coretoictlb_pc_valid;
       coretoictlb_pc_retry = l1tlbtol1_fwd_retry_next;
+      pfetol1tlb_req_retry = 1'b0;
 
     end else if(~pfetol1tlb_req.l2) begin
       l1tlbtol1_fwd_next.coreid = 'b0;
@@ -82,6 +83,7 @@ module ictlb(
 
       l1tlbtol1_fwd_valid_next = pfetol1tlb_req_valid;
       pfetol1tlb_req_retry = l1tlbtol1_fwd_retry_next & pfetol1tlb_req_valid;
+      coretoictlb_pc_retry = 1'b0;
     end else begin
       l1tlbtol1_fwd_valid_next = 1'b0;
     end
