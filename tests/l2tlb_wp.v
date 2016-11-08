@@ -23,7 +23,6 @@ module l2tlb_wp(
 	,output	logic			l1tol2tlb_req_retry
 	,input	L1_reqid_type		l1tol2tlb_req_1lid			// 5 bits
 	,input	logic			l1tol2tlb_req_prefetch
-	,input	SC_poffset_type		l1tol2tlb_req_poffset			// 12 bits
 	,input	TLB_hpaddr_type		l1tol2tlb_req_hpaddr			// 11 bits
 
 	,output	logic			l2tlbtol2_fwd_valid
@@ -76,6 +75,7 @@ module l2tlb_wp(
 	,input	SC_nodeid_type		drtol2_snack_nid				// 5 bits
 	,input	L2_reqid_type		drtol2_snack_l2id				// 6 bits
 	,input	DR_reqid_type		drtol2_snack_drid				// 6 bits
+	,input  DR_ndirs_type      	drtol2_snack_directory_id			// 2 bits
 	,input	SC_snack_type		drtol2_snack_snack				// 5 bits
 	,input	SC_line_type		drtol2_snack_line				// 512 bits
 	,input	SC_paddr_type		drtol2_snack_paddr				// 50 bits
@@ -83,6 +83,7 @@ module l2tlb_wp(
 	,output	logic			l2todr_snoop_ack_valid
 	,input	logic			l2todr_snoop_ack_retry
 	,output	L2_reqid_type		l2todr_snoop_ack_l2id				// 6 bits
+	,output DR_ndirs_type     	l2todr_snoop_ack_directory_id			// 2 bits
 
 	,output	logic			l2todr_disp_valid
 	,input	logic			l2todr_disp_retry
@@ -107,7 +108,6 @@ module l2tlb_wp(
 	I_l1tol2tlb_req_type l1tol2tlb_req;
 	assign l1tol2tlb_req.1lid = l1tol2tlb_req_1lid;
 	assign l1tol2tlb_req.prefetch = l1tol2tlb_req_prefetch;
-	assign l1tol2tlb_req.poffset = l1tol2tlb_req_poffset;
 	assign l1tol2tlb_req.hpaddr = l1tol2tlb_req_hpaddr;
 
 	I_l2tlbtol2_fwd_type l2tlbtol2_fwd;
@@ -149,12 +149,14 @@ module l2tlb_wp(
 	assign drtol2_snack.nid = drtol2_snack_nid;
 	assign drtol2_snack.l2id = drtol2_snack_l2id;
 	assign drtol2_snack.drid = drtol2_snack_drid;
+	assign drtol2_snack.directory_id = drtol2_snack_directory_id;
 	assign drtol2_snack.snack = drtol2_snack_snack;
 	assign drtol2_snack.line = drtol2_snack_line;
 	assign drtol2_snack.paddr = drtol2_snack_paddr;
 
 	I_l2snoop_ack_type l2todr_snoop_ack;
 	assign l2todr_snoop_ack_l2id = l2todr_snoop_ack.l2id;
+	assign l2todr_snoop_ack_directory_id = l2todr_snoop_ack.directory_id;
 
 	I_l2todr_disp_type l2todr_disp;
 	assign l2todr_disp_nid = l2todr_disp.nid;
