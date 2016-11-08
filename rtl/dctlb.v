@@ -107,7 +107,9 @@ module dctlb(
 
       l1tlbtol1_fwd0_valid_next = pfetol1tlb_req_valid;
       pfetol1tlb_req_retry = l1tlbtol1_fwd0_retry_next & pfetol1tlb_req_valid;
-      coretodctlb_ld_retry = 1'b0;
+      coretodctlb_ld_retry = 1'b0; 
+    end else begin
+      l1tlbtol1_fwd0_valid_next = 1'b0;
     end
   end
 
@@ -155,6 +157,8 @@ module dctlb(
       l1tlbtol1_fwd1_valid_next = pfetol1tlb_req_valid;
       pfetol1tlb_req_retry = l1tlbtol1_fwd1_retry_next & pfetol1tlb_req_valid;
       coretodctlb_st_retry = 1'b0;
+    end else begin
+      l1tlbtol1_fwd1_valid_next = 1'b0;
     end
   end
 
