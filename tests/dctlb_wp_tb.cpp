@@ -293,7 +293,7 @@ void try_recv_packet(Vdctlb_wp *top) {
           top->l1tlbtol1_fwd0_ppaddr == out_ld_ppaddr &&
           top->l1tlbtol1_fwd0_coreid == out_ld.coreid){
 
-      printf("success pop %d\n",out_ld.coreid);
+      printf("success pop %X\n",out_ld.coreid);
 
       out_ld_list.pop_back();
 
@@ -312,6 +312,7 @@ void try_recv_packet(Vdctlb_wp *top) {
       if(!is_in_pf){
         printf("ERROR: got %X but expected out_ld.hpaddr = %X\n", out_ld_hpaddr, out_ld.hpaddr);
         printf("\t got %X but expected out_ld.ppaddr = %X\n", out_ld_ppaddr, out_ld.ppaddr);
+        printf("\t got %X but expected out_ld.coreid = %X\n", top->l1tlbtol1_fwd0_coreid, out_ld.coreid);
         printf("\t value not sent as a prefetch\n");
         error_found(top);
       }
