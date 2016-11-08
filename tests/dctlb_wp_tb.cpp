@@ -110,7 +110,7 @@ void try_send_packet(Vdctlb_wp *top) {
     set_retry_for_ld--;
     top->l1tlbtol1_fwd0_retry = 1;
   }else{
-    top->l1tlbtol1_fwd0_retry = (rand()&0xF)==0; // randomly, one every 8 packets
+    top->l1tlbtol1_fwd0_retry = 0; //(rand()&0xF)==0; // randomly, one every 8 packets
   }
 
   static int set_retry_for_st = 0;
@@ -126,19 +126,42 @@ void try_send_packet(Vdctlb_wp *top) {
   
 
   if (!top->coretodctlb_ld_retry) {
-    top->coretodctlb_ld_ckpid = rand();
-    top->coretodctlb_ld_coreid = rand();
-    top->coretodctlb_ld_lop = rand();
-    top->coretodctlb_ld_pnr = rand();
-    top->coretodctlb_ld_laddr = rand();
-    top->coretodctlb_ld_imm = rand();
-    top->coretodctlb_ld_sptbr = rand();
-    top->coretodctlb_ld_user = rand();
-
     if (in_ld_list.empty() || (rand() & 0x3)) { // Once every 4
       top->coretodctlb_ld_valid = 0;
-    }else{
+
+      top->coretodctlb_ld_ckpid = rand();
+      top->coretodctlb_ld_coreid = rand();
+      top->coretodctlb_ld_lop = rand();
+      top->coretodctlb_ld_pnr = rand();
+      top->coretodctlb_ld_laddr = rand();
+      top->coretodctlb_ld_imm = rand();
+      top->coretodctlb_ld_sptbr = rand();
+      top->coretodctlb_ld_user = rand();
+    } else {
       top->coretodctlb_ld_valid = 1;
+
+      InputPacket_Load in_ld = in_ld_list.back();
+      top->coretodctlb_ld_ckpid = in_ld.ckpid;
+      top->coretodctlb_ld_coreid = in_ld.coreid;
+      top->coretodctlb_ld_lop = in_ld.lop;
+      top->coretodctlb_ld_pnr = in_ld.pnr;
+      top->coretodctlb_ld_laddr = in_ld.laddr;
+      top->coretodctlb_ld_imm = in_ld.imm;
+      top->coretodctlb_ld_sptbr = in_ld.sptbr;
+      top->coretodctlb_ld_user = in_ld.user;
+#ifdef DEBUG_TRACE
+      printf("@%lld \tin_ld_ckpid=%X\n",global_time, in_ld.ckpid);
+      printf("\tin_ld_coreid=%X\n", in_ld.coreid);
+      printf("\tin_ld_lop=%X\n", in_ld.lop);
+      printf("\tin_ld_pnr=%X\n", in_ld.pnr);
+      printf("\tin_ld_laddr=%X\n", in_ld.laddr);
+      printf("\tin_ld_imm=%X\n", in_ld.imm);
+      printf("\tin_ld_sptbr=%X\n", in_ld.sptbr);
+      printf("\tin_ld_user=%X\n", in_ld.user);
+#endif
+
+      printf("pushing %X\n",in_ld.coreid);
+      in_ld_list.pop_back();
     }
   }
 
@@ -173,31 +196,6 @@ void try_send_packet(Vdctlb_wp *top) {
     }
   }
 
-  if (top->coretodctlb_ld_valid && !top->coretodctlb_ld_retry) {
-    if (in_ld_list.empty()) {
-      fprintf(stderr,"ERROR: Internal error, in_ld_list could not be empty\n");
-    }
-    InputPacket_Load in_ld = in_ld_list.back();
-    top->coretodctlb_ld_ckpid = in_ld.ckpid;
-    top->coretodctlb_ld_coreid = in_ld.coreid;
-    top->coretodctlb_ld_lop = in_ld.lop;
-    top->coretodctlb_ld_pnr = in_ld.pnr;
-    top->coretodctlb_ld_laddr = in_ld.laddr;
-    top->coretodctlb_ld_imm = in_ld.imm;
-    top->coretodctlb_ld_sptbr = in_ld.sptbr;
-    top->coretodctlb_ld_user = in_ld.user;
-#ifdef DEBUG_TRACE
-    printf("@%lld \tin_ld_ckpid=%X\n",global_time, in_ld.ckpid);
-    printf("\tin_ld_coreid=%X\n", in_ld.coreid);
-    printf("\tin_ld_lop=%X\n", in_ld.lop);
-    printf("\tin_ld_pnr=%X\n", in_ld.pnr);
-    printf("\tin_ld_laddr=%X\n", in_ld.laddr);
-    printf("\tin_ld_imm=%X\n", in_ld.imm);
-    printf("\tin_ld_sptbr=%X\n", in_ld.sptbr);
-    printf("\tin_ld_user=%X\n", in_ld.user);
-#endif
-    in_ld_list.pop_back();
-  }
 
   if (top->coretodctlb_st_valid && !top->coretodctlb_st_retry) {
     if (in_st_list.empty()) {
@@ -275,8 +273,8 @@ void try_recv_packet(Vdctlb_wp *top) {
     return;
 
 #ifdef DEBUG_TRACE
-    printf("@%lld fwd0_hpaddr=%X fwd0_ppaddr\n",global_time, top->l1tlbtol1_fwd0_hpaddr, top->l1tlbtol1_fwd0_ppaddr);
-    printf("@%lld fwd1_hpaddr=%X fwd1_ppaddr\n",global_time, top->l1tlbtol1_fwd1_hpaddr, top->l1tlbtol1_fwd1_ppaddr);
+    //printf("@%lld fwd0_hpaddr=%X fwd0_ppaddr\n",global_time, top->l1tlbtol1_fwd0_hpaddr, top->l1tlbtol1_fwd0_ppaddr);
+    //printf("@%lld fwd1_hpaddr=%X fwd1_ppaddr\n",global_time, top->l1tlbtol1_fwd1_hpaddr, top->l1tlbtol1_fwd1_ppaddr);
 #endif
   OutputPacket out_ld = out_ld_list.back();
   OutputPacket out_st = out_st_list.back();
@@ -457,21 +455,21 @@ int main(int argc, char **argv, char **env) {
     top->pfetol1tlb_req_laddr   = 0;
     top->pfetol1tlb_req_sptbr   = 0;
 
-    top->l1tlbtol1_fwd0_retry   = 0;
-    top->l1tlbtol1_fwd1_retry   = 0;
+    top->l1tlbtol1_fwd0_retry   = 1;
+    top->l1tlbtol1_fwd1_retry   = 1;
 
     advance_clock(top,1);
 
 #if 1
     for(int i =0;i<1024;i++) {
-      //try_send_packet(top);
-      //advance_clock(top,1);
-      //try_recv_packet(top);
-      //advance_clock(top,1);
+      try_send_packet(top);
+      advance_half_clock(top);
+      try_recv_packet(top);
+      advance_half_clock(top);
       
       //printf("test %d\n", i);
 
-      if (((rand() & 0x3)==0) && in_ld_list.size() < 3 && in_st_list.size() < 3 && in_pf_list.size() < 3) {
+      if (((rand() & 0x3)==0) && in_ld_list.size() < 3) {
         InputPacket_Load in_ld;
         in_ld.ckpid  = 0;//rand() & 0xF;
         in_ld.coreid = rand() & 0x3F;
@@ -491,8 +489,10 @@ int main(int argc, char **argv, char **env) {
         out_ld.ppaddr   = (in_ld.laddr >> 12) & 0x7;
         printf("ld ppaddr = %X\n", out_ld.ppaddr);
         out_ld_list.push_front(out_ld);
+      }
 
 /*
+      if (((rand() & 0x3)==0) && in_st_list.size() < 3) {
         InputPacket_Store in_st;
         in_st.ckpid  = rand() & 0xF;
         in_st.coreid = rand() & 0x3F;
@@ -512,7 +512,9 @@ int main(int argc, char **argv, char **env) {
         out_st.ppaddr   = (in_st.laddr >> 12) & 0x7;
         printf("st ppaddr = %X\n", out_st.ppaddr);
         out_st_list.push_front(out_st);
+        }
 
+      if (((rand() & 0x3)==0) && in_pf_list.size() < 3) {
         InputPacket_Prefetch in_pf;
         in_pf.l2     = rand() & 1;
         in_pf.laddr  = ((rand() << 32) | rand()) & 0x7FFFFFFFFF;
@@ -531,10 +533,10 @@ int main(int argc, char **argv, char **env) {
       }
       //advance_clock(top,1);
 
-      try_send_packet(top);
+      /*try_send_packet(top);
       advance_half_clock(top);
       try_recv_packet(top);
-      advance_half_clock(top);
+      advance_half_clock(top);*/
     }
 #endif
   }
