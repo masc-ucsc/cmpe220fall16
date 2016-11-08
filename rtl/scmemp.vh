@@ -59,6 +59,8 @@
 `define SC_PPADDRBITS   3 // predicted lower paddr bits [n:12]
 `define SC_IMMBITS     12
 
+`define SC_L2DRHPADDRBITS (8+`SC_PPADDRBITS+12)
+
 `define SC_PCSIGNBITS  13
 
 // RISC CSR register for address base translation (also threadid). Hart in

@@ -36,7 +36,7 @@ typedef struct packed {
   SC_line_type      line;
 
   SC_poffset_type   poffset;
-  TLB_hpaddr_type   hpaddr; 
+  TLB_hpaddr_type   hpaddr;
 } I_l2tol1_snack_type;
 // 1}}}
 
@@ -50,21 +50,21 @@ typedef struct packed {
 // {{{1 l2tlbtol1tlb_ack
 typedef struct packed {
   TLB_reqid_type    rid;
-  TLB_hpaddr_type   hpaddr; // hash paddr 
+  TLB_hpaddr_type   hpaddr; // hash paddr
   SC_ppaddr_type    ppaddr; // predicted PADDR
 
   SC_dctlbe_type    dctlbe; // ack
 } I_l2tlbtol1tlb_ack_type;
 // 1}}}
 
-// {{{1 l1tlbtol2tlb_req 
+// {{{1 l1tlbtol2tlb_req
 typedef struct packed {
   TLB_reqid_type    rid;
 
   logic             disp_req; // True of disp from dcTLB (A/D bits)
   logic             disp_A;
   logic             disp_D;
-  TLB_hpaddr_type   disp_hpaddr; // hash paddr 
+  TLB_hpaddr_type   disp_hpaddr; // hash paddr
 
   SC_laddr_type     laddr; // Not during disp, just req
   SC_sptbr_type     sptbr; // Not during disp, just req
@@ -72,7 +72,7 @@ typedef struct packed {
 } I_l1tlbtol2tlb_req_type;
 // 1}}}
 
-// {{{1 l1tlbtol2tlb_sack 
+// {{{1 l1tlbtol2tlb_sack
 typedef struct packed {
   TLB_reqid_type    rid;
 } I_l1tlbtol2tlb_sack_type;
@@ -198,21 +198,27 @@ typedef struct packed {
 
 // {{{1 drtol2_snack
 typedef struct packed {
-  SC_nodeid_type    nid; 
-  L2_reqid_type     l2id; // !=0 ACK
-  DR_reqid_type     drid; // !=0 snoop
-	DR_ndirs_type     directory_id; 
+  SC_nodeid_type     nid; 
+  L2_reqid_type      l2id; // !=0 ACK
+  DR_reqid_type      drid; // !=0 snoop
+	DR_ndirs_type      directory_id;
 
-  SC_snack_type     snack;
-  SC_line_type      line;
-  SC_paddr_type     paddr; // Not used for ACKs
+  SC_snack_type      snack;
+  SC_line_type       line;
+
+`ifdef USE_HPADDR_DR
+  // hash paddr to check in L2 and DR tag. Many lines may hit in a snoop. 
+  SC_l2drhpaddr_type l2drhpaddr; 
+`else
+	SC_paddr_type      paddr;
+`endif
 } I_drtol2_snack_type;
 // 1}}}
 
-// {{{1 l2todr_disp 
+// {{{1 l2todr_disp
 typedef struct packed {
-  SC_nodeid_type    nid; 
-  L2_reqid_type     l2id; // != means L2 initiated disp (drid==0)
+  SC_nodeid_type    nid;
+  L2_reqid_type     l2id; // !=0 means L2 initiated disp (drid==0)
   DR_reqid_type     drid; // !=0 snoop ack. (E.g: SMCD_WI resulting in a disp)
 
   SC_disp_mask_type mask; // For NC disps

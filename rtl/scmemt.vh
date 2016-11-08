@@ -97,7 +97,17 @@ typedef logic [`L2_REQIDBITS-1:0]    L2_reqid_type;
 
 // L2 or L2TLB id (L2TLB is odd, L2 is even. E.g: L2=0,2,4... L2TLB=1,3,5...)
 // when talking between L2 and DR
-typedef logic [`SC_NODEIDBITS-1:0]   SC_nodeid_type; 
-typedef logic [`DR_NDIRSBITS-1:0]    DR_ndirs_type; 
+typedef logic [`SC_NODEIDBITS-1:0]   SC_nodeid_type;
+typedef logic [`DR_NDIRSBITS-1:0]    DR_ndirs_type;
+
+typedef logic [`SC_L2DRHPADDRBITS-1:0] SC_l2drhpaddr_type;
+
+function SC_l2drhpaddr_type compute_sc_l2dr_phash(input SC_paddr_type paddr);
+  // Lower bits as paddr, upper bits hash of paddr 8bits + PPADDR + 12
+  SC_l2drhpaddr_type p;
+  p = {paddr[19:12] ^ paddr[27:20] ^ paddr[35:28] ^ paddr[43:36] ^ {2'b0, paddr[49:44]}, paddr[`SC_PPADDRBITS+12-1:0]};
+  return p;
+endfunction
 
 `endif
+
