@@ -87,6 +87,15 @@ run_directory_bank_wp: directory_bank_wp
 
 #REGLIST+=directory_bank_wp
 ###########################
+ictlb_wp:
+	verilator --assert --debug-check -I./rtl --Wall --cc --trace --top-module ictlb_wp ./tests/ictlb_wp.v ./rtl/ictlb.v ./rtl/fflop.v --exe tests/ictlb_wp_tb.cpp -CFLAGS -DTRACE=1
+	make -C obj_dir/ -f Victlb_wp.mk Victlb_wp
+
+run_ictlb_wp: ictlb_wp
+	./obj_dir/Victlb_wp
+
+#REGLIST+=ictlb_wp
+###########################
 dctlb_wp:
 	verilator --assert --debug-check -I./rtl --Wall --cc --trace --top-module dctlb_wp ./tests/dctlb_wp.v ./rtl/dctlb.v ./rtl/fflop.v --exe tests/dctlb_wp_tb.cpp -CFLAGS -DTRACE=1
 	make -C obj_dir/ -f Vdctlb_wp.mk Vdctlb_wp
