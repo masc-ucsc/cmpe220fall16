@@ -71,7 +71,7 @@ module ictlb(
 
       l1tlbtol1_fwd_valid_next = coretoictlb_pc_valid;
       coretoictlb_pc_retry = l1tlbtol1_fwd_retry_next;
-      pfetol1tlb_req_retry = 1'b0;
+      pfetol1tlb_req_retry = 1'b0; //drop the prefetch
 
     end else if(~pfetol1tlb_req.l2) begin
       l1tlbtol1_fwd_next.coreid = 'b0;
@@ -82,8 +82,8 @@ module ictlb(
       l1tlbtol1_fwd_next.ppaddr = pfetol1tlb_req.laddr[14:12];
 
       l1tlbtol1_fwd_valid_next = pfetol1tlb_req_valid;
-      pfetol1tlb_req_retry = l1tlbtol1_fwd_retry_next & pfetol1tlb_req_valid;
-      coretoictlb_pc_retry = 1'b0;
+      pfetol1tlb_req_retry = 1'b0;//just drop pf req // l1tlbtol1_fwd_retry_next & pfetol1tlb_req_valid;
+      coretoictlb_pc_retry = l1tlbtol1_fwd_retry_next; //this shouldn't matter, but fails if set to 0
     end else begin
       l1tlbtol1_fwd_valid_next = 1'b0;
     end
