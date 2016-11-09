@@ -94,7 +94,7 @@ ictlb_wp:
 run_ictlb_wp: ictlb_wp
 	./obj_dir/Victlb_wp
 
-#REGLIST+=ictlb_wp
+REGLIST+=ictlb_wp
 ###########################
 dctlb_wp:
 	verilator --assert --debug-check -I./rtl --Wall --cc --trace --top-module dctlb_wp ./tests/dctlb_wp.v ./rtl/dctlb.v ./rtl/fflop.v --exe tests/dctlb_wp_tb.cpp -CFLAGS -DTRACE=1
