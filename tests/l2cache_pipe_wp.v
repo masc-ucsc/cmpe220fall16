@@ -123,6 +123,10 @@ module l2cache_pipe_wp(
     input   logic [63:0]                  drtol2_snack_line2,
     input   logic [63:0]                  drtol2_snack_line1,
     input   logic [63:0]                  drtol2_snack_line0,
+    input   DR_hpaddr_base_type           drtol2_snack_hpaddr_base, // SC_NPIPESBITS+SC_PPADDRBITS+12 = 2+3+12 = 17 or 1+3+12 = 16
+    // ifdef SC_4PIPE: SC_NPIPESBITS is 2; else SC_NPIPESBITS is 1
+    // SC_PPADDRBITS is 3
+    input   DR_hpaddr_hash_type           drtol2_snack_hpaddr_hash, // 8
     input   SC_paddr_type                 drtol2_snack_paddr, // 50
 
     // output I_l2snoop_ack_type            l2todr_snoop_ack,
@@ -261,6 +265,8 @@ module l2cache_pipe_wp(
                             drtol2_snack_line2,
                             drtol2_snack_line1,
                             drtol2_snack_line0,
+                            drtol2_snack_hpaddr_base,
+                            drtol2_snack_hpaddr_hash,
                             drtol2_snack_paddr}),
 
         .l2todr_snoop_ack_valid(l2todr_snoop_ack_valid),

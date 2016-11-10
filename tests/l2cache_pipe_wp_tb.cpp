@@ -11,6 +11,26 @@
 vluint64_t global_time = 0;
 VerilatedVcdC* tfp = 0;
 
+// At each mem addr, a mem_element is stored
+class mem_element {
+    // Cache line
+    uint64_t line7;
+    uint64_t line6;
+    uint64_t line5;
+    uint64_t line4;
+    uint64_t line3;
+    uint64_t line2;
+    uint64_t line1;
+    uint64_t line0;
+
+    // Full Physical Address
+    uint64_t full_paddr;
+
+    // L1 hashed Tag
+    // Directory hash
+    // Current status: Invalid, Shared, Exclusive, ...
+};
+
 void advance_half_clock(Vl2cache_pipe_wp *top) {
 #ifdef TRACE
   tfp->dump(global_time);
@@ -92,6 +112,8 @@ struct DrtoL2SnackPacket { // input
     uint64_t line2;
     uint64_t line1;
     uint64_t line0;
+    uint8_t hpaddr_base;
+    uint8_t hpaddr_hash;
     uint64_t paddr;
 };
 
@@ -284,6 +306,8 @@ void try_send_dr_to_l2_snack_packet (Vl2cache_pipe_wp *top) {
         top->drtol2_snack_line2 = rand();
         top->drtol2_snack_line1 = rand();
         top->drtol2_snack_line0 = rand();
+        top->drtol2_snack_hpaddr_base = rand();
+        top->drtol2_snack_hpaddr_hash = rand();
         top->drtol2_snack_paddr = rand();
         if ((drtol2_snoop_only_list.empty() && drtol2_ack_only_list.empty()) || (rand() & 0x3==0)) { // Once every 4
           top->drtol2_snack_valid = 0;
@@ -323,6 +347,8 @@ void try_send_dr_to_l2_snack_packet (Vl2cache_pipe_wp *top) {
         top->drtol2_snack_line2 = drtol2_snackp.line2;
         top->drtol2_snack_line1 = drtol2_snackp.line1;
         top->drtol2_snack_line0 = drtol2_snackp.line0;
+        top->drtol2_snack_hpaddr_base = drtol2_snackp.hpaddr_base;
+        top->drtol2_snack_hpaddr_hash = drtol2_snackp.hpaddr_hash;
         top->drtol2_snack_paddr = drtol2_snackp.paddr;
 #ifdef DEBUG_TRACE
         printf("@%lld drtol2_snack snoop_or_ack:%d nid:%x l2id:%x drid:%x snack:%x line7:%x line6:%x line5:%x line4:%x line3:%x line2:%x line1:%x line0:%x paddr:%x\n",global_time,snoop_or_ack, drtol2_snackp.nid, drtol2_snackp.l2id, drtol2_snackp.drid, drtol2_snackp.snack, drtol2_snackp.line7, drtol2_snackp.line6, drtol2_snackp.line5, drtol2_snackp.line4, drtol2_snackp.line3, drtol2_snackp.line2, drtol2_snackp.line1, drtol2_snackp.line0, drtol2_snackp.paddr);
@@ -892,6 +918,8 @@ int main(int argc, char **argv, char **env) {
       drtol2_snackp.line2 = rand() & 0xFFFFFFFFFFFFFFFF;
       drtol2_snackp.line2 = rand() & 0xFFFFFFFFFFFFFFFF;
       drtol2_snackp.line0 = rand() & 0xFFFFFFFFFFFFFFFF;
+      drtol2_snackp.hpaddr_base = rand() & 0xFF;
+      drtol2_snackp.hpaddr_hash = rand() & 0xFFFF; //buggy
       drtol2_snackp.paddr = rand() & 0x3FFFFFFFFFFFF;
       drtol2_snoop_only_list.push_front(drtol2_snackp);
     }

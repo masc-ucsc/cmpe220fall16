@@ -352,6 +352,11 @@ fflop #(.Size($bits(I_l2tol1_snack_type))) fsnack (
     );
 `endif
 
-
+`ifndef L2_PASSTHROUGH
+    // Check if the new l1tol2_req has the highest priority
+    // If it has the highest priority then directly access tag and set reg_tag_access_1
+    
+    // Else, it enters l1tol2_req_q, set reg_enqueue_1
+`endif
 endmodule
 

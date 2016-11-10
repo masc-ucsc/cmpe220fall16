@@ -28,12 +28,13 @@ run_fork_fflop: fork_fflop
 #REGLIST+=fork_fflop
 ###########################
 l2:
-	verilator --assert --debug-check -I./rtl --Wall --cc --trace --top-module l2cache_pipe_wp ./tests/l2cache_pipe_wp.v ./rtl/fflop.v --exe ./tests/l2cache_pipe_wp_tb.cpp -CFLAGS -DTRACE=1 #--exe tests/ram_1port_fast_wp_tb.cpp -CFLAGS -DTRACE=1
+	verilator --assert --debug-check -I./rtl --Wall --cc --trace --top-module l2cache_pipe_wp ./tests/l2cache_pipe_wp.v ./rtl/fflop.v --exe ./tests/l2cache_pipe_wp_tb.cpp -CFLAGS -DTRACE=1
 	make -C obj_dir/ -f Vl2cache_pipe_wp.mk Vl2cache_pipe_wp
 
 run_l2: l2
 	./obj_dir/Vl2cache_pipe_wp
 
+REGLISY+=l2
 ###########################
 l2tlb:
 	verilator --assert --debug-check -I./rtl --Wall --cc --trace --top-module l2tlb_wp ./tests/l2tlb_wp.v ./rtl/fflop.v --exe ./tests/l2tlb_wp_tb.cpp -CFLAGS -DTRACE=1 #--exe tests/ram_1port_fast_wp_tb.cpp -CFLAGS -DTRACE=1
