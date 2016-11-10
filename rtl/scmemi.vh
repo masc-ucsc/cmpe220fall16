@@ -206,13 +206,10 @@ typedef struct packed {
   SC_snack_type      snack;
   SC_line_type       line;
 
-`ifdef USE_HPADDR_DR
   // hash paddr to check in L2 and DR tag. Many lines may hit in a snoop. 
   DR_hpaddr_base_type hpaddr_base; 
   DR_hpaddr_hash_type hpaddr_hash; 
-`else
-	SC_paddr_type      paddr;
-`endif
+	SC_paddr_type       paddr; // Only for ACK and prefetch ack or push line
 } I_drtol2_snack_type;
 // 1}}}
 
