@@ -5,14 +5,19 @@
 #include <list>
 
 #include <time.h>
+#include <math.h>
 
 #define DEBUG_TRACE 1
+#define L2_128KB
+
+//#define PASS_THROUGH
 
 vluint64_t global_time = 0;
 VerilatedVcdC* tfp = 0;
 
 // At each mem addr, a mem_element is stored
-class mem_element {
+class MemElement {
+public:
     // Cache line
     uint64_t line7;
     uint64_t line6;
@@ -29,7 +34,97 @@ class mem_element {
     // L1 hashed Tag
     // Directory hash
     // Current status: Invalid, Shared, Exclusive, ...
+    // For write_req return only
+    int if_eviction = 0;
 };
+
+class MemSet {
+public:
+    int num_ways = 16;
+    MemElement * mem_elements;
+    int way_access_count = 0;
+    uint8_t * way_bitmap;
+    uint8_t fifo_evict_pointer = 0;
+    MemSet () {
+        mem_elements = new MemElement [num_ways];
+        way_bitmap = new uint8_t [num_ways];
+        for (int i=0; i<=num_ways; i++) {
+            way_bitmap[i] = 0;
+        }
+    }
+};
+
+class Mem {
+#ifdef L2_128KB
+    uint64_t mem_size_of_sets = pow(2,7); // calculate num of total sets
+#endif
+public:
+    MemSet * mem_sets;
+    Mem () {
+        mem_sets = new MemSet [mem_size_of_sets];
+    }
+
+    // This is invoked when there is a drtol2_snack with data
+    MemElement write_req (uint64_t paddr, MemElement mem_element) {
+        printf("write_req invoked\n");
+        printf("paddr is %llx\n", paddr);
+
+        MemElement return_mem_element;
+        uint16_t set_addr = (paddr >> 6) & 0x7F;
+        mem_sets[set_addr].way_access_count++;
+        printf("way_access_count is %d\n", mem_sets[set_addr].way_access_count);
+        printf("set_addr is %x\n", set_addr);
+        if (set_addr > this->mem_size_of_sets) {
+            fprintf(stderr,"ERROR: set_addr (%x) > mem_size_of_sets (%x) \n", set_addr, mem_size_of_sets);            
+        }
+        else {
+            /*
+            const uint8_t one_bit[8];
+            one_bit[0] = 0x1;
+            one_bit[1] = 0x2;
+            one_bit[2] = 0x4;
+            one_bit[3] = 0x8;
+            one_bit[4] = 0x1;
+            one_bit[5] = 0x1;
+            one_bit[6] = 0x1;
+            one_bit[7] = 0x1;
+            */
+            int if_got_way = 0;
+            for (int i=0; i<=(mem_sets[set_addr].num_ways); i++) {
+                if ((mem_sets[set_addr].way_bitmap[i]) == 0x0) {
+                // There is an empty way
+                    mem_sets[set_addr].way_bitmap[i] = 0x1;
+                    mem_sets[set_addr].mem_elements[i] = mem_element;
+                    if_got_way = 1;
+                    break;
+                }
+            }
+            if (if_got_way == 0) {
+                // Have to evict a way
+                uint32_t fifo_evict_pointer = mem_sets[set_addr].fifo_evict_pointer;
+                mem_sets[set_addr].way_bitmap[fifo_evict_pointer] = 0x1;
+                // Evict First
+                printf("Eviction Happens!\n");
+                return_mem_element = mem_sets[set_addr].mem_elements[fifo_evict_pointer];
+                return_mem_element.if_eviction = 1;
+                if (mem_sets[set_addr].fifo_evict_pointer+1 <= 0x15) {
+                    mem_sets[set_addr].fifo_evict_pointer++;
+                }
+                else {
+                    mem_sets[set_addr].fifo_evict_pointer = 0;
+                }
+
+                // Then replace
+                mem_sets[set_addr].mem_elements[fifo_evict_pointer] = mem_element;
+            }
+        }
+        return return_mem_element;
+    } // End of write_req
+}; // End of class Mem
+
+// Global
+Mem mem;
+
 
 void advance_half_clock(Vl2cache_pipe_wp *top) {
 #ifdef TRACE
@@ -324,6 +419,19 @@ void try_send_dr_to_l2_snack_packet (Vl2cache_pipe_wp *top) {
             snoop_or_ack = 1;
             drtol2_snackp = drtol2_ack_only_list.back();
             count_drtol2_ack_only++;
+#ifndef PASS_THROUGH
+            MemElement mem_element;
+            mem_element.line7 = drtol2_snackp.line7;
+            mem_element.line6 = drtol2_snackp.line6;
+            mem_element.line5 = drtol2_snackp.line5;
+            mem_element.line4 = drtol2_snackp.line4;
+            mem_element.line3 = drtol2_snackp.line3;
+            mem_element.line2 = drtol2_snackp.line2;
+            mem_element.line1 = drtol2_snackp.line1;
+            mem_element.line0 = drtol2_snackp.line0;
+
+            mem.write_req(drtol2_snackp.paddr, mem_element);
+#endif
         }
         else if (drtol2_snoop_only_list.empty()) {
             fprintf(stderr,"ERROR: Internal error, could not be empty drtol2_snack_list\n");
@@ -844,7 +952,7 @@ double sc_time_stamp() {
 }
 
 int main(int argc, char **argv, char **env) {
-  int i;
+      int i;
   int clk;
   Verilated::commandArgs(argc, argv);
   // init top verilog instance
@@ -876,13 +984,13 @@ int main(int argc, char **argv, char **env) {
   advance_clock(top,1);
 
 #if 1
-  for(int i =0;i<50;i++) {
+  for(int i =0;i<6000;i++) {
     try_send_l1_to_l2_req_packet(top);
     try_send_dr_to_l2_snack_packet(top);
-    try_send_l1_to_l2_snoop_ack_packet(top);
-    try_send_l2tlb_to_l2_fwd_packet(top);
-    try_send_l1_to_l2_disp_packet(top);
-    try_send_dr_to_l2_dack_packet(top);
+    //try_send_l1_to_l2_snoop_ack_packet(top);
+    //try_send_l2tlb_to_l2_fwd_packet(top);
+    //try_send_l1_to_l2_disp_packet(top);
+    //try_send_dr_to_l2_dack_packet(top);
     advance_half_clock(top);
     try_receive_l2_to_dr_req_packet(top);
     try_receive_l2_to_l1_snack_packet(top);
