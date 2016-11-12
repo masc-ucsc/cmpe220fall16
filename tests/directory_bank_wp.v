@@ -47,6 +47,8 @@ module directory_bank_wp(
   ,output logic [`SC_LINEBYTES-1:0]              drtol2_snack_line_2 
   ,output logic [`SC_LINEBYTES-1:0]              drtol2_snack_line_1 
   ,output logic [`SC_LINEBYTES-1:0]              drtol2_snack_line_0 
+  ,output DR_hpaddr_base_type      drtol2_snack_hpaddr_base
+  ,output DR_hpaddr_hash_type      drtol2_snack_hpaddr_hash 
   ,output SC_paddr_type            drtol2_snack_paddr // Not used for ACKs
 
   ,input                           l2todr_disp_valid
@@ -313,6 +315,8 @@ module directory_bank_wp(
                    ,drtol2_snack_line_2
                    ,drtol2_snack_line_1
                    ,drtol2_snack_line_0
+                   ,drtol2_snack_hpaddr_base
+                   ,drtol2_snack_hpaddr_hash
                    ,drtol2_snack_paddr}),
     .qValid   (drtol2_snack_valid),
     .qRetry   (drtol2_snack_retry)
