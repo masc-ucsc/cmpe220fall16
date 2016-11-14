@@ -21,13 +21,13 @@ module l2tlb_wp(
   // L2TLB listens the same L1 request (but no ack). Response sent to L2
 	,input	logic			l1tol2tlb_req_valid
 	,output	logic			l1tol2tlb_req_retry
-	,input	L1_reqid_type		l1tol2tlb_req_1lid			// 5 bits
+	,input	L1_reqid_type		l1tol2tlb_req_l1id			// 5 bits
 	,input	logic			l1tol2tlb_req_prefetch
 	,input	TLB_hpaddr_type		l1tol2tlb_req_hpaddr			// 11 bits
 
 	,output	logic			l2tlbtol2_fwd_valid
 	,input	logic			l2tlbtol2_fwd_retry
-	,output	L1_reqid_type		l2tlbtol2_fwd_1lid			// 5 bits
+	,output	L1_reqid_type		l2tlbtol2_fwd_l1id			// 5 bits
 	,output	logic			l2tlbtol2_fwd_prefetch
 	,output	SC_fault_type		l2tlbtol2_fwd_fault			// 3 bits
 	,output	TLB_hpaddr_type		l2tlbtol2_fwd_hpaddr			// 11 bits
@@ -111,7 +111,7 @@ module l2tlb_wp(
 	assign l1tol2tlb_req.hpaddr = l1tol2tlb_req_hpaddr;
 
 	I_l2tlbtol2_fwd_type l2tlbtol2_fwd;
-	assign l2tlbtol2_fwd_1lid = l2tlbtol2_fwd.1lid;
+	assign l2tlbtol2_fwd_l1id = l2tlbtol2_fwd.l1id;
 	assign l2tlbtol2_fwd_prefetch = l2tlbtol2_fwd.prefetch;
 	assign l2tlbtol2_fwd_fault = l2tlbtol2_fwd.fault;
 	assign l2tlbtol2_fwd_hpaddr = l2tlbtol2_fwd.hpaddr;
