@@ -7,6 +7,7 @@ all:
 lint:
 	verilator --assert -I./rtl --Wall --lint-only --top-module top_2core2dr ./rtl/*.v
 
+
 REGLIST:=
 ###########################
 join_fadd:
@@ -18,6 +19,16 @@ run_join_fadd: join_fadd
 
 REGLIST+=join_fadd
 ###########################
+dcache_pipe_wp:
+	verilator --assert --debug-check -I./rtl --Wall --cc --trace --top-module dcache_pipe_wp ./tests/dcache_pipe_wp.v ./rtl/fflop.v --exe ./tests/dcache_pipe_wp_tb.cpp -CFLAGS -DTRACE=1
+	make -C obj_dir/ -f Vdcache_pipe_wp.mk Vdcache_pipe_wp
+
+run_dcache_pipe_wp: dcache_pipe_wp
+	./obj_dir/Vdcache_pipe_wp
+
+REGLIST+=dcache_pipe_wp
+###########################
+
 fork_fflop:
 	verilator --assert --debug-check -I./rtl --Wall --cc --trace ./rtl/fork_fflop.v ./rtl/fflop.v --exe tests/fork_fflop_tb.cpp -CFLAGS "-DTRACE=1 -DVL_DEBUG"
 	make -C obj_dir/ -f Vfork_fflop.mk Vfork_fflop

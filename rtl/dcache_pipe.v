@@ -720,22 +720,25 @@ fflop #(.Size($bits(I_l2tol1_dack_type))) ff_l2tol1_dack (
 //                  |        |
 //  l2tol1_snack--->|        |---->dctocore_ld
 //                  |   L1   |
-//                  |        |
+// l1tol2snoop_ack<-|        |
 //                  |        |
 //                  ----------
-// OUTPUT: L2--->core load
 // pass whatever comes from L2
 
 // break down the signals from L2-snack and construct DC-to-core signal
 always_comb begin
-  dctocore_ld_current.coreid = l2tol1_snack.l2id;
+  dctocore_ld_current.coreid = 0;
   dctocore_ld_current.fault = 0;
   dctocore_ld_current.data = l2tol1_snack.line;
+
+  l1tol2_snoop_ack_current.l2id = l2tol1_snack_current.l2id;
+  l1tol2_snoop_ack_current.directory_id = 1;
 end
 
 // calculate valid and retry signals associated with the previous stage
 always_comb begin
-  ff_dctocore_ld_valid_in = 1;
+  ff_dctocore_ld_valid_in = ff_l2tol1_snack_valid_out;
+  ff_l2tol1_snack_retry_in = ff_dctocore_ld_retry_out;
   //dctocore_ld_retry_out comes of the fflop module
 end
 
@@ -745,7 +748,7 @@ end
 //                    ----------
 //                    |        |
 //   coretodc_ld----->|        |---->l1tol2_req
-//   l1tlbtol2_fwd0-->|   L1   |
+//   l1tlbtol1_fwd0-->|   L1   |---->l1tol2tlb_req
 //                    |        |
 //                    |        |
 //                    ----------
@@ -755,55 +758,72 @@ end
 // break down the core request and TLB to construct L2 request
 I_l1tol2_req_type l1tol2_req_ld_current;
 always_comb begin
-  l1tol2_req_ld_current.l1id = coretodc_ld.coreid[4:0];
+  l1tol2_req_ld_current.l1id = 5'b00000;
   l1tol2_req_ld_current.cmd = `SC_CMD_REQ_S;
   l1tol2_req_ld_current.pcsign = coretodc_ld.pcsign;
   l1tol2_req_ld_current.poffset = coretodc_ld.poffset;
   l1tol2_req_ld_current.ppaddr = l1tlbtol1_fwd0.ppaddr;
 end
 
-// calculate valid and retry signals associated with the previous stage
+// construct L1 to L2 TLB store request
+/* verilator lint_off UNDRIVEN */
+I_l1tol2tlb_req_type l1tol2tlb_req_ld_current;
+/* verilator lint_on UNDRIVEN */
 always_comb begin
-  ff_l1tol2_req_valid_in = 1;
+  l1tol2tlb_req_ld_current.l1id = 5'b00000;
+  l1tol2tlb_req_ld_current.prefetch = 0;
+  l1tol2tlb_req_ld_current.hpaddr = l1tlbtol1_fwd0_current.hpaddr;
 end
-
 
 // PASSTHROUGH #3
 //                    ----------
 //                    |        |
 //  coretodc_std----->|        |---->l1tol2_req
-//   l1tlbtol2_fwd0-->|   L1   |
+//   l1tlbtol1_fwd1-->|   L1   |---->l1tol2tlb_req
 // dctocore_std_ack<--|        |
 //                    |        |
 //                    ----------
 // OUTPUT: core load--->L2
 // pass miss request to L2 and send ack to core
 
-// break down the core request and TLB to construct L2 request
+// construct L1 to L2 store request
 I_l1tol2_req_type l1tol2_req_std_current;
 always_comb begin
-  l1tol2_req_std_current.l1id     = coretodc_std.coreid[4:0];
+  l1tol2_req_std_current.l1id     = 5'b00000;
   l1tol2_req_std_current.cmd      = `SC_CMD_REQ_S;
   l1tol2_req_std_current.pcsign   = coretodc_std.pcsign;
   l1tol2_req_std_current.poffset  = coretodc_std.poffset;
-  l1tol2_req_std_current.ppaddr   = l1tlbtol1_fwd0.ppaddr;
-  
+  l1tol2_req_std_current.ppaddr   = l1tlbtol1_fwd1.ppaddr;
+end
+
+// construct L1 to L2 TLB store request
+I_l1tol2tlb_req_type l1tol2tlb_req_std_current;
+always_comb begin
+  l1tol2tlb_req_std_current.l1id = 5'b00000;
+  l1tol2tlb_req_std_current.prefetch = 0;
+  l1tol2tlb_req_std_current.hpaddr = l1tlbtol1_fwd1_current.hpaddr;
+end
+
+// construct L1 to CORE store ack
+always_comb begin
   dctocore_std_ack_current.fault  = 0;
   dctocore_std_ack_current.coreid = 0;
 end
 
 // calculate valid and retry signals associated with the previous stage
 always_comb begin
-  ff_l1tol2_req_valid_in = 1;
+  ff_dctocore_std_ack_valid_in = 1;
 end
 
 // select between coretodc_ld and coretodc_std
 // change every 4 cycles, later signals will be passed
 // accorging to priority list. i.e. loads are #1 priority
+// 
+// also valid and retry signals calculated accordingly
 //
 //               |\
 //               | \
-//  coretodc_ld->|  |
+//  coretodc_ld->|  |--->l1tol2tlb_req
 //               |  |--->l1tol2_req
 // coretodc_std->|  |
 //               | /
@@ -815,10 +835,25 @@ always @(posedge clk) begin
 end
 
 always_comb begin
-  if (counter[2] == 1)
+  if (counter[2] == 1 && ff_coretodc_std_valid_out == 1) begin
     l1tol2_req_current = l1tol2_req_std_current;
-  else
+    l1tol2tlb_req_current = l1tol2tlb_req_std_current;
+    ff_l1tol2_req_valid_in = ff_coretodc_std_valid_out&ff_l1tlbtol1_fwd1_valid_out;
+    ff_l1tol2tlb_req_valid_in = ff_l1tlbtol1_fwd1_valid_out;
+    ff_coretodc_std_retry_in = ff_l1tol2_req_retry_out&ff_l1tol2tlb_req_retry_out;
+    ff_coretodc_ld_retry_in = 1;
+    ff_l1tlbtol1_fwd0_retry_in = 1;
+    ff_l1tlbtol1_fwd1_retry_in = ff_l1tol2_req_retry_out&ff_l1tol2tlb_req_retry_out;
+  end else begin
     l1tol2_req_current = l1tol2_req_ld_current;
+    l1tol2tlb_req_current = l1tol2tlb_req_ld_current;
+    ff_l1tol2_req_valid_in = ff_coretodc_ld_valid_out&ff_l1tlbtol1_fwd0_valid_out;
+    ff_l1tol2tlb_req_valid_in = ff_l1tlbtol1_fwd0_valid_out;
+    ff_coretodc_std_retry_in = 0;
+    ff_coretodc_ld_retry_in = ff_l1tol2_req_retry_out&ff_l1tol2tlb_req_retry_out;
+    ff_l1tlbtol1_fwd0_retry_in = ff_l1tol2_req_retry_out&ff_l1tol2tlb_req_retry_out;
+    ff_l1tlbtol1_fwd1_retry_in = 0;
+  end
 end
 
 
