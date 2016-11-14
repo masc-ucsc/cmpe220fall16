@@ -246,19 +246,19 @@ void try_send_l1_to_l2_req_packet (Vl2cache_pipe_wp *top) {
           // Generated following response: drtol2_snack
         DrtoL2SnackPacket drtol2_snackp;
         drtol2_snackp.nid = l2todr_reqp.nid;
-      drtol2_snackp.l2id = l2todr_reqp.l2id;
-      drtol2_snackp.drid = rand() & 0x3F;
-      drtol2_snackp.snack = rand() & 0x1F & 0x0F; // Make sure this is an ack
-      drtol2_snackp.line7 = rand() & 0xFFFFFFFFFFFFFFFF;
-      drtol2_snackp.line6 = rand() & 0xFFFFFFFFFFFFFFFF;
-      drtol2_snackp.line5 = rand() & 0xFFFFFFFFFFFFFFFF;
-      drtol2_snackp.line4 = rand() & 0xFFFFFFFFFFFFFFFF;
-      drtol2_snackp.line3 = rand() & 0xFFFFFFFFFFFFFFFF;
-      drtol2_snackp.line2 = rand() & 0xFFFFFFFFFFFFFFFF;
-      drtol2_snackp.line2 = rand() & 0xFFFFFFFFFFFFFFFF;
-      drtol2_snackp.line0 = rand() & 0xFFFFFFFFFFFFFFFF;
-      drtol2_snackp.paddr = rand() & 0x3FFFFFFFFFFFF;
-      drtol2_ack_only_list.push_front(drtol2_snackp);
+        drtol2_snackp.l2id = l2todr_reqp.l2id;
+        drtol2_snackp.drid = rand() & 0x3F;
+        drtol2_snackp.snack = rand() & 0x1F & 0x0F; // Make sure this is an ack
+        drtol2_snackp.line7 = rand() & 0xFFFFFFFFFFFFFFFF;
+        drtol2_snackp.line6 = rand() & 0xFFFFFFFFFFFFFFFF;
+        drtol2_snackp.line5 = rand() & 0xFFFFFFFFFFFFFFFF;
+        drtol2_snackp.line4 = rand() & 0xFFFFFFFFFFFFFFFF;
+        drtol2_snackp.line3 = rand() & 0xFFFFFFFFFFFFFFFF;
+        drtol2_snackp.line2 = rand() & 0xFFFFFFFFFFFFFFFF;
+        drtol2_snackp.line2 = rand() & 0xFFFFFFFFFFFFFFFF;
+        drtol2_snackp.line0 = rand() & 0xFFFFFFFFFFFFFFFF;
+        drtol2_snackp.paddr = rand() & 0x3FFFFFFFFFFFF;
+        drtol2_ack_only_list.push_front(drtol2_snackp);
 #ifdef DEBUG_TRACE
         printf("@%lld drtol2_snack nid:%x l2id:%x drid:%x snack:%x line7:%x line6:%x line5:%x line4:%x line3:%x line2:%x line1:%x line0:%x paddr:%x\n",global_time, drtol2_snackp.nid, drtol2_snackp.l2id, drtol2_snackp.drid, drtol2_snackp.snack, drtol2_snackp.line7, drtol2_snackp.line6, drtol2_snackp.line5, drtol2_snackp.line4, drtol2_snackp.line3, drtol2_snackp.line2, drtol2_snackp.line1, drtol2_snackp.line0, drtol2_snackp.paddr);
 #endif

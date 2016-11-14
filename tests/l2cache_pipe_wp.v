@@ -112,7 +112,7 @@ module l2cache_pipe_wp(
     input   SC_nodeid_type                drtol2_snack_nid, // 5
     input   L2_reqid_type                 drtol2_snack_l2id, // 6
     input   DR_reqid_type                 drtol2_snack_drid, // 6
-	input   DR_ndirs_type                 drtol2_snack_directory_id, // 2
+	  input   DR_ndirs_type                 drtol2_snack_directory_id, // 2
     input   SC_snack_type                 drtol2_snack_snack, // 5
         // input  SC_line_type              drtol2_snack_line,
     input   logic [63:0]                  drtol2_snack_line7, // 64
@@ -129,7 +129,7 @@ module l2cache_pipe_wp(
     output                                l2todr_snoop_ack_valid,
     input                                 l2todr_snoop_ack_retry,
     output  L2_reqid_type                 l2todr_snoop_ack_l2id, // 6
-	output  DR_ndirs_type                  l2todr_snoop_ack_directory_id, // 2   
+	  output  DR_ndirs_type                 l2todr_snoop_ack_directory_id, // 2   
 
     // output I_l2todr_disp_type            l2todr_disp,
     output                                l2todr_disp_valid,
