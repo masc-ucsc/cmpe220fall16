@@ -42,8 +42,6 @@ struct l2tol1_snack_packet { // input
 };
 
 struct dctocore_ld_packet { //output
-  uint8_t coreid;
-  uint8_t fault;
   uint64_t data7;
   uint64_t data6;
   uint64_t data5; 
@@ -52,6 +50,8 @@ struct dctocore_ld_packet { //output
   uint64_t data2;
   uint64_t data1;
   uint64_t data0;
+  uint8_t coreid;
+  uint8_t fault;
 };
 
 ///////////////////////////////////////////////////////////
@@ -73,16 +73,16 @@ struct l1tlbtol1_fwd_packet { //input to DUT
   uint8_t prefetch;
   uint8_t l2_prefetch;
   uint8_t fault;
-  uint16_t hpaddr;
   uint8_t ppaddr; 
+  uint16_t hpaddr;
 };
 
 struct l1tol2_req_packet { //output of DUT
   uint8_t l1id;
   uint8_t cmd;
+  uint8_t ppaddr;
   uint16_t pcsign;
   uint16_t poffset;
-  uint8_t ppaddr;
 };
 
 struct l1tol2tlb_req_packet { //output of DUT
