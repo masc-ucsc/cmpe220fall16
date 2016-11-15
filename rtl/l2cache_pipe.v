@@ -129,24 +129,6 @@ module l2cache_pipe(
 
   /* verilator lint_on UNUSED */
 );
-    /*
-    logic l2tol1_snack_next_valid;
-    logic l2tol1_snack_next_retry;
-    I_l2tol1_snack_type   l2tol1_snack_next;
-fflop #(.Size($bits(I_l2tol1_snack_type))) fsnack (
-    .clk      (clk),
-    .reset    (reset),
-
-    .din      (l2tol1_snack_next),
-    .dinValid (l2tol1_snack_next_valid),
-    .dinRetry (),
-    //.dinRetry (l2tol1_snack_next_retry),
-
-    .q        (l2tol1_snack),
-    .qValid   (l2tol1_snack_valid),
-    .qRetry   (l2tol1_snack_retry)
-  );
-*/
     logic   l2todr_req_next_valid;
     logic   l2todr_req_next_retry;
     I_l2todr_req_type   l2todr_req_next;
@@ -353,7 +335,16 @@ fflop #(.Size($bits(I_l2tol1_snack_type))) fsnack (
 `endif
 
 `ifndef L2_PASSTHROUGH
-    // Check if the new l1tol2_req has the highest priority
+    localparam NEW_L1TOL2_REQ = 5'b00001;
+    logic [4:0] winner_for_tag;
+    // -> l1tol2_req
+    always_comb begin
+        if (l1tol2_req_valid) begin
+        // Check if the new l1tol2_req has the highest priority
+            if (winner_for_tag == NEW_L1TOL2_REQ) begin
+            end
+        end // end of if (l1tol2_req_valid)
+
     // If it has the highest priority then directly access tag and set reg_tag_access_1
     
     // Else, it enters l1tol2_req_q, set reg_enqueue_1
