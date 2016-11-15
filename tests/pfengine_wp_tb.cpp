@@ -430,11 +430,12 @@ int main(int argc, char **argv, char **env) {
 
     if (((rand() & 0x3)==0) && inp_list.size() < 3 ) {
       InputPacket i;
-      i.pf_delta  = 0;
-      i.pf_w1     = 2;
-      i.pf_w2     = 2;
+      i.pf_delta  = rand()%64;
+      i.pf_w1     = rand()%4;
+      i.pf_w2     = rand()%4;
       i.pf_laddr  = rand() & 0xFF;
       i.pf_pcsign = rand() & 0xFFFF;
+      i.pf_sptbr  = rand() & 0xFFFF;
       //generate cache stats for pf0_dc, pf1_dc, pf0_l2 and pf1_l2 (can include remaining cases after testing)
       i.pf0_dcstats_nhitmissd = rand()%10+1; // generate random num between 1 to 10
       i.pf0_dcstats_nhitmissp = rand()%10+1;
