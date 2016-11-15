@@ -125,10 +125,11 @@ void sim_finish(bool pass) {
   tfp->close();
 #endif
 
-  if (pass)
-    printf("\nTB:PASS\n");
-  else
+  if (pass) {
+    printf("\nTB:PASSED\n");
+  } else {
     printf("\nTB:FAILED\n");
+  }
 
   exit(0);
 }
@@ -573,7 +574,6 @@ int main(int argc, char **argv, char **env) {
 
   int t = (int)time(0);
   srand(t);
-  printf("My RAND Seed is %d\n",t);
 
 #ifdef TRACE
   // init trace dump

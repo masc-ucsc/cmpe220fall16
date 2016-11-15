@@ -835,7 +835,7 @@ always @(posedge clk) begin
 end
 
 always_comb begin
-  if (counter[2] == 1 && ff_coretodc_std_valid_out == 1) begin
+  if (1 == 0) begin//(counter[2] == 1 && ff_coretodc_std_valid_out == 1) begin
     l1tol2_req_current = l1tol2_req_std_current;
     l1tol2tlb_req_current = l1tol2tlb_req_std_current;
     ff_l1tol2_req_valid_in = ff_coretodc_std_valid_out&ff_l1tlbtol1_fwd1_valid_out;
