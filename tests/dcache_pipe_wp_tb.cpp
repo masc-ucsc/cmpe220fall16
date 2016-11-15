@@ -230,17 +230,17 @@ void try_recv_dctocore_ld(Vdcache_pipe_wp *top) {
   }
 
   if (top->dctocore_ld_retry) {
-    printf("dctocore_ld_retry=1\n");
+    //printf("dctocore_ld_retry=1\n");
     return;
   }
 
   if (!top->dctocore_ld_valid) {
-    printf("dctocore_ld_valid=0\n");
+    //printf("dctocore_ld_valid=0\n");
     return;
   }
 
   if (dctocore_ld_list.empty()) {
-    printf("list empty\n");
+    //printf("list empty\n");
     return;
   }
 
@@ -311,7 +311,7 @@ void try_recv_dctocore_ld(Vdcache_pipe_wp *top) {
   }
 
   if (!f) {
-    printf("dctocore_ld PASSED\n");
+    //printf("dctocore_ld PASSED\n");
   } else {
     error_found(top);
   }
@@ -447,17 +447,17 @@ void try_recv_l1tol2_req(Vdcache_pipe_wp *top) {
   }
 
   if (top->l1tol2_req_retry) {
-    printf("l1tol2_req_retry=1\n");
+    //printf("l1tol2_req_retry=1\n");
     return;
   }
 
   if (!top->l1tol2_req_valid) {
-    printf("l1tol2_req_valid=0\n");
+    //printf("l1tol2_req_valid=0\n");
     return;
   }
 
   if (l1tol2_req_list.empty()) {
-    printf("l1tol2_req_list is empty\n");
+    //printf("l1tol2_req_list is empty\n");
     return;
   }
 
@@ -499,7 +499,7 @@ void try_recv_l1tol2_req(Vdcache_pipe_wp *top) {
   }
 
   if (!f) {
-    printf("l1tol2_req PASSED\n");
+    //printf("l1tol2_req PASSED\n");
   } else {
     error_found(top);
   }
@@ -516,17 +516,17 @@ void try_recv_l1tol2tlb_req(Vdcache_pipe_wp *top) {
   }
 
   if (top->l1tol2tlb_req_retry) {
-    printf("l1tol2tlb_req_retry=1\n");
+    //printf("l1tol2tlb_req_retry=1\n");
     return;
   }
 
   if (!top->l1tol2tlb_req_valid) {
-    printf("l1tol2tlb_req_valid=0\n");
+    //printf("l1tol2tlb_req_valid=0\n");
     return;
   }
 
   if (l1tol2tlb_req_list.empty()) {
-    printf("l1tol2tlb_req_list is empty\n");
+    //printf("l1tol2tlb_req_list is empty\n");
     return;
   }
            
@@ -556,7 +556,7 @@ void try_recv_l1tol2tlb_req(Vdcache_pipe_wp *top) {
   }
 
   if (!f) {
-    printf("l1tol2tlb_req PASSED\n");
+    //printf("l1tol2tlb_req PASSED\n");
   } else {
     error_found(top);
   }
