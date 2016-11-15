@@ -471,7 +471,7 @@ void try_recv_l1tol2_req(Vdcache_pipe_wp *top) {
     printf("ppaddr:%x\n", top->l1tol2_req_ppaddr);
 #endif
 
-  bool f = false;//f for failed
+  bool f = false;
   l1tol2_req_packet out = l1tol2_req_list.back();
  
   if (top->l1tol2_req_l1id != out.l1id) {
@@ -538,7 +538,7 @@ void try_recv_l1tol2tlb_req(Vdcache_pipe_wp *top) {
     printf("hpaddr:%x\n", top->l1tol2tlb_req_hpaddr);
 #endif
  
-  bool f = false; //f for failed
+  bool f = false; 
   l1tol2tlb_req_packet out = l1tol2tlb_req_list.back();
 
   if (top->l1tol2tlb_req_l1id != out.l1id) {
