@@ -286,6 +286,6 @@ module dcache_pipe_wp(
   assign l2tol1_dack.l1id = l2tol1_dack_l1id;
 
 
-dcache_pipe dcache_pipe_dut(.*);
+dcache_pipe dcache_pipe_dut(.dctocore_ld (dctocore_ld), .*);
 endmodule
 

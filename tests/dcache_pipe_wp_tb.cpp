@@ -29,6 +29,8 @@ struct l2tol1_snack_packet { // input
   uint8_t l1id;
   uint8_t l2id;   
   uint8_t snack;  
+  uint16_t poffset;
+  uint16_t hpaddr;
   uint64_t line7;
   uint64_t line6;
   uint64_t line5; 
@@ -37,8 +39,6 @@ struct l2tol1_snack_packet { // input
   uint64_t line2;
   uint64_t line1;
   uint64_t line0;
-  uint16_t poffset;
-  uint16_t hpaddr;
 };
 
 struct dctocore_ld_packet { //output
@@ -204,6 +204,7 @@ void try_send_l2tol1_snack(Vdcache_pipe_wp *top) {
     printf("hpaddr:%x\n", inp.hpaddr);
 #endif
     // generate expected dctocore_ld output
+    printf("%x ", inp.line0);
     dctocore_ld_packet out;
     out.coreid = 0;
     out.fault = 0;
@@ -216,7 +217,6 @@ void try_send_l2tol1_snack(Vdcache_pipe_wp *top) {
     out.data1 = inp.line1;
     out.data0 = inp.line0;
     dctocore_ld_list.push_front(out);
-
     l2tol1_snack_list.pop_back();
   }
 
@@ -598,9 +598,9 @@ int main(int argc, char **argv, char **env) {
 #if TEST_L2_TO_L1_SNACK
   for(int i =0;i<1024;i++) {
     try_send_l2tol1_snack(top);
-    advance_clock(top,3);
+    advance_clock(top,4);
     try_recv_dctocore_ld(top);
-    advance_clock(top,1);
+    advance_clock(top,2);
 
     if (((rand() & 0x3)==0) && l2tol1_snack_list.size() < 3 ) {
       l2tol1_snack_packet in;
