@@ -42,9 +42,14 @@ l2:
 	verilator --assert --debug-check -I./rtl --Wall --cc --trace -Wno-UNDRIVEN -Wno-UNUSED -Wno-UNOPTFLAT  -Wno-CASEINCOMPLETE --top-module l2cache_pipe_wp ./tests/l2cache_pipe_wp.v ./rtl/fflop.v --exe ./tests/l2cache_pipe_wp_tb.cpp -CFLAGS -DTRACE=1
 	make -C obj_dir/ -f Vl2cache_pipe_wp.mk Vl2cache_pipe_wp
 
+#l2_pass_through:
+#	verilator --assert --debug-check -I./rtl --Wall --cc --trace +define+L2_PASSTHROUGH=1 --top-module l2cache_pipe_wp ./tests/l2cache_pipe_wp.v ./rtl/fflop.v --exe ./tests/l2cache_pipe_wp_tb.cpp -CFLAGS -DTRACE=1
+#	make -C obj_dir/ -f Vl2cache_pipe_wp.mk Vl2cache_pipe_wp
+
 l2_pass_through:
-	verilator --assert --debug-check -I./rtl --Wall --cc --trace +define+L2_PASSTHROUGH=1 --top-module l2cache_pipe_wp ./tests/l2cache_pipe_wp.v ./rtl/fflop.v --exe ./tests/l2cache_pipe_wp_tb.cpp -CFLAGS -DTRACE=1
+	verilator --assert --debug-check -I./rtl --Wall --cc --trace --top-module l2cache_pipe_wp ./tests/l2cache_pipe_wp.v ./rtl/fflop.v --exe ./tests/l2cache_pipe_wp_tb.cpp -CFLAGS -DTRACE=1
 	make -C obj_dir/ -f Vl2cache_pipe_wp.mk Vl2cache_pipe_wp
+
 
 run_l2: l2
 	./obj_dir/Vl2cache_pipe_wp
@@ -52,7 +57,7 @@ run_l2: l2
 run_l2_pass_through: l2_pass_through
 	./obj_dir/Vl2cache_pipe_wp
 
-REGLISY+=l2_pass_through
+REGLISY+=run_l2_pass_through
 ###########################
 l2tlb:
 	verilator --assert --debug-check -I./rtl --Wall --cc --trace --top-module l2tlb_wp ./tests/l2tlb_wp.v ./rtl/fflop.v --exe ./tests/l2tlb_wp_tb.cpp -CFLAGS -DTRACE=1
@@ -61,7 +66,7 @@ l2tlb:
 run_l2tlb: l2tlb
 	./obj_dir/Vl2tlb_wp
 
-REGLIST+=l2tlb_wp
+#REGLIST+=l2tlb_wp
 ###########################
 net_2core2dr:
 	verilator --assert --debug-check -I./rtl --Wall --cc --trace --top-module net_2core2dr_wp ./tests/net_2core2dr_wp.v ./rtl/fflop.v --exe ./tests/net_2core2dr_wp_tb.cpp -CFLAGS -DTRACE=1 

@@ -65,7 +65,7 @@
 // message of DCMD_WI or DMCD_I.
 `include "scmem.vh"
 `include "logfunc.h"
-//`define L2_PASSTHROUGH
+`define L2_PASSTHROUGH
 
 module l2cache_pipe(
   /* verilator lint_off UNUSED */
