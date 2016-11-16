@@ -42,7 +42,7 @@ l2:
 	verilator --assert --debug-check -I./rtl --Wall --cc --trace -Wno-UNDRIVEN -Wno-UNUSED -Wno-UNOPTFLAT  -Wno-CASEINCOMPLETE +define+L2_COMPLETE --top-module l2cache_pipe_wp ./tests/l2cache_pipe_wp.v ./rtl/fflop.v --exe ./tests/l2cache_pipe_wp_tb.cpp -CFLAGS -DTRACE=1
 	make -C obj_dir/ -f Vl2cache_pipe_wp.mk Vl2cache_pipe_wp
 
-l2_pass_through:
+l2cache_pipe_wp:
 	verilator --assert --debug-check -I./rtl --Wall --cc --trace -Wno-UNDRIVEN -Wno-UNUSED -Wno-UNOPTFLAT  -Wno-CASEINCOMPLETE --top-module l2cache_pipe_wp ./tests/l2cache_pipe_wp.v ./rtl/fflop.v --exe ./tests/l2cache_pipe_wp_tb.cpp -CFLAGS -DTRACE=1
 	make -C obj_dir/ -f Vl2cache_pipe_wp.mk Vl2cache_pipe_wp
 
@@ -51,7 +51,7 @@ l2_pass_through:
 run_l2: l2
 	./obj_dir/Vl2cache_pipe_wp
 
-l2cache_pipe_wp: l2_pass_through
+run_l2cache_pipe_wp: l2cache_pipe_wp
 	./obj_dir/Vl2cache_pipe_wp
 
 # Add only the L2 Pass through part to the regression
