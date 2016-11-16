@@ -53,7 +53,7 @@ module l2tlb_wp(
 	,input	TLB_reqid_type		l1tlbtol2tlb_req_rid			// 2 bits
 	,input	logic			l1tlbtol2tlb_req_disp_req
 	,input	logic			l1tlbtol2tlb_req_disp_A
-	,input	logic			l1tlbtol2tlb_req_disp_B
+	,input	logic			l1tlbtol2tlb_req_disp_D
 	,input	TLB_hpaddr_type		l1tlbtol2tlb_req_disp_hpaddr		// 11 bits
 	,input	SC_laddr_type		l1tlbtol2tlb_req_laddr			// 39 bits
 	,input	SC_sptbr_type		l1tlbtol2tlb_req_sptbr			// 38 bits
@@ -131,7 +131,7 @@ module l2tlb_wp(
 	assign l1tlbtol2tlb_req.rid = l1tlbtol2tlb_req_rid;
 	assign l1tlbtol2tlb_req.disp_req = l1tlbtol2tlb_req_disp_req;
 	assign l1tlbtol2tlb_req.disp_A = l1tlbtol2tlb_req_disp_A;
-	assign l1tlbtol2tlb_req.disp_B = l1tlbtol2tlb_req_disp_B;
+	assign l1tlbtol2tlb_req.disp_D = l1tlbtol2tlb_req_disp_D;
 	assign l1tlbtol2tlb_req.disp_hpaddr = l1tlbtol2tlb_req_disp_hpaddr;
 	assign l1tlbtol2tlb_req.laddr = l1tlbtol2tlb_req_laddr;
 	assign l1tlbtol2tlb_req.sptbr = l1tlbtol2tlb_req_sptbr;
