@@ -13,7 +13,7 @@
 #define TEST_PFREQ 1
 #define TEST_REQ 1
 #define TEST_ACK 1
-//#define TEST_DISP 1
+#define TEST_DISP 1
 
 vluint64_t global_time = 0;
 VerilatedVcdC* tfp = 0;
@@ -246,8 +246,8 @@ void try_send_packet(Vdirectory_bank_wp *top) {
     }
   }
   
-  
-  //pfreq
+  //Code that sends the messages starts here. Previous code was just setting valids and retries.
+  //pfreq message send
   if (top->l2todr_pfreq_valid && !top->l2todr_pfreq_retry) {
     if (inp_list_pfreq.empty()) {
       fprintf(stderr,"ERROR: Internal error, could not be empty inpa\n");
@@ -304,18 +304,32 @@ void try_send_packet(Vdirectory_bank_wp *top) {
     
     top->l2todr_disp_mask = inp_disp.mask;
     top->l2todr_disp_line_7 = inp_disp.line_7;
+    top->l2todr_disp_line_6 = inp_disp.line_6;
+    top->l2todr_disp_line_5 = inp_disp.line_5;
+    top->l2todr_disp_line_4 = inp_disp.line_4;
+    top->l2todr_disp_line_3 = inp_disp.line_3;
+    top->l2todr_disp_line_2 = inp_disp.line_2;
+    top->l2todr_disp_line_1 = inp_disp.line_1;
+    top->l2todr_disp_line_0 = inp_disp.line_0;
     top->l2todr_disp_drid = inp_disp.drid;
     top->l2todr_disp_dcmd = inp_disp.dcmd;
 #ifdef DEBUG_TRACE
-    printf("@%lu l2todr disp paddr: %lu, nid: %u, l2id:%u , mask:%lu , line:%lu , drid:%u , dcmd:%u \n"
+    printf("@%lu l2todr disp paddr: %lu, nid: %u, l2id:%u , mask:%lu , drid:%u , dcmd:%u, data:%lu %lu %lu %lu %lu %lu %lu %lu\n"
                                                                                   ,global_time
                                                                                   ,inp_disp.paddr
                                                                                   ,inp_disp.nid
                                                                                   ,inp_disp.l2id
                                                                                   ,inp_disp.mask
-                                                                                  ,inp_disp.line_7
                                                                                   ,inp_disp.drid
-                                                                                  ,inp_disp.dcmd);
+                                                                                  ,inp_disp.dcmd
+                                                                                  ,inp_disp.line_7
+                                                                                  ,inp_disp.line_6
+                                                                                  ,inp_disp.line_5
+                                                                                  ,inp_disp.line_4
+                                                                                  ,inp_disp.line_3
+                                                                                  ,inp_disp.line_2
+                                                                                  ,inp_disp.line_1
+                                                                                  ,inp_disp.line_0);
 #endif
      
 
@@ -453,7 +467,17 @@ void try_recv_packet_wb(Vdirectory_bank_wp *top) {
 
   //wb
   if (top->drtomem_wb_valid && out_list_wb.empty()) {
-    printf("ERROR: unexpected drtomem wb paddr: %lu, line:%lu \n",top->drtomem_wb_paddr,top->drtomem_wb_line_7);
+    printf("ERROR: unexpected drtomem wb paddr: %lu, mask:%lu, data:%lu %lu %lu %lu %lu %lu %lu %lu\n"
+                                                                                  ,top->drtomem_wb_paddr
+                                                                                  ,top->drtomem_wb_mask
+                                                                                  ,top->drtomem_wb_line_7
+                                                                                  ,top->drtomem_wb_line_6
+                                                                                  ,top->drtomem_wb_line_5
+                                                                                  ,top->drtomem_wb_line_4
+                                                                                  ,top->drtomem_wb_line_3
+                                                                                  ,top->drtomem_wb_line_2
+                                                                                  ,top->drtomem_wb_line_1
+                                                                                  ,top->drtomem_wb_line_0);
     error_found(top);
     return;
   }
@@ -468,14 +492,48 @@ void try_recv_packet_wb(Vdirectory_bank_wp *top) {
     return;
 
 #ifdef DEBUG_TRACE
-    printf("@%lu drtomem wb paddr: %lu, line: %lu\n",global_time,top->drtomem_wb_paddr,top->drtomem_wb_line_7);
+    printf("@%lu drtomem wb paddr: %lu, mask:%lu, data:%lu %lu %lu %lu %lu %lu %lu %lu\n",global_time
+                                                                                         ,top->drtomem_wb_paddr
+                                                                                         ,top->drtomem_wb_mask
+                                                                                         ,top->drtomem_wb_line_7
+                                                                                         ,top->drtomem_wb_line_6
+                                                                                         ,top->drtomem_wb_line_5
+                                                                                         ,top->drtomem_wb_line_4
+                                                                                         ,top->drtomem_wb_line_3
+                                                                                         ,top->drtomem_wb_line_2
+                                                                                         ,top->drtomem_wb_line_1
+                                                                                         ,top->drtomem_wb_line_0);
 #endif
   OutputPacket_drtomem_wb o = out_list_wb.back();
   if (top->drtomem_wb_paddr != o.paddr) {
     printf("ERROR: expected drtomem wb paddr:%lu but actual is %lu\n",o.paddr,top->drtomem_wb_paddr);
     error_found(top);
+  } else if(top->drtomem_wb_mask != o.mask){
+    printf("ERROR: expected drtomem wb mask:%lu but wb is %lu\n",o.mask,top->drtomem_wb_mask);
+    error_found(top);
   } else if(top->drtomem_wb_line_7 != o.line_7){
-    printf("ERROR: expected drtomem wb line:%lu but wb is %lu\n",o.line_7,top->drtomem_wb_line_7);
+    printf("ERROR: expected drtomem wb data_7:%lu but wb is %lu\n",o.line_7,top->drtomem_wb_line_7);
+    error_found(top);
+  } else if(top->drtomem_wb_line_6 != o.line_6){
+    printf("ERROR: expected drtomem wb data_6:%lu but wb is %lu\n",o.line_6,top->drtomem_wb_line_6);
+    error_found(top);
+  } else if(top->drtomem_wb_line_5 != o.line_5){
+    printf("ERROR: expected drtomem wb data_5:%lu but wb is %lu\n",o.line_5,top->drtomem_wb_line_5);
+    error_found(top);
+  } else if(top->drtomem_wb_line_4 != o.line_4){
+    printf("ERROR: expected drtomem wb data_4:%lu but wb is %lu\n",o.line_4,top->drtomem_wb_line_4);
+    error_found(top);
+  } else if(top->drtomem_wb_line_3 != o.line_3){
+    printf("ERROR: expected drtomem wb data_3:%lu but wb is %lu\n",o.line_3,top->drtomem_wb_line_3);
+    error_found(top);
+  } else if(top->drtomem_wb_line_2 != o.line_2){
+    printf("ERROR: expected drtomem wb data_2:%lu but wb is %lu\n",o.line_2,top->drtomem_wb_line_2);
+    error_found(top);
+  } else if(top->drtomem_wb_line_1 != o.line_1){
+    printf("ERROR: expected drtomem wb data_1:%lu but wb is %lu\n",o.line_1,top->drtomem_wb_line_1);
+    error_found(top);
+  } else if(top->drtomem_wb_line_0 != o.line_0){
+    printf("ERROR: expected drtomem wb data_0:%lu but wb is %lu\n",o.line_0,top->drtomem_wb_line_0);
     error_found(top);
   }
 
@@ -820,6 +878,13 @@ int main(int argc, char **argv, char **env) {
       i.drid = 0;
       i.mask = 0;
       i.line_7 = rand() & 0xFFFFFFFFFFFFFFFF;
+      i.line_6 = rand() & 0xFFFFFFFFFFFFFFFF;
+      i.line_5 = rand() & 0xFFFFFFFFFFFFFFFF;
+      i.line_4 = rand() & 0xFFFFFFFFFFFFFFFF;
+      i.line_3 = rand() & 0xFFFFFFFFFFFFFFFF;
+      i.line_2 = rand() & 0xFFFFFFFFFFFFFFFF;
+      i.line_1 = rand() & 0xFFFFFFFFFFFFFFFF;
+      i.line_0 = rand() & 0xFFFFFFFFFFFFFFFF;
       if (rand() % 3)
         i.paddr = rand() & 0x0001FFFFFFFFFFFF;
       else if (!inp_list_req.empty())
@@ -838,7 +903,15 @@ int main(int argc, char **argv, char **env) {
       if(i.dcmd != 2){
         OutputPacket_drtomem_wb o_wb;
         o_wb.line_7 = i.line_7;
+        o_wb.line_6 = i.line_6;
+        o_wb.line_5 = i.line_5;
+        o_wb.line_4 = i.line_4;
+        o_wb.line_3 = i.line_3;
+        o_wb.line_2 = i.line_2;
+        o_wb.line_1 = i.line_1;
+        o_wb.line_0 = i.line_0;
         o_wb.paddr = i.paddr;
+        o_wb.mask = i.mask;
         out_list_wb.push_front(o_wb);
       }
     }
