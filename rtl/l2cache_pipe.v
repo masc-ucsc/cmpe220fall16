@@ -64,6 +64,7 @@
 // cache is not in the L1. The L2 should invalidate the entry with a disp
 // message of DCMD_WI or DMCD_I.
 `include "scmem.vh"
+`include "logfunc.h"
 //`define L2_PASSTHROUGH
 
 module l2cache_pipe(
@@ -335,19 +336,94 @@ module l2cache_pipe(
 `endif
 
 `ifndef L2_PASSTHROUGH
+    // Pipeline regs
+    // reg_new_l1tol2_req_tag_access_1
+    logic   reg_new_l1tol2_req_tag_access_1;
+    logic   reg_new_l1tol2_req_tag_access_1_valid;
+    logic   reg_new_l1tol2_req_tag_access_1_retry;
+    logic   reg_new_l1tol2_req_tag_access_1_next;
+    logic   reg_new_l1tol2_req_tag_access_1_next_valid;
+    logic   reg_new_l1tol2_req_tag_access_1_next_retry;
+    fflop #(.Size(1)) f_reg_new_l1tol2_req_tag_access_1 (
+    .clk      (clk),
+    .reset    (reset),
+
+    .din      (reg_new_l1tol2_req_tag_access_1_next),
+    .dinValid (reg_new_l1tol2_req_tag_access_1_next_valid),
+    .dinRetry (reg_new_l1tol2_req_tag_access_1_next_retry),
+
+    .q        (reg_new_l1tol2_req_tag_access_1),
+    .qValid   (reg_new_l1tol2_req_tag_access_1_valid),
+    .qRetry   (reg_new_l1tol2_req_tag_access_1_retry)
+    );
+    // Signals for tag
+    localparam  TAG_WIDTH = `TLB_HPADDRBITS;
+    localparam  TAG_SIZE = 128;
+    logic   [1:0]   tag_bank_id;
+    logic   [6:0]  predicted_index;
+    logic tag_req_valid_bank0_way0;
+    logic tag_req_retry_bank0_way0;
+    logic tag_req_we_bank0_way0;
+    logic   [`log2(TAG_SIZE)-1:0]  tag_req_pos_bank0_way0;
+    logic   [TAG_WIDTH-1 : 0]  tag_req_data_bank0_way0;
+    logic   tag_ack_valid_bank0_way0;
+    logic   tag_ack_retry_bank0_way0;
+    logic   [TAG_WIDTH-1 : 0]  tag_ack_data_bank0_way0;
+    // Instatiate Tag RAM
+    // Width = TLB_HPADDRBITS
+    // Size = 128 
+    // Forward = 0
+    ram_1port_dense #(TAG_WIDTH, TAG_SIZE, 0) tag_bank0_way0 (
+        .clk            (clk),
+        .reset          (reset),
+        
+        .req_valid      (tag_req_valid_bank0_way0),
+        .req_retry      (tag_req_retry_bank0_way0),
+        .req_we         (tag_req_we_bank0_way0),
+        .req_pos        (tag_req_pos_bank0_way0),
+        .req_data       (tag_req_data_bank0_way0),
+
+        .ack_valid      (tag_ack_valid_bank0_way0),
+        .ack_retry      (tag_ack_retry_bank0_way0),
+        .ack_data       (tag_ack_data_bank0_way0)
+    );
     localparam NEW_L1TOL2_REQ = 5'b00001;
     logic [4:0] winner_for_tag;
     // -> l1tol2_req
     always_comb begin
         if (l1tol2_req_valid) begin
         // Check if the new l1tol2_req has the highest priority
-            if (winner_for_tag == NEW_L1TOL2_REQ) begin
-            end
+        // TODO
+            winner_for_tag = NEW_L1TOL2_REQ;
         end // end of if (l1tol2_req_valid)
+        
+        // If the new l2tol2_req is not the winner for tag,
+        // it enters l1tol2_req_q, set reg_enqueue_l1tol2_req_1
+        if (winner_for_tag != NEW_L1TOL2_REQ) begin
+            reg_new_l1tol2_req_tag_access_1_next = 0;
+            l1tol2_req_retry = reg_new_l1tol2_req_tag_access_1_next_retry;
+            reg_new_l1tol2_req_tag_access_1_next_valid = 1;
+        end
 
-    // If it has the highest priority then directly access tag and set reg_tag_access_1
-    
-    // Else, it enters l1tol2_req_q, set reg_enqueue_1
+        case (winner_for_tag)
+            NEW_L1TOL2_REQ : begin
+                // If it has the highest priority then directly access tag and set reg_new_l1tol2_req_tag_access_1
+                // Calculate Bank#
+                predicted_index = {l1tol2_req.ppaddr[2], l1tol2_req.poffset[11:6]}; // For 128
+                tag_bank_id = predicted_index[1:0];
+                case (tag_bank_id)
+                    2'b00   :   begin
+                        tag_req_valid_bank0_way0 = 1;
+                        l1tol2_req_retry = tag_req_retry_bank0_way0 & reg_new_l1tol2_req_tag_access_1_next_retry;
+                        tag_req_we_bank0_way0 = 0; // Read tag
+                        tag_req_pos_bank0_way0 = predicted_index;
+                        // set reg_new_l1tol2_req_tag_access_1
+                        reg_new_l1tol2_req_tag_access_1_next = 0;
+                        reg_new_l1tol2_req_tag_access_1_next_valid = 1;
+                    end
+                endcase
+            end // end of NEW_L1TOL2_REQ
+        endcase
     end
 `endif
 endmodule
