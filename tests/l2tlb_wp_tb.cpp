@@ -152,15 +152,15 @@ double sc_time_stamp() {
 std::list<In_l1tol2tlb_req> 		l1_l2tlb_req_list;
 std::list<In_l1tlbtol2tlb_req>		l1tlb_l2tlb_req_list;
 std::list<In_l1tlbtol2tlb_sack> 	l1tlb_l2tlb_sack_list;
-std::list<In_drtol2_snack> 			dr_l2_snack_list;
-std::list<In_drtol2_dack>  			dr_l2_dack_list;
+std::list<In_drtol2_snack> 		dr_l2_snack_list;
+std::list<In_drtol2_dack>  		dr_l2_dack_list;
 
 std::list<Out_l2tlbtol2_fwd> 		l2tlb_l2_fwd_list;
 std::list<Out_l2tlbtol1tlb_snoop>	l2tlb_l1tlb_snoop_list;
 std::list<Out_l2tlbtol1tlb_ack>		l2tlb_l1tlb_ack_list;
-std::list<Out_l2todr_req> 			l2_dr_req_list;
+std::list<Out_l2todr_req> 		l2_dr_req_list;
 std::list<Out_l2todr_snoop_ack> 	l2_dr_snoop_list;
-std::list<Out_l2todr_disp> 			l2_dr_disp_list;
+std::list<Out_l2todr_disp> 		l2_dr_disp_list;
 
 void try_send_packet(Vl2tlb_wp *top) {
   static int set_retry_for = 0;
@@ -170,23 +170,23 @@ void try_send_packet(Vl2tlb_wp *top) {
   if (set_retry_for) {
 	set_retry_for--;
 	top->l2tlbtol2_fwd_retry	= 1;
-	/*top->l2tlbtol1tlb_snoop_retry 	= 1;
+	/*top->l2tlbtol1tlb_snoop_retry = 1;
 	top->l2tlbtol1tlb_ack_retry 	= 1;
-	top->l2todr_req_retry 			= 1;
+	top->l2todr_req_retry 		= 1;
 	top->l2todr_snoop_ack_retry 	= 1;
-	top->l2todr_disp_retry 			= 1;*/
+	top->l2todr_disp_retry 		= 1;*/
   }else{
     top->l2tlbtol2_fwd_retry 	= (rand()&0xF)==0; // randomly, one every 8 packets
 	/*top->l2tlbtol1tlb_snoop_retry	= (rand()&0xF)==0; // randomly, one every 8 packets
 	top->l2tlbtol1tlb_ack_retry 	= (rand()&0xF)==0; // randomly, one every 8 packets
-	top->l2todr_req_retry 			= (rand()&0xF)==0; // randomly, one every 8 packets
+	top->l2todr_req_retry 		= (rand()&0xF)==0; // randomly, one every 8 packets
 	top->l2todr_snoop_ack_retry 	= (rand()&0xF)==0; // randomly, one every 8 packets
-	top->l2todr_disp_retry 			= (rand()&0xF)==0; // randomly, one every 8 packets*/
+	top->l2todr_disp_retry 		= (rand()&0xF)==0; // randomly, one every 8 packets*/
   }
 
   if (!top->l1tol2tlb_req_retry) {
-    top->l1tol2tlb_req_1lid 	= rand() & 0x1f;
-	top->l1tol2tlb_req_prefetch = rand() & 0x01;
+  	top->l1tol2tlb_req_1lid 	= rand() & 0x1f;
+	top->l1tol2tlb_req_prefetch	= rand() & 0x01;
 	top->l1tol2tlb_req_hpaddr 	= rand() & 0x08ff;	
     if (l1_l2tlb_req_list.empty() || (rand() & 0x3)) { // Once every 4
       top->l1tol2tlb_req_valid = 0;
@@ -196,7 +196,7 @@ void try_send_packet(Vl2tlb_wp *top) {
   }
   
   /*if (!top->l1tlbtol2tlb_req_retry) {
-	top->l1tlbtol2tlb_req_rid		= rand() & 0x03;
+	top->l1tlbtol2tlb_req_rid	= rand() & 0x03;
 	top->l1tlbtol2tlb_req_hpaddr 	= rand() & 0x08ff;
 	top->l1tlbtol2tlb_req_laddr 	= rand() & 0x0000008fffffffff;	
     if (l1tlb_l2tlb_req_list.empty() || (rand() & 0x3)) { // Once every 4
@@ -340,14 +340,14 @@ int main(int argc, char **argv, char **env) {
     l1_l2tlb_req_list.clear();
     l1tlb_l2tlb_req_list.clear();
     l1tlb_l2tlb_sack_list.clear();
-	dr_l2_snack_list.clear();
+    dr_l2_snack_list.clear();
     dr_l2_dack_list.clear();
 
     l2tlb_l2_fwd_list.clear();
-	l2tlb_l1tlb_snoop_list.clear();
+    l2tlb_l1tlb_snoop_list.clear();
     l2tlb_l1tlb_ack_list.clear();
     l2_dr_req_list.clear();
-	l2_dr_snoop_list.clear();
+    l2_dr_snoop_list.clear();
     l2_dr_disp_list.clear();
 
     top->l1tol2tlb_req_valid = 1;
@@ -367,8 +367,8 @@ int main(int argc, char **argv, char **env) {
     //-------------------------------------------------------
     top->reset = 0;
     top->l1tol2tlb_req_1lid 	= 4;
-	top->l1tol2tlb_req_prefetch = 0;
-	top->l1tol2tlb_req_hpaddr 	= 0x02f8;
+    top->l1tol2tlb_req_prefetch = 0;
+    top->l1tol2tlb_req_hpaddr 	= 0x02f8;
     top->l1tol2tlb_req_valid = 10;
     top->l2tlbtol2_fwd_retry = 1;
 
