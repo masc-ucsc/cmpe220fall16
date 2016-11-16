@@ -52,7 +52,7 @@ run_l2: l2
 run_l2_pass_through: l2_pass_through
 	./obj_dir/Vl2cache_pipe_wp
 
-REGLISY+=l2
+REGLISY+=l2_pass_through
 ###########################
 l2tlb:
 	verilator --assert --debug-check -I./rtl --Wall --cc --trace --top-module l2tlb_wp ./tests/l2tlb_wp.v ./rtl/fflop.v --exe ./tests/l2tlb_wp_tb.cpp -CFLAGS -DTRACE=1 #--exe tests/ram_1port_fast_wp_tb.cpp -CFLAGS -DTRACE=1
