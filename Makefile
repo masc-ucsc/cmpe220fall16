@@ -39,25 +39,23 @@ run_fork_fflop: fork_fflop
 #REGLIST+=fork_fflop
 ###########################
 l2:
+	verilator --assert --debug-check -I./rtl --Wall --cc --trace -Wno-UNDRIVEN -Wno-UNUSED -Wno-UNOPTFLAT  -Wno-CASEINCOMPLETE +define+L2_COMPLETE --top-module l2cache_pipe_wp ./tests/l2cache_pipe_wp.v ./rtl/fflop.v --exe ./tests/l2cache_pipe_wp_tb.cpp -CFLAGS -DTRACE=1
+	make -C obj_dir/ -f Vl2cache_pipe_wp.mk Vl2cache_pipe_wp
+
+l2_pass_through:
 	verilator --assert --debug-check -I./rtl --Wall --cc --trace -Wno-UNDRIVEN -Wno-UNUSED -Wno-UNOPTFLAT  -Wno-CASEINCOMPLETE --top-module l2cache_pipe_wp ./tests/l2cache_pipe_wp.v ./rtl/fflop.v --exe ./tests/l2cache_pipe_wp_tb.cpp -CFLAGS -DTRACE=1
 	make -C obj_dir/ -f Vl2cache_pipe_wp.mk Vl2cache_pipe_wp
 
-#l2_pass_through:
-#	verilator --assert --debug-check -I./rtl --Wall --cc --trace +define+L2_PASSTHROUGH=1 --top-module l2cache_pipe_wp ./tests/l2cache_pipe_wp.v ./rtl/fflop.v --exe ./tests/l2cache_pipe_wp_tb.cpp -CFLAGS -DTRACE=1
-#	make -C obj_dir/ -f Vl2cache_pipe_wp.mk Vl2cache_pipe_wp
-
-l2_pass_through:
-	verilator --assert --debug-check -I./rtl --Wall --cc --trace --top-module l2cache_pipe_wp ./tests/l2cache_pipe_wp.v ./rtl/fflop.v --exe ./tests/l2cache_pipe_wp_tb.cpp -CFLAGS -DTRACE=1
-	make -C obj_dir/ -f Vl2cache_pipe_wp.mk Vl2cache_pipe_wp
-
+# +define+L2_PASSTHROUGH=1 
 
 run_l2: l2
 	./obj_dir/Vl2cache_pipe_wp
 
-run_l2_pass_through: l2_pass_through
+l2cache_pipe_wp: l2_pass_through
 	./obj_dir/Vl2cache_pipe_wp
 
-REGLISY+=run_l2_pass_through
+# Add only the L2 Pass through part to the regression
+REGLIST+=l2cache_pipe_wp
 ###########################
 l2tlb:
 	verilator --assert --debug-check -I./rtl --Wall --cc --trace --top-module l2tlb_wp ./tests/l2tlb_wp.v ./rtl/fflop.v --exe ./tests/l2tlb_wp_tb.cpp -CFLAGS -DTRACE=1

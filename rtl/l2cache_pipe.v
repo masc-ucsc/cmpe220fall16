@@ -66,6 +66,7 @@
 `include "scmem.vh"
 `include "logfunc.h"
 `define L2_PASSTHROUGH
+//`define L2_COMPLETE
 
 module l2cache_pipe(
   /* verilator lint_off UNUSED */
@@ -135,6 +136,7 @@ module l2cache_pipe(
     I_l2todr_req_type   l2todr_req_next;
 
 `ifdef L2_PASSTHROUGH
+    `ifndef L2_COMPLETE
     assign l2todr_req_next_valid = l1tol2_req_valid;
     assign  l1tol2_req_retry = l2todr_req_next_retry;
 
@@ -175,11 +177,13 @@ module l2cache_pipe(
     .qValid   (l2todr_req_valid),
     .qRetry   (l2todr_req_retry)
     );
+    `endif
 `endif
 
 // -> drtol2_snack
 // l2tol1_snack ->
 `ifdef L2_PASSTHROUGH
+    `ifndef L2_COMPLETE
     logic l2tol1_snack_next_valid;
     logic l2tol1_snack_next_retry;
     I_l2tol1_snack_type l2tol1_snack_next;
@@ -209,9 +213,11 @@ module l2cache_pipe(
     .qRetry   (l2tol1_snack_retry)
     );
 // end
+    `endif
 `endif
 
 `ifdef L2_PASSTHROUGH
+    `ifndef L2_COMPLETE
 // -> l1tol2_snoop_ack
 // l2todr_snoop_ack ->
     logic l2todr_snoop_ack_next_valid;
@@ -238,9 +244,11 @@ module l2cache_pipe(
     .qValid   (l2todr_snoop_ack_valid),
     .qRetry   (l2todr_snoop_ack_retry)
     );
+    `endif
 `endif
 
 `ifdef L2_PASSTHROUGH
+    `ifndef L2_COMPLETE
 // -> l2tlbtol2_fwd
 // l2todr_pfreq ->
     logic l2todr_pfreq_next_valid;
@@ -267,10 +275,11 @@ module l2cache_pipe(
     .qValid   (l2todr_pfreq_valid),
     .qRetry   (l2todr_pfreq_retry)
     );
-
+    `endif
 `endif
 
 `ifdef L2_PASSTHROUGH
+    `ifndef L2_COMPLETE
 // (1) -> l1tol2_disp
 // (2) l2todr_disp ->
 // (2) l2tol1_dack ->
@@ -305,9 +314,11 @@ module l2cache_pipe(
     .qValid   (l2todr_disp_valid),
     .qRetry   (l2todr_disp_retry)
     );
+    `endif
 `endif
 
 `ifdef L2_PASSTHROUGH
+    `ifndef L2_COMPLETE
 // (1) -> l1tol2_disp
 // (2) l2todr_disp ->
 // (2) l2tol1_dack ->
@@ -334,8 +345,10 @@ module l2cache_pipe(
     .qRetry   (l2tol1_dack_retry)
     );
 `endif
+`endif
 
-`ifndef L2_PASSTHROUGH
+`ifdef L2_COMPLETE
+    `ifndef L2_PASSTHROUGH
     // Pipeline regs
     // reg_new_l1tol2_req_tag_access_1
     logic   reg_new_l1tol2_req_tag_access_1;
@@ -425,6 +438,7 @@ module l2cache_pipe(
             end // end of NEW_L1TOL2_REQ
         endcase
     end
+    `endif
 `endif
 endmodule
 
