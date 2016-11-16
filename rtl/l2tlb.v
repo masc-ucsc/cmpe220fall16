@@ -5,6 +5,7 @@
 // are enough. If a new SBPTR checkpoint create arrives, the TLB can
 // invalidate all the associated TLB entries (and notify the L1 accordingly)
 //
+`include "scmem.vh"
 
 module l2tlb(
   /* verilator lint_off UNUSED */
