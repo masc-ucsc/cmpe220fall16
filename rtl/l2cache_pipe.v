@@ -64,7 +64,7 @@
 // cache is not in the L1. The L2 should invalidate the entry with a disp
 // message of DCMD_WI or DMCD_I.
 `include "scmem.vh"
-`define L2_PASSTHROUGH
+//`define L2_PASSTHROUGH
 
 module l2cache_pipe(
   /* verilator lint_off UNUSED */
@@ -348,6 +348,7 @@ module l2cache_pipe(
     // If it has the highest priority then directly access tag and set reg_tag_access_1
     
     // Else, it enters l1tol2_req_q, set reg_enqueue_1
+    end
 `endif
 endmodule
 
