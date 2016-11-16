@@ -77,9 +77,9 @@ module net_2core2dr(
   ,output logic                    c0_l2d_0todr_disp_retry
   ,input  I_l2todr_disp_type       c0_l2d_0todr_disp
 
-  ,input  logic                    c0_drtol2d_0_dack_valid
-  ,output logic                    c0_drtol2d_0_dack_retry
-  ,input  I_drtol2_dack_type       c0_drtol2d_0_dack
+  ,output logic                    c0_drtol2d_0_dack_valid
+  ,input  logic                    c0_drtol2d_0_dack_retry
+  ,output I_drtol2_dack_type       c0_drtol2d_0_dack
 
   ,input  logic                    c0_l2d_0todr_pfreq_valid
   ,output logic                    c0_l2d_0todr_pfreq_retry
@@ -102,9 +102,9 @@ module net_2core2dr(
   ,output logic                    c0_l2dt_0todr_disp_retry
   ,input  I_l2todr_disp_type       c0_l2dt_0todr_disp
 
-  ,input  logic                    c0_drtol2dt_0_dack_valid
-  ,output logic                    c0_drtol2dt_0_dack_retry
-  ,input  I_drtol2_dack_type       c0_drtol2dt_0_dack
+  ,output logic                    c0_drtol2dt_0_dack_valid
+  ,input  logic                    c0_drtol2dt_0_dack_retry
+  ,output I_drtol2_dack_type       c0_drtol2dt_0_dack
 
   // c1 core L2I
   ,input  logic                    c1_l2itodr_req_valid
@@ -123,9 +123,9 @@ module net_2core2dr(
   ,output logic                    c1_l2itodr_disp_retry
   ,input  I_l2todr_disp_type       c1_l2itodr_disp
 
-  ,input  logic                    c1_drtol2i_dack_valid
-  ,output logic                    c1_drtol2i_dack_retry
-  ,input  I_drtol2_dack_type       c1_drtol2i_dack
+  ,output logic                    c1_drtol2i_dack_valid
+  ,input  logic                    c1_drtol2i_dack_retry
+  ,output I_drtol2_dack_type       c1_drtol2i_dack
 
   ,input  logic                    c1_l2itodr_pfreq_valid
   ,output logic                    c1_l2itodr_pfreq_retry
@@ -148,9 +148,9 @@ module net_2core2dr(
   ,output logic                    c1_l2ittodr_disp_retry
   ,input  I_l2todr_disp_type       c1_l2ittodr_disp
 
-  ,input  logic                    c1_drtol2it_dack_valid
-  ,output logic                    c1_drtol2it_dack_retry
-  ,input  I_drtol2_dack_type       c1_drtol2it_dack
+  ,output logic                    c1_drtol2it_dack_valid
+  ,input  logic                    c1_drtol2it_dack_retry
+  ,output I_drtol2_dack_type       c1_drtol2it_dack
 
   // c1 core L2D
   ,input  logic                    c1_l2d_0todr_req_valid
@@ -169,9 +169,9 @@ module net_2core2dr(
   ,output logic                    c1_l2d_0todr_disp_retry
   ,input  I_l2todr_disp_type       c1_l2d_0todr_disp
 
-  ,input  logic                    c1_drtol2d_0_dack_valid
-  ,output logic                    c1_drtol2d_0_dack_retry
-  ,input  I_drtol2_dack_type       c1_drtol2d_0_dack
+  ,output logic                    c1_drtol2d_0_dack_valid
+  ,input  logic                    c1_drtol2d_0_dack_retry
+  ,output I_drtol2_dack_type       c1_drtol2d_0_dack
 
   ,input  logic                    c1_l2d_0todr_pfreq_valid
   ,output logic                    c1_l2d_0todr_pfreq_retry
@@ -194,9 +194,9 @@ module net_2core2dr(
   ,output logic                    c1_l2dt_0todr_disp_retry
   ,input  I_l2todr_disp_type       c1_l2dt_0todr_disp
 
-  ,input  logic                    c1_drtol2dt_0_dack_valid
-  ,output logic                    c1_drtol2dt_0_dack_retry
-  ,input  I_drtol2_dack_type       c1_drtol2dt_0_dack
+  ,output logic                    c1_drtol2dt_0_dack_valid
+  ,input  logic                    c1_drtol2dt_0_dack_retry
+  ,output I_drtol2_dack_type       c1_drtol2dt_0_dack
 
    // directory 0
   ,output                          l2todr0_req_valid
@@ -320,90 +320,119 @@ module net_2core2dr(
   assign l2todr0_req_inp_valid = c0_l2todr0_req_valid | c1_l2todr0_req_valid;
   assign l2todr1_req_inp_valid = c0_l2todr1_req_valid | c1_l2todr1_req_valid;
 
+  logic c0_l2itodr0_req_retry;
+  logic c0_l2ittodr0_req_retry;
+  logic c0_l2d_0todr0_req_retry;
+  logic c0_l2dt_0todr0_req_retry;
+  logic c1_l2itodr0_req_retry;
+  logic c1_l2ittodr0_req_retry;
+  logic c1_l2d_0todr0_req_retry;
+  logic c1_l2dt_0todr0_req_retry;
+  logic c0_l2itodr1_req_retry;
+  logic c0_l2ittodr1_req_retry;
+  logic c0_l2d_0todr1_req_retry;
+  logic c0_l2dt_0todr1_req_retry;
+  logic c1_l2itodr1_req_retry;
+  logic c1_l2ittodr1_req_retry;
+  logic c1_l2d_0todr1_req_retry;
+  logic c1_l2dt_0todr1_req_retry;
+
   logic l2todr_req_inp0_retry;
   logic l2todr_req_inp1_retry;
 
    //***********************REQs**********************
    // For every request if the request is valid we 
    // will pass it through. We also must set retries here.
+ 
+  // Handle DIR 0 reqs
   always_comb begin
+    c0_l2itodr0_req_retry = 1;
+    c0_l2ittodr0_req_retry = 1;
+    c0_l2d_0todr0_req_retry = 1;
+    c0_l2dt_0todr0_req_retry = 1;
+    c1_l2itodr0_req_retry = 1;
+    c1_l2ittodr0_req_retry = 1;
+    c1_l2d_0todr0_req_retry = 1;
+    c1_l2dt_0todr0_req_retry = 1;
+
     if (c0_l2itodr0_req_valid) begin
       l2todr0_req_next = c0_l2itodr_req;
-      c0_l2itodr_req_retry = l2todr_req_inp0_retry;
-    end else if (c0_l2itodr1_req_valid) begin
-      c0_l2itodr_req_retry = l2todr_req_inp1_retry;
-      l2todr1_req_next = c0_l2itodr_req;
-    end 
-  end
-
-  always_comb begin
-    if (c0_l2ittodr0_req_valid) begin
-      c0_l2ittodr_req_retry = l2todr_req_inp0_retry;
+      c0_l2itodr0_req_retry = l2todr_req_inp0_retry;
+    end else if (c0_l2ittodr0_req_valid) begin
+      c0_l2ittodr0_req_retry = l2todr_req_inp0_retry;
       l2todr0_req_next = c0_l2ittodr_req;
-    end else if (c0_l2ittodr1_req_valid) begin
-      c0_l2ittodr_req_retry = l2todr_req_inp1_retry;
-      l2todr1_req_next = c0_l2ittodr_req;
-    end
-  end
-
-  always_comb begin
-    if (c0_l2d_0todr0_req_valid) begin
-      c0_l2d_0todr_req_retry = l2todr_req_inp0_retry;
+    end else if (c0_l2d_0todr0_req_valid) begin
+      c0_l2d_0todr0_req_retry = l2todr_req_inp0_retry;
       l2todr0_req_next = c0_l2d_0todr_req;
-    end else if (c0_l2d_0todr1_req_valid) begin
-      c0_l2d_0todr_req_retry = l2todr_req_inp1_retry;
-      l2todr1_req_next = c0_l2d_0todr_req;
-    end
-  end
-
-  always_comb begin
-    if (c0_l2dt_0todr0_req_valid) begin
-      c0_l2dt_0todr_req_retry = l2todr_req_inp0_retry;
+    end else if (c0_l2dt_0todr0_req_valid) begin
+      c0_l2dt_0todr0_req_retry = l2todr_req_inp0_retry;
       l2todr0_req_next = c0_l2dt_0todr_req;
-    end else if (c0_l2dt_0todr1_req_valid) begin
-      c0_l2dt_0todr_req_retry = l2todr_req_inp0_retry;
-      l2todr0_req_next = c0_l2dt_0todr_req;
-    end
-  end
-
-  always_comb begin
-    if (c1_l2itodr0_req_valid) begin
+    end else if (c1_l2itodr0_req_valid) begin
       l2todr0_req_next = c1_l2itodr_req;
-      c1_l2itodr_req_retry = l2todr_req_inp0_retry;
-    end else if (c1_l2itodr1_req_valid) begin
-      c1_l2itodr_req_retry = l2todr_req_inp1_retry;
-      l2todr1_req_next = c1_l2itodr_req;
-    end 
-  end
-
-  always_comb begin
-    if (c1_l2ittodr0_req_valid) begin
-      c1_l2ittodr_req_retry = l2todr_req_inp0_retry;
+      c1_l2itodr0_req_retry = l2todr_req_inp0_retry;
+    end else if (c1_l2ittodr0_req_valid) begin
+      c1_l2ittodr0_req_retry = l2todr_req_inp0_retry;
       l2todr0_req_next = c1_l2ittodr_req;
-    end else if (c1_l2ittodr1_req_valid) begin
-      c1_l2ittodr_req_retry = l2todr_req_inp1_retry;
-      l2todr1_req_next = c1_l2ittodr_req;
-    end
-  end
-
-  always_comb begin
-    if (c1_l2d_0todr0_req_valid) begin
-      c1_l2d_0todr_req_retry = l2todr_req_inp0_retry;
+    end else if (c1_l2d_0todr0_req_valid) begin
+      c1_l2d_0todr0_req_retry = l2todr_req_inp0_retry;
       l2todr0_req_next = c1_l2d_0todr_req;
-    end else if (c1_l2d_0todr1_req_valid) begin
-      c1_l2d_0todr_req_retry = l2todr_req_inp1_retry;
-      l2todr1_req_next = c1_l2d_0todr_req;
+    end else if (c1_l2dt_0todr0_req_valid) begin
+      c1_l2dt_0todr0_req_retry = l2todr_req_inp0_retry;
+      l2todr0_req_next = c1_l2dt_0todr_req;
     end
   end
 
+// Handle DIR 1 reqs
   always_comb begin
-    if (c1_l2dt_0todr0_req_valid) begin
-      c1_l2dt_0todr_req_retry = l2todr_req_inp0_retry;
-      l2todr0_req_next = c1_l2dt_0todr_req;
+    c0_l2itodr1_req_retry = 1;
+    c0_l2ittodr1_req_retry = 1;
+    c0_l2d_0todr1_req_retry = 1;
+    c0_l2dt_0todr1_req_retry = 1;
+    c1_l2itodr1_req_retry = 1;
+    c1_l2ittodr1_req_retry = 1;
+    c1_l2d_0todr1_req_retry = 1;
+    c1_l2dt_0todr1_req_retry = 1;
+
+    if (c0_l2itodr1_req_valid) begin
+      c0_l2itodr1_req_retry = l2todr_req_inp1_retry;
+      l2todr1_req_next = c0_l2itodr_req;
+    end else if (c0_l2ittodr1_req_valid) begin
+      c0_l2ittodr1_req_retry = l2todr_req_inp1_retry;
+      l2todr1_req_next = c0_l2ittodr_req;
+    end else if (c0_l2d_0todr1_req_valid) begin
+      c0_l2d_0todr1_req_retry = l2todr_req_inp1_retry;
+      l2todr1_req_next = c0_l2d_0todr_req;
+    end else if (c0_l2dt_0todr1_req_valid) begin
+      c0_l2dt_0todr1_req_retry = l2todr_req_inp0_retry;
+      l2todr0_req_next = c0_l2dt_0todr_req;
+    end else if (c1_l2itodr1_req_valid) begin
+      c1_l2itodr1_req_retry = l2todr_req_inp1_retry;
+      l2todr1_req_next = c1_l2itodr_req;
+    end else if (c1_l2ittodr1_req_valid) begin
+      c1_l2ittodr1_req_retry = l2todr_req_inp1_retry;
+      l2todr1_req_next = c1_l2ittodr_req;
     end else if (c1_l2d_0todr1_req_valid) begin
-      c1_l2dt_0todr_req_retry = l2todr_req_inp0_retry;
+      c1_l2d_0todr1_req_retry = l2todr_req_inp1_retry;
+      l2todr1_req_next = c1_l2d_0todr_req;
+    end else if (c1_l2d_0todr1_req_valid) begin
+      c1_l2dt_0todr1_req_retry = l2todr_req_inp0_retry;
       l2todr0_req_next = c1_l2dt_0todr_req;
     end
+  end
+  
+  // set final retry signals for l2 modules
+  // retry will only be high if dr0_retry and dr1_retry are both set high
+  // if one is set low that means there is a valid request to that directory 
+  // and other retry can be ignored 
+  always_comb begin
+    c0_l2itodr_req_retry = c0_l2itodr0_req_retry & c0_l2itodr1_req_retry;
+    c0_l2ittodr_req_retry = c0_l2ittodr0_req_retry & c0_l2ittodr1_req_retry;
+    c0_l2d_0todr_req_retry = c0_l2d_0todr0_req_retry & c0_l2d_0todr1_req_retry;
+    c0_l2dt_0todr_req_retry = c0_l2dt_0todr0_req_retry & c0_l2dt_0todr1_req_retry;
+    c1_l2itodr_req_retry = c1_l2itodr0_req_retry & c1_l2itodr1_req_retry;
+    c1_l2ittodr_req_retry = c1_l2ittodr0_req_retry & c1_l2ittodr1_req_retry;
+    c1_l2d_0todr_req_retry = c1_l2d_0todr0_req_retry & c1_l2d_0todr1_req_retry;
+    c1_l2dt_0todr_req_retry = c1_l2dt_0todr0_req_retry & c1_l2dt_0todr1_req_retry;
   end
 
   fflop #(.Size($bits(I_l2todr_req_type))) req_dir0_ff (
@@ -500,90 +529,119 @@ module net_2core2dr(
   assign l2todr0_disp_inp_valid = c0_l2todr0_disp_valid | c1_l2todr0_disp_valid;
   assign l2todr1_disp_inp_valid = c0_l2todr1_disp_valid | c1_l2todr1_disp_valid;
 
+  logic c0_l2itodr0_disp_retry;
+  logic c0_l2ittodr0_disp_retry;
+  logic c0_l2d_0todr0_disp_retry;
+  logic c0_l2dt_0todr0_disp_retry;
+  logic c1_l2itodr0_disp_retry;
+  logic c1_l2ittodr0_disp_retry;
+  logic c1_l2d_0todr0_disp_retry;
+  logic c1_l2dt_0todr0_disp_retry;
+  logic c0_l2itodr1_disp_retry;
+  logic c0_l2ittodr1_disp_retry;
+  logic c0_l2d_0todr1_disp_retry;
+  logic c0_l2dt_0todr1_disp_retry;
+  logic c1_l2itodr1_disp_retry;
+  logic c1_l2ittodr1_disp_retry;
+  logic c1_l2d_0todr1_disp_retry;
+  logic c1_l2dt_0todr1_disp_retry;
+
   logic l2todr_disp_inp0_retry;
   logic l2todr_disp_inp1_retry;
 
-  //***********************disps**********************
-  // For every disp if the disp is valid we 
-  // will pass it through. We also must set retries here.
+   //***********************disps**********************
+   // For every disp if the disp is valid we 
+   // will pass it through. We also must set retries here.
+ 
+  // Handle DIR 0 disps
   always_comb begin
+    c0_l2itodr0_disp_retry = 1;
+    c0_l2ittodr0_disp_retry = 1;
+    c0_l2d_0todr0_disp_retry = 1;
+    c0_l2dt_0todr0_disp_retry = 1;
+    c1_l2itodr0_disp_retry = 1;
+    c1_l2ittodr0_disp_retry = 1;
+    c1_l2d_0todr0_disp_retry = 1;
+    c1_l2dt_0todr0_disp_retry = 1;
+
     if (c0_l2itodr0_disp_valid) begin
       l2todr0_disp_next = c0_l2itodr_disp;
-      c0_l2itodr_disp_retry = l2todr_disp_inp0_retry;
-    end else if (c0_l2itodr1_disp_valid) begin
-      c0_l2itodr_disp_retry = l2todr_disp_inp1_retry;
-      l2todr1_disp_next = c0_l2itodr_disp;
-    end 
-  end
-
-  always_comb begin
-    if (c0_l2ittodr0_disp_valid) begin
-      c0_l2ittodr_disp_retry = l2todr_disp_inp0_retry;
+      c0_l2itodr0_disp_retry = l2todr_disp_inp0_retry;
+    end else if (c0_l2ittodr0_disp_valid) begin
+      c0_l2ittodr0_disp_retry = l2todr_disp_inp0_retry;
       l2todr0_disp_next = c0_l2ittodr_disp;
-    end else if (c0_l2ittodr1_disp_valid) begin
-      c0_l2ittodr_disp_retry = l2todr_disp_inp1_retry;
-      l2todr1_disp_next = c0_l2ittodr_disp;
-    end
-  end
-
-  always_comb begin
-    if (c0_l2d_0todr0_disp_valid) begin
-      c0_l2d_0todr_disp_retry = l2todr_disp_inp0_retry;
+    end else if (c0_l2d_0todr0_disp_valid) begin
+      c0_l2d_0todr0_disp_retry = l2todr_disp_inp0_retry;
       l2todr0_disp_next = c0_l2d_0todr_disp;
-    end else if (c0_l2d_0todr1_disp_valid) begin
-      c0_l2d_0todr_disp_retry = l2todr_disp_inp1_retry;
-      l2todr1_disp_next = c0_l2d_0todr_disp;
-    end
-  end
-
-  always_comb begin
-    if (c0_l2dt_0todr0_disp_valid) begin
-      c0_l2dt_0todr_disp_retry = l2todr_disp_inp0_retry;
+    end else if (c0_l2dt_0todr0_disp_valid) begin
+      c0_l2dt_0todr0_disp_retry = l2todr_disp_inp0_retry;
       l2todr0_disp_next = c0_l2dt_0todr_disp;
-    end else if (c0_l2dt_0todr1_disp_valid) begin
-      c0_l2dt_0todr_disp_retry = l2todr_disp_inp0_retry;
-      l2todr0_disp_next = c0_l2dt_0todr_disp;
-    end
-  end
-
-  always_comb begin
-    if (c1_l2itodr0_disp_valid) begin
+    end else if (c1_l2itodr0_disp_valid) begin
       l2todr0_disp_next = c1_l2itodr_disp;
-      c1_l2itodr_disp_retry = l2todr_disp_inp0_retry;
-    end else if (c1_l2itodr1_disp_valid) begin
-      c1_l2itodr_disp_retry = l2todr_disp_inp1_retry;
-      l2todr1_disp_next = c1_l2itodr_disp;
-    end 
-  end
-
-  always_comb begin
-    if (c1_l2ittodr0_disp_valid) begin
-      c1_l2ittodr_disp_retry = l2todr_disp_inp0_retry;
+      c1_l2itodr0_disp_retry = l2todr_disp_inp0_retry;
+    end else if (c1_l2ittodr0_disp_valid) begin
+      c1_l2ittodr0_disp_retry = l2todr_disp_inp0_retry;
       l2todr0_disp_next = c1_l2ittodr_disp;
-    end else if (c1_l2ittodr1_disp_valid) begin
-      c1_l2ittodr_disp_retry = l2todr_disp_inp1_retry;
-      l2todr1_disp_next = c1_l2ittodr_disp;
-    end
-  end
-
-  always_comb begin
-    if (c1_l2d_0todr0_disp_valid) begin
-      c1_l2d_0todr_disp_retry = l2todr_disp_inp0_retry;
+    end else if (c1_l2d_0todr0_disp_valid) begin
+      c1_l2d_0todr0_disp_retry = l2todr_disp_inp0_retry;
       l2todr0_disp_next = c1_l2d_0todr_disp;
-    end else if (c1_l2d_0todr1_disp_valid) begin
-      c1_l2d_0todr_disp_retry = l2todr_disp_inp1_retry;
-      l2todr1_disp_next = c1_l2d_0todr_disp;
+    end else if (c1_l2dt_0todr0_disp_valid) begin
+      c1_l2dt_0todr0_disp_retry = l2todr_disp_inp0_retry;
+      l2todr0_disp_next = c1_l2dt_0todr_disp;
     end
   end
 
+// Handle DIR 1 disps
   always_comb begin
-    if (c1_l2dt_0todr0_disp_valid) begin
-      c1_l2dt_0todr_disp_retry = l2todr_disp_inp0_retry;
-      l2todr0_disp_next = c1_l2dt_0todr_disp;
+    c0_l2itodr1_disp_retry = 1;
+    c0_l2ittodr1_disp_retry = 1;
+    c0_l2d_0todr1_disp_retry = 1;
+    c0_l2dt_0todr1_disp_retry = 1;
+    c1_l2itodr1_disp_retry = 1;
+    c1_l2ittodr1_disp_retry = 1;
+    c1_l2d_0todr1_disp_retry = 1;
+    c1_l2dt_0todr1_disp_retry = 1;
+
+    if (c0_l2itodr1_disp_valid) begin
+      c0_l2itodr1_disp_retry = l2todr_disp_inp1_retry;
+      l2todr1_disp_next = c0_l2itodr_disp;
+    end else if (c0_l2ittodr1_disp_valid) begin
+      c0_l2ittodr1_disp_retry = l2todr_disp_inp1_retry;
+      l2todr1_disp_next = c0_l2ittodr_disp;
+    end else if (c0_l2d_0todr1_disp_valid) begin
+      c0_l2d_0todr1_disp_retry = l2todr_disp_inp1_retry;
+      l2todr1_disp_next = c0_l2d_0todr_disp;
+    end else if (c0_l2dt_0todr1_disp_valid) begin
+      c0_l2dt_0todr1_disp_retry = l2todr_disp_inp0_retry;
+      l2todr0_disp_next = c0_l2dt_0todr_disp;
+    end else if (c1_l2itodr1_disp_valid) begin
+      c1_l2itodr1_disp_retry = l2todr_disp_inp1_retry;
+      l2todr1_disp_next = c1_l2itodr_disp;
+    end else if (c1_l2ittodr1_disp_valid) begin
+      c1_l2ittodr1_disp_retry = l2todr_disp_inp1_retry;
+      l2todr1_disp_next = c1_l2ittodr_disp;
     end else if (c1_l2d_0todr1_disp_valid) begin
-      c1_l2dt_0todr_disp_retry = l2todr_disp_inp0_retry;
+      c1_l2d_0todr1_disp_retry = l2todr_disp_inp1_retry;
+      l2todr1_disp_next = c1_l2d_0todr_disp;
+    end else if (c1_l2d_0todr1_disp_valid) begin
+      c1_l2dt_0todr1_disp_retry = l2todr_disp_inp0_retry;
       l2todr0_disp_next = c1_l2dt_0todr_disp;
     end
+  end
+  
+  // set final retry signals for l2 modules
+  // retry will only be high if dr0_retry and dr1_retry are both set high
+  // if one is set low that means there is a valid dispuest to that directory 
+  // and other retry can be ignored 
+  always_comb begin
+    c0_l2itodr_disp_retry = c0_l2itodr0_disp_retry & c0_l2itodr1_disp_retry;
+    c0_l2ittodr_disp_retry = c0_l2ittodr0_disp_retry & c0_l2ittodr1_disp_retry;
+    c0_l2d_0todr_disp_retry = c0_l2d_0todr0_disp_retry & c0_l2d_0todr1_disp_retry;
+    c0_l2dt_0todr_disp_retry = c0_l2dt_0todr0_disp_retry & c0_l2dt_0todr1_disp_retry;
+    c1_l2itodr_disp_retry = c1_l2itodr0_disp_retry & c1_l2itodr1_disp_retry;
+    c1_l2ittodr_disp_retry = c1_l2ittodr0_disp_retry & c1_l2ittodr1_disp_retry;
+    c1_l2d_0todr_disp_retry = c1_l2d_0todr0_disp_retry & c1_l2d_0todr1_disp_retry;
+    c1_l2dt_0todr_disp_retry = c1_l2dt_0todr0_disp_retry & c1_l2dt_0todr1_disp_retry;
   end
 
   fflop #(.Size($bits(I_l2todr_disp_type))) disp_dir0_ff (
@@ -656,51 +714,75 @@ module net_2core2dr(
   assign l2todr0_pfreq_inp_valid = c0_l2todr0_pfreq_valid | c1_l2todr0_pfreq_valid;
   assign l2todr1_pfreq_inp_valid = c0_l2todr1_pfreq_valid | c1_l2todr1_pfreq_valid;
 
+  logic c0_l2itodr0_pfreq_retry;
+  logic c0_l2d_0todr0_pfreq_retry;
+  logic c1_l2itodr0_pfreq_retry;
+  logic c1_l2d_0todr0_pfreq_retry;
+  logic c0_l2itodr1_pfreq_retry;
+  logic c0_l2d_0todr1_pfreq_retry;
+  logic c1_l2itodr1_pfreq_retry;
+  logic c1_l2d_0todr1_pfreq_retry;
+
   logic l2todr_pfreq_inp0_retry;
   logic l2todr_pfreq_inp1_retry;
 
-  //***********************pfreqs**********************
-  // For every pfreq if the pfreq is valid we 
-  // will pass it through. We also must set retries here.
-
+   //***********************pfreqs**********************
+   // For every pfreq if the pfreq is valid we 
+   // will pass it through. We also must set retries here.
+ 
+  // Handle DIR 0 pfreqs
   always_comb begin
+    c0_l2itodr0_pfreq_retry = 1;
+    c0_l2d_0todr0_pfreq_retry = 1;
+    c1_l2itodr0_pfreq_retry = 1;
+    c1_l2d_0todr0_pfreq_retry = 1;
+
     if (c0_l2itodr0_pfreq_valid) begin
       l2todr0_pfreq_next = c0_l2itodr_pfreq;
-      c0_l2itodr_pfreq_retry = l2todr_pfreq_inp0_retry;
-    end else if (c0_l2itodr1_pfreq_valid) begin
-      c0_l2itodr_pfreq_retry = l2todr_pfreq_inp1_retry;
-      l2todr1_pfreq_next = c0_l2itodr_pfreq;
-    end 
-  end
-
-  always_comb begin
-    if (c0_l2d_0todr0_pfreq_valid) begin
-      c0_l2d_0todr_pfreq_retry = l2todr_pfreq_inp0_retry;
+      c0_l2itodr0_pfreq_retry = l2todr_pfreq_inp0_retry;
+    end else if (c0_l2d_0todr0_pfreq_valid) begin
+      c0_l2d_0todr0_pfreq_retry = l2todr_pfreq_inp0_retry;
       l2todr0_pfreq_next = c0_l2d_0todr_pfreq;
-    end else if (c0_l2d_0todr1_pfreq_valid) begin
-      c0_l2d_0todr_pfreq_retry = l2todr_pfreq_inp1_retry;
-      l2todr1_pfreq_next = c0_l2d_0todr_pfreq;
+    end else if (c1_l2itodr0_pfreq_valid) begin
+      l2todr0_pfreq_next = c1_l2itodr_pfreq;
+      c1_l2itodr0_pfreq_retry = l2todr_pfreq_inp0_retry;
+    end else if (c1_l2d_0todr0_pfreq_valid) begin
+      c1_l2d_0todr0_pfreq_retry = l2todr_pfreq_inp0_retry;
+      l2todr0_pfreq_next = c1_l2d_0todr_pfreq;
     end
   end
 
+// Handle DIR 1 pfreqs
   always_comb begin
-    if (c1_l2itodr0_pfreq_valid) begin
-      l2todr0_pfreq_next = c1_l2itodr_pfreq;
-      c1_l2itodr_pfreq_retry = l2todr_pfreq_inp0_retry;
-    end else if (c1_l2itodr1_pfreq_valid) begin
-      c1_l2itodr_pfreq_retry = l2todr_pfreq_inp1_retry;
-      l2todr1_pfreq_next = c1_l2itodr_pfreq;
-    end 
-  end
+    c0_l2itodr1_pfreq_retry = 1;
+    c0_l2d_0todr1_pfreq_retry = 1;
+    c1_l2itodr1_pfreq_retry = 1;
+    c1_l2d_0todr1_pfreq_retry = 1;
 
-  always_comb begin
-    if (c1_l2d_0todr0_pfreq_valid) begin
-      c1_l2d_0todr_pfreq_retry = l2todr_pfreq_inp0_retry;
-      l2todr0_pfreq_next = c1_l2d_0todr_pfreq;
+    if (c0_l2itodr1_pfreq_valid) begin
+      c0_l2itodr1_pfreq_retry = l2todr_pfreq_inp1_retry;
+      l2todr1_pfreq_next = c0_l2itodr_pfreq;
+    end else if (c0_l2d_0todr1_pfreq_valid) begin
+      c0_l2d_0todr1_pfreq_retry = l2todr_pfreq_inp1_retry;
+      l2todr1_pfreq_next = c0_l2d_0todr_pfreq;
+    end else if (c1_l2itodr1_pfreq_valid) begin
+      c1_l2itodr1_pfreq_retry = l2todr_pfreq_inp1_retry;
+      l2todr1_pfreq_next = c1_l2itodr_pfreq;
     end else if (c1_l2d_0todr1_pfreq_valid) begin
-      c1_l2d_0todr_pfreq_retry = l2todr_pfreq_inp1_retry;
+      c1_l2d_0todr1_pfreq_retry = l2todr_pfreq_inp1_retry;
       l2todr1_pfreq_next = c1_l2d_0todr_pfreq;
     end
+  end
+  
+  // set final retry signals for l2 modules
+  // retry will only be high if dr0_retry and dr1_retry are both set high
+  // if one is set low that means there is a valid pfrequest to that directory 
+  // and other retry can be ignored 
+  always_comb begin
+    c0_l2itodr_pfreq_retry = c0_l2itodr0_pfreq_retry & c0_l2itodr1_pfreq_retry;
+    c0_l2d_0todr_pfreq_retry = c0_l2d_0todr0_pfreq_retry & c0_l2d_0todr1_pfreq_retry;
+    c1_l2itodr_pfreq_retry = c1_l2itodr0_pfreq_retry & c1_l2itodr1_pfreq_retry;
+    c1_l2d_0todr_pfreq_retry = c1_l2d_0todr0_pfreq_retry & c1_l2d_0todr1_pfreq_retry;
   end
 
   fflop #(.Size($bits(I_l2todr_pfreq_type))) pfreq_dir0_ff (
@@ -797,87 +879,119 @@ module net_2core2dr(
   assign l2todr0_snoop_ack_inp_valid = c0_l2todr0_snoop_ack_valid | c1_l2todr0_snoop_ack_valid;
   assign l2todr1_snoop_ack_inp_valid = c0_l2todr1_snoop_ack_valid | c1_l2todr1_snoop_ack_valid;
 
+  logic c0_l2itodr0_snoop_ack_retry;
+  logic c0_l2ittodr0_snoop_ack_retry;
+  logic c0_l2d_0todr0_snoop_ack_retry;
+  logic c0_l2dt_0todr0_snoop_ack_retry;
+  logic c1_l2itodr0_snoop_ack_retry;
+  logic c1_l2ittodr0_snoop_ack_retry;
+  logic c1_l2d_0todr0_snoop_ack_retry;
+  logic c1_l2dt_0todr0_snoop_ack_retry;
+  logic c0_l2itodr1_snoop_ack_retry;
+  logic c0_l2ittodr1_snoop_ack_retry;
+  logic c0_l2d_0todr1_snoop_ack_retry;
+  logic c0_l2dt_0todr1_snoop_ack_retry;
+  logic c1_l2itodr1_snoop_ack_retry;
+  logic c1_l2ittodr1_snoop_ack_retry;
+  logic c1_l2d_0todr1_snoop_ack_retry;
+  logic c1_l2dt_0todr1_snoop_ack_retry;
+
   logic l2todr_snoop_ack_inp0_retry;
   logic l2todr_snoop_ack_inp1_retry;
+
    //***********************snoop_acks**********************
+   // For every snoop_ack if the snoop_ack is valid we 
+   // will pass it through. We also must set retries here.
+ 
+  // Handle DIR 0 snoop_acks
   always_comb begin
+    c0_l2itodr0_snoop_ack_retry = 1;
+    c0_l2ittodr0_snoop_ack_retry = 1;
+    c0_l2d_0todr0_snoop_ack_retry = 1;
+    c0_l2dt_0todr0_snoop_ack_retry = 1;
+    c1_l2itodr0_snoop_ack_retry = 1;
+    c1_l2ittodr0_snoop_ack_retry = 1;
+    c1_l2d_0todr0_snoop_ack_retry = 1;
+    c1_l2dt_0todr0_snoop_ack_retry = 1;
+
     if (c0_l2itodr0_snoop_ack_valid) begin
       l2todr0_snoop_ack_next = c0_l2itodr_snoop_ack;
-      c0_l2itodr_snoop_ack_retry = l2todr_snoop_ack_inp0_retry;
-    end else if (c0_l2itodr1_snoop_ack_valid) begin
-      c0_l2itodr_snoop_ack_retry = l2todr_snoop_ack_inp1_retry;
-      l2todr1_snoop_ack_next = c0_l2itodr_snoop_ack;
-    end 
-  end
-
-  always_comb begin
-    if (c0_l2ittodr0_snoop_ack_valid) begin
-      c0_l2ittodr_snoop_ack_retry = l2todr_snoop_ack_inp0_retry;
+      c0_l2itodr0_snoop_ack_retry = l2todr_snoop_ack_inp0_retry;
+    end else if (c0_l2ittodr0_snoop_ack_valid) begin
+      c0_l2ittodr0_snoop_ack_retry = l2todr_snoop_ack_inp0_retry;
       l2todr0_snoop_ack_next = c0_l2ittodr_snoop_ack;
-    end else if (c0_l2ittodr1_snoop_ack_valid) begin
-      c0_l2ittodr_snoop_ack_retry = l2todr_snoop_ack_inp1_retry;
-      l2todr1_snoop_ack_next = c0_l2ittodr_snoop_ack;
-    end
-  end
-
-  always_comb begin
-    if (c0_l2d_0todr0_snoop_ack_valid) begin
-      c0_l2d_0todr_snoop_ack_retry = l2todr_snoop_ack_inp0_retry;
+    end else if (c0_l2d_0todr0_snoop_ack_valid) begin
+      c0_l2d_0todr0_snoop_ack_retry = l2todr_snoop_ack_inp0_retry;
       l2todr0_snoop_ack_next = c0_l2d_0todr_snoop_ack;
-    end else if (c0_l2d_0todr1_snoop_ack_valid) begin
-      c0_l2d_0todr_snoop_ack_retry = l2todr_snoop_ack_inp1_retry;
-      l2todr1_snoop_ack_next = c0_l2d_0todr_snoop_ack;
-    end
-  end
-
-  always_comb begin
-    if (c0_l2dt_0todr0_snoop_ack_valid) begin
-      c0_l2dt_0todr_snoop_ack_retry = l2todr_snoop_ack_inp0_retry;
+    end else if (c0_l2dt_0todr0_snoop_ack_valid) begin
+      c0_l2dt_0todr0_snoop_ack_retry = l2todr_snoop_ack_inp0_retry;
       l2todr0_snoop_ack_next = c0_l2dt_0todr_snoop_ack;
-    end else if (c0_l2dt_0todr1_snoop_ack_valid) begin
-      c0_l2dt_0todr_snoop_ack_retry = l2todr_snoop_ack_inp0_retry;
-      l2todr0_snoop_ack_next = c0_l2dt_0todr_snoop_ack;
-    end
-  end
-
-  always_comb begin
-    if (c1_l2itodr0_snoop_ack_valid) begin
+    end else if (c1_l2itodr0_snoop_ack_valid) begin
       l2todr0_snoop_ack_next = c1_l2itodr_snoop_ack;
-      c1_l2itodr_snoop_ack_retry = l2todr_snoop_ack_inp0_retry;
-    end else if (c1_l2itodr1_snoop_ack_valid) begin
-      c1_l2itodr_snoop_ack_retry = l2todr_snoop_ack_inp1_retry;
-      l2todr1_snoop_ack_next = c1_l2itodr_snoop_ack;
-    end 
-  end
-
-  always_comb begin
-    if (c1_l2ittodr0_snoop_ack_valid) begin
-      c1_l2ittodr_snoop_ack_retry = l2todr_snoop_ack_inp0_retry;
+      c1_l2itodr0_snoop_ack_retry = l2todr_snoop_ack_inp0_retry;
+    end else if (c1_l2ittodr0_snoop_ack_valid) begin
+      c1_l2ittodr0_snoop_ack_retry = l2todr_snoop_ack_inp0_retry;
       l2todr0_snoop_ack_next = c1_l2ittodr_snoop_ack;
-    end else if (c1_l2ittodr1_snoop_ack_valid) begin
-      c1_l2ittodr_snoop_ack_retry = l2todr_snoop_ack_inp1_retry;
-      l2todr1_snoop_ack_next = c1_l2ittodr_snoop_ack;
-    end
-  end
-
-  always_comb begin
-    if (c1_l2d_0todr0_snoop_ack_valid) begin
-      c1_l2d_0todr_snoop_ack_retry = l2todr_snoop_ack_inp0_retry;
+    end else if (c1_l2d_0todr0_snoop_ack_valid) begin
+      c1_l2d_0todr0_snoop_ack_retry = l2todr_snoop_ack_inp0_retry;
       l2todr0_snoop_ack_next = c1_l2d_0todr_snoop_ack;
-    end else if (c1_l2d_0todr1_snoop_ack_valid) begin
-      c1_l2d_0todr_snoop_ack_retry = l2todr_snoop_ack_inp1_retry;
-      l2todr1_snoop_ack_next = c1_l2d_0todr_snoop_ack;
+    end else if (c1_l2dt_0todr0_snoop_ack_valid) begin
+      c1_l2dt_0todr0_snoop_ack_retry = l2todr_snoop_ack_inp0_retry;
+      l2todr0_snoop_ack_next = c1_l2dt_0todr_snoop_ack;
     end
   end
 
+// Handle DIR 1 snoop_acks
   always_comb begin
-    if (c1_l2dt_0todr0_snoop_ack_valid) begin
-      c1_l2dt_0todr_snoop_ack_retry = l2todr_snoop_ack_inp0_retry;
-      l2todr0_snoop_ack_next = c1_l2dt_0todr_snoop_ack;
+    c0_l2itodr1_snoop_ack_retry = 1;
+    c0_l2ittodr1_snoop_ack_retry = 1;
+    c0_l2d_0todr1_snoop_ack_retry = 1;
+    c0_l2dt_0todr1_snoop_ack_retry = 1;
+    c1_l2itodr1_snoop_ack_retry = 1;
+    c1_l2ittodr1_snoop_ack_retry = 1;
+    c1_l2d_0todr1_snoop_ack_retry = 1;
+    c1_l2dt_0todr1_snoop_ack_retry = 1;
+
+    if (c0_l2itodr1_snoop_ack_valid) begin
+      c0_l2itodr1_snoop_ack_retry = l2todr_snoop_ack_inp1_retry;
+      l2todr1_snoop_ack_next = c0_l2itodr_snoop_ack;
+    end else if (c0_l2ittodr1_snoop_ack_valid) begin
+      c0_l2ittodr1_snoop_ack_retry = l2todr_snoop_ack_inp1_retry;
+      l2todr1_snoop_ack_next = c0_l2ittodr_snoop_ack;
+    end else if (c0_l2d_0todr1_snoop_ack_valid) begin
+      c0_l2d_0todr1_snoop_ack_retry = l2todr_snoop_ack_inp1_retry;
+      l2todr1_snoop_ack_next = c0_l2d_0todr_snoop_ack;
+    end else if (c0_l2dt_0todr1_snoop_ack_valid) begin
+      c0_l2dt_0todr1_snoop_ack_retry = l2todr_snoop_ack_inp0_retry;
+      l2todr0_snoop_ack_next = c0_l2dt_0todr_snoop_ack;
+    end else if (c1_l2itodr1_snoop_ack_valid) begin
+      c1_l2itodr1_snoop_ack_retry = l2todr_snoop_ack_inp1_retry;
+      l2todr1_snoop_ack_next = c1_l2itodr_snoop_ack;
+    end else if (c1_l2ittodr1_snoop_ack_valid) begin
+      c1_l2ittodr1_snoop_ack_retry = l2todr_snoop_ack_inp1_retry;
+      l2todr1_snoop_ack_next = c1_l2ittodr_snoop_ack;
     end else if (c1_l2d_0todr1_snoop_ack_valid) begin
-      c1_l2dt_0todr_snoop_ack_retry = l2todr_snoop_ack_inp0_retry;
+      c1_l2d_0todr1_snoop_ack_retry = l2todr_snoop_ack_inp1_retry;
+      l2todr1_snoop_ack_next = c1_l2d_0todr_snoop_ack;
+    end else if (c1_l2d_0todr1_snoop_ack_valid) begin
+      c1_l2dt_0todr1_snoop_ack_retry = l2todr_snoop_ack_inp0_retry;
       l2todr0_snoop_ack_next = c1_l2dt_0todr_snoop_ack;
     end
+  end
+  
+  // set final retry signals for l2 modules
+  // retry will only be high if dr0_retry and dr1_retry are both set high
+  // if one is set low that means there is a valid snoop_ack to that directory 
+  // and other retry can be ignored 
+  always_comb begin
+    c0_l2itodr_snoop_ack_retry = c0_l2itodr0_snoop_ack_retry & c0_l2itodr1_snoop_ack_retry;
+    c0_l2ittodr_snoop_ack_retry = c0_l2ittodr0_snoop_ack_retry & c0_l2ittodr1_snoop_ack_retry;
+    c0_l2d_0todr_snoop_ack_retry = c0_l2d_0todr0_snoop_ack_retry & c0_l2d_0todr1_snoop_ack_retry;
+    c0_l2dt_0todr_snoop_ack_retry = c0_l2dt_0todr0_snoop_ack_retry & c0_l2dt_0todr1_snoop_ack_retry;
+    c1_l2itodr_snoop_ack_retry = c1_l2itodr0_snoop_ack_retry & c1_l2itodr1_snoop_ack_retry;
+    c1_l2ittodr_snoop_ack_retry = c1_l2ittodr0_snoop_ack_retry & c1_l2ittodr1_snoop_ack_retry;
+    c1_l2d_0todr_snoop_ack_retry = c1_l2d_0todr0_snoop_ack_retry & c1_l2d_0todr1_snoop_ack_retry;
+    c1_l2dt_0todr_snoop_ack_retry = c1_l2dt_0todr0_snoop_ack_retry & c1_l2dt_0todr1_snoop_ack_retry;
   end
 
   fflop #(.Size($bits(I_drsnoop_ack_type))) snoop_ack_dir0_ff (
@@ -916,46 +1030,72 @@ module net_2core2dr(
   I_drtol2_snack_type c1_drtol2dt_0_snack_next;
 
   always_comb begin
-    if (dr0tol2_snack_valid) begin
-      if(dr0tol2_snack.nid[0]) begin // nid 0 -> c0, nid 1 -> c1
-        case(dr0tol2_snack.l2id[1:0])
-          2'b00: begin
-            c0_drtol2i_snack_next = dr0tol2_snack;
-            dr0tol2_snack_retry = c0_drtol2i_snack_retry;
-          end
-          2'b01: begin
-            c0_drtol2it_snack_next = dr0tol2_snack;
-            dr0tol2_snack_retry = c0_drtol2it_snack_retry;
-          end
-          2'b10: begin
-            c0_drtol2d_0_snack_next = dr0tol2_snack;
-            dr0tol2_snack_retry = c0_drtol2d_0_snack_retry;
-          end
-          2'b11: begin
-            dr0tol2_snack_retry = c0_drtol2dt_0_snack_retry;
-            c0_drtol2dt_0_snack_next = dr0tol2_snack;
-          end
-        endcase
-      end else begin
-        case(dr0tol2_snack.l2id[1:0])
-          2'b00: begin
-            c1_drtol2i_snack_next = dr0tol2_snack;
-            dr0tol2_snack_retry = c1_drtol2i_snack_retry;
-            end
-          2'b01: begin
-            c1_drtol2it_snack_next = dr0tol2_snack;
-            dr0tol2_snack_retry = c1_drtol2it_snack_retry;
-            end
-          2'b10: begin
-            c1_drtol2d_0_snack_next = dr0tol2_snack;
-            dr0tol2_snack_retry = c1_drtol2d_0_snack_retry;
-            end
-          2'b11: begin
-            dr0tol2_snack_retry = c1_drtol2dt_0_snack_retry;
-            c1_drtol2dt_0_snack_next = dr0tol2_snack;
-            end
-        endcase
-      end
+    // start retry signals high so they must be set low to pass through
+    dr0tol2_snack_retry = 1;
+    dr1tol2_snack_retry = 1;
+
+    if (dr0tol2_snack_valid & (dr0tol2_snack.nid[2:0] == 3'b000)) begin
+      c0_drtol2i_snack_next = dr0tol2_snack;
+      dr0tol2_snack_retry = c0_drtol2i_snack_retry;
+    end else if (dr1tol2_snack_valid & (dr1tol2_snack.nid[2:0] == 3'b000)) begin
+      c0_drtol2i_snack_next = dr1tol2_snack;
+      dr0tol2_snack_retry = c0_drtol2i_snack_retry;
+    end
+
+    if (dr0tol2_snack_valid & (dr0tol2_snack.nid[2:0] == 3'b001)) begin
+      c0_drtol2it_snack_next = dr0tol2_snack;
+      dr0tol2_snack_retry = c0_drtol2it_snack_retry;
+    end else if (dr1tol2_snack_valid & (dr1tol2_snack.nid[2:0] == 3'b001)) begin
+      c0_drtol2it_snack_next = dr1tol2_snack;
+      dr1tol2_snack_retry = c0_drtol2it_snack_retry;
+    end
+
+    if (dr0tol2_snack_valid & (dr0tol2_snack.nid[2:0] == 3'b010)) begin
+      c0_drtol2d_0_snack_next = dr0tol2_snack;
+      dr0tol2_snack_retry = c0_drtol2d_0_snack_retry;
+    end else if (dr1tol2_snack_valid & (dr1tol2_snack.nid[2:0] == 3'b010)) begin
+      c0_drtol2d_0_snack_next = dr1tol2_snack;
+      dr1tol2_snack_retry = c0_drtol2d_0_snack_retry;
+    end
+
+    if (dr0tol2_snack_valid & (dr0tol2_snack.nid[2:0] == 3'b011)) begin
+      c0_drtol2dt_0_snack_next = dr0tol2_snack;
+      dr0tol2_snack_retry = c0_drtol2dt_0_snack_retry;
+    end else if (dr1tol2_snack_valid & (dr1tol2_snack.nid[2:0] == 3'b011)) begin
+      c0_drtol2dt_0_snack_next = dr1tol2_snack;
+      dr1tol2_snack_retry = c0_drtol2dt_0_snack_retry;
+    end
+
+    if (dr0tol2_snack_valid & (dr0tol2_snack.nid[2:0] == 3'b100)) begin
+      c1_drtol2i_snack_next = dr0tol2_snack;
+      dr0tol2_snack_retry = c1_drtol2i_snack_retry;
+    end else if (dr1tol2_snack_valid & (dr1tol2_snack.nid[2:0] == 3'b100)) begin
+      c1_drtol2i_snack_next = dr1tol2_snack;
+      dr1tol2_snack_retry = c1_drtol2i_snack_retry;
+    end
+
+    if (dr0tol2_snack_valid & (dr0tol2_snack.nid[2:0] == 3'b101)) begin
+      c1_drtol2it_snack_next = dr0tol2_snack;
+      dr0tol2_snack_retry = c1_drtol2it_snack_retry;
+    end else if (dr1tol2_snack_valid & (dr1tol2_snack.nid[2:0] == 3'b101)) begin
+      c1_drtol2it_snack_next = dr1tol2_snack;
+      dr1tol2_snack_retry = c1_drtol2it_snack_retry;
+    end
+
+    if (dr0tol2_snack_valid & (dr0tol2_snack.nid[2:0] == 3'b110)) begin
+      c1_drtol2d_0_snack_next = dr0tol2_snack;
+      dr0tol2_snack_retry = c1_drtol2d_0_snack_retry;
+    end else if (dr1tol2_snack_valid & (dr1tol2_snack.nid[2:0] == 3'b110)) begin
+      c1_drtol2d_0_snack_next = dr1tol2_snack;
+      dr1tol2_snack_retry = c1_drtol2d_0_snack_retry;
+    end
+
+    if (dr0tol2_snack_valid & (dr0tol2_snack.nid[2:0] == 3'b111)) begin
+      c1_drtol2dt_0_snack_next = dr0tol2_snack;
+      dr0tol2_snack_retry = c1_drtol2dt_0_snack_retry;
+    end else if (dr1tol2_snack_valid & (dr1tol2_snack.nid[2:0] == 3'b111)) begin
+      c1_drtol2dt_0_snack_next = dr1tol2_snack;
+      dr1tol2_snack_retry = c1_drtol2dt_0_snack_retry;
     end
   end
 
@@ -1063,11 +1203,188 @@ module net_2core2dr(
     .qValid   (c1_drtol2dt_0_snack_valid),
     .qRetry   (c1_drtol2dt_0_snack_retry)
   );
-/*
+
+  I_drtol2_dack_type c0_drtol2i_dack_next;
+  I_drtol2_dack_type c0_drtol2it_dack_next;
+  I_drtol2_dack_type c0_drtol2d_0_dack_next;
+  I_drtol2_dack_type c0_drtol2dt_0_dack_next;
+  I_drtol2_dack_type c1_drtol2i_dack_next;
+  I_drtol2_dack_type c1_drtol2it_dack_next;
+  I_drtol2_dack_type c1_drtol2d_0_dack_next;
+  I_drtol2_dack_type c1_drtol2dt_0_dack_next;
+
   always_comb begin
-    if (dr1tol2_snack_valid) begin
-      
+    // start retry signals high so they must be set low to pass through
+    dr0tol2_dack_retry = 1;
+    dr1tol2_dack_retry = 1;
+
+    if (dr0tol2_dack_valid & (dr0tol2_dack.nid[2:0] == 3'b000)) begin
+      c0_drtol2i_dack_next = dr0tol2_dack;
+      dr0tol2_dack_retry = c0_drtol2i_dack_retry;
+    end else if (dr1tol2_dack_valid & (dr1tol2_dack.nid[2:0] == 3'b000)) begin
+      c0_drtol2i_dack_next = dr1tol2_dack;
+      dr0tol2_dack_retry = c0_drtol2i_dack_retry;
+    end
+
+    if (dr0tol2_dack_valid & (dr0tol2_dack.nid[2:0] == 3'b001)) begin
+      c0_drtol2it_dack_next = dr0tol2_dack;
+      dr0tol2_dack_retry = c0_drtol2it_dack_retry;
+    end else if (dr1tol2_dack_valid & (dr1tol2_dack.nid[2:0] == 3'b001)) begin
+      c0_drtol2it_dack_next = dr1tol2_dack;
+      dr1tol2_dack_retry = c0_drtol2it_dack_retry;
+    end
+
+    if (dr0tol2_dack_valid & (dr0tol2_dack.nid[2:0] == 3'b010)) begin
+      c0_drtol2d_0_dack_next = dr0tol2_dack;
+      dr0tol2_dack_retry = c0_drtol2d_0_dack_retry;
+    end else if (dr1tol2_dack_valid & (dr1tol2_dack.nid[2:0] == 3'b010)) begin
+      c0_drtol2d_0_dack_next = dr1tol2_dack;
+      dr1tol2_dack_retry = c0_drtol2d_0_dack_retry;
+    end
+
+    if (dr0tol2_dack_valid & (dr0tol2_dack.nid[2:0] == 3'b011)) begin
+      c0_drtol2dt_0_dack_next = dr0tol2_dack;
+      dr0tol2_dack_retry = c0_drtol2dt_0_dack_retry;
+    end else if (dr1tol2_dack_valid & (dr1tol2_dack.nid[2:0] == 3'b011)) begin
+      c0_drtol2dt_0_dack_next = dr1tol2_dack;
+      dr1tol2_dack_retry = c0_drtol2dt_0_dack_retry;
+    end
+
+    if (dr0tol2_dack_valid & (dr0tol2_dack.nid[2:0] == 3'b100)) begin
+      c1_drtol2i_dack_next = dr0tol2_dack;
+      dr0tol2_dack_retry = c1_drtol2i_dack_retry;
+    end else if (dr1tol2_dack_valid & (dr1tol2_dack.nid[2:0] == 3'b100)) begin
+      c1_drtol2i_dack_next = dr1tol2_dack;
+      dr1tol2_dack_retry = c1_drtol2i_dack_retry;
+    end
+
+    if (dr0tol2_dack_valid & (dr0tol2_dack.nid[2:0] == 3'b101)) begin
+      c1_drtol2it_dack_next = dr0tol2_dack;
+      dr0tol2_dack_retry = c1_drtol2it_dack_retry;
+    end else if (dr1tol2_dack_valid & (dr1tol2_dack.nid[2:0] == 3'b101)) begin
+      c1_drtol2it_dack_next = dr1tol2_dack;
+      dr1tol2_dack_retry = c1_drtol2it_dack_retry;
+    end
+
+    if (dr0tol2_dack_valid & (dr0tol2_dack.nid[2:0] == 3'b110)) begin
+      c1_drtol2d_0_dack_next = dr0tol2_dack;
+      dr0tol2_dack_retry = c1_drtol2d_0_dack_retry;
+    end else if (dr1tol2_dack_valid & (dr1tol2_dack.nid[2:0] == 3'b110)) begin
+      c1_drtol2d_0_dack_next = dr1tol2_dack;
+      dr1tol2_dack_retry = c1_drtol2d_0_dack_retry;
+    end
+
+    if (dr0tol2_dack_valid & (dr0tol2_dack.nid[2:0] == 3'b111)) begin
+      c1_drtol2dt_0_dack_next = dr0tol2_dack;
+      dr0tol2_dack_retry = c1_drtol2dt_0_dack_retry;
+    end else if (dr1tol2_dack_valid & (dr1tol2_dack.nid[2:0] == 3'b111)) begin
+      c1_drtol2dt_0_dack_next = dr1tol2_dack;
+      dr1tol2_dack_retry = c1_drtol2dt_0_dack_retry;
     end
   end
-  */
+
+  fflop #(.Size($bits(I_drtol2_dack_type))) c0_drtol2i_dack_ff (
+    .clk      (clk),
+    .reset    (reset),
+
+    .din      (c0_drtol2i_dack_next),
+    .dinValid (dr0tol2_dack_valid),
+    .dinRetry (dr0tol2_dack_retry),
+
+    .q        (c0_drtol2i_dack),
+    .qValid   (c0_drtol2i_dack_valid),
+    .qRetry   (c0_drtol2i_dack_retry)
+  );
+
+  fflop #(.Size($bits(I_drtol2_dack_type))) c0_drtol2it_dack_ff (
+    .clk      (clk),
+    .reset    (reset),
+
+    .din      (c0_drtol2it_dack_next),
+    .dinValid (dr0tol2_dack_valid),
+    .dinRetry (dr0tol2_dack_retry),
+
+    .q        (c0_drtol2it_dack),
+    .qValid   (c0_drtol2it_dack_valid),
+    .qRetry   (c0_drtol2it_dack_retry)
+  );
+
+  fflop #(.Size($bits(I_drtol2_dack_type))) c0_drtol2d_0_dack_ff (
+    .clk      (clk),
+    .reset    (reset),
+
+    .din      (c0_drtol2d_0_dack_next),
+    .dinValid (dr0tol2_dack_valid),
+    .dinRetry (dr0tol2_dack_retry),
+
+    .q        (c0_drtol2d_0_dack),
+    .qValid   (c0_drtol2d_0_dack_valid),
+    .qRetry   (c0_drtol2d_0_dack_retry)
+  );
+
+  fflop #(.Size($bits(I_drtol2_dack_type))) c0_drtol2dt_0_dack_ff (
+    .clk      (clk),
+    .reset    (reset),
+
+    .din      (c0_drtol2dt_0_dack_next),
+    .dinValid (dr0tol2_dack_valid),
+    .dinRetry (dr0tol2_dack_retry),
+
+    .q        (c0_drtol2dt_0_dack),
+    .qValid   (c0_drtol2dt_0_dack_valid),
+    .qRetry   (c0_drtol2dt_0_dack_retry)
+  );
+
+  fflop #(.Size($bits(I_drtol2_dack_type))) c1_drtol2i_dack_ff (
+    .clk      (clk),
+    .reset    (reset),
+
+    .din      (c1_drtol2i_dack_next),
+    .dinValid (dr0tol2_dack_valid),
+    .dinRetry (dr0tol2_dack_retry),
+
+    .q        (c1_drtol2i_dack),
+    .qValid   (c1_drtol2i_dack_valid),
+    .qRetry   (c1_drtol2i_dack_retry)
+  );
+
+  fflop #(.Size($bits(I_drtol2_dack_type))) c1_drtol2it_dack_ff (
+    .clk      (clk),
+    .reset    (reset),
+
+    .din      (c1_drtol2it_dack_next),
+    .dinValid (dr0tol2_dack_valid),
+    .dinRetry (dr0tol2_dack_retry),
+
+    .q        (c1_drtol2it_dack),
+    .qValid   (c1_drtol2it_dack_valid),
+    .qRetry   (c1_drtol2it_dack_retry)
+  );
+
+  fflop #(.Size($bits(I_drtol2_dack_type))) c1_drtol2d_0_dack_ff (
+    .clk      (clk),
+    .reset    (reset),
+
+    .din      (c1_drtol2d_0_dack_next),
+    .dinValid (dr0tol2_dack_valid),
+    .dinRetry (dr0tol2_dack_retry),
+
+    .q        (c1_drtol2d_0_dack),
+    .qValid   (c1_drtol2d_0_dack_valid),
+    .qRetry   (c1_drtol2d_0_dack_retry)
+  );
+
+  fflop #(.Size($bits(I_drtol2_dack_type))) c1_drtol2dt_0_dack_ff (
+    .clk      (clk),
+    .reset    (reset),
+
+    .din      (c1_drtol2dt_0_dack_next),
+    .dinValid (dr0tol2_dack_valid),
+    .dinRetry (dr0tol2_dack_retry),
+
+    .q        (c1_drtol2dt_0_dack),
+    .qValid   (c1_drtol2dt_0_dack_valid),
+    .qRetry   (c1_drtol2dt_0_dack_retry)
+  );
+
 endmodule

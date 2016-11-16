@@ -1,4 +1,3 @@
-
 #include "Vnet_2core2dr_wp.h"
 #include "verilated.h"
 #include "verilated_vcd_c.h"
@@ -12,7 +11,9 @@
 vluint64_t global_time = 0;
 VerilatedVcdC* tfp = 0;
 
-void advance_half_clock(Vnet_2core2dr *top) {
+long ntests = 0;
+
+void advance_half_clock(Vnet_2core2dr_wp *top) {
 #ifdef TRACE
   tfp->dump(global_time);
 #endif
@@ -26,7 +27,7 @@ void advance_half_clock(Vnet_2core2dr *top) {
     exit(0);
 }
 
-void advance_clock(Vnet_2core2dr *top, int nclocks=1) {
+void advance_clock(Vnet_2core2dr_wp *top, int nclocks=1) {
 
   for( int i=0;i<nclocks;i++) {
     for (int clk=0; clk<2; clk++) {
@@ -40,116 +41,247 @@ void sim_finish(bool pass) {
   tfp->close();
 #endif
 
+#if 1
   if (pass)
     printf("\nTB:PASS\n");
   else
     printf("\nTB:FAILED\n");
+#endif
 
   exit(0);
 }
+/*
+Inputs for l2todr
+c0_l2itodr_req
+c0_l2ittodr_req
+c0_l2d_0todr_req
+c0_l2dt_0todr_req
+c1_l2itodr_req
+c1_l2ittodr_req
+c1_l2d_0todr_req
+c1_l2dt_0todr_req
 
-struct InputPacketA {
-  int inp_a;
+c0_l2itodr_disp
+c0_l2ittodr_disp
+c0_l2d_0todr_disp
+c0_l2dt_0todr_disp
+c1_l2itodr_disp
+c1_l2ittodr_disp
+c1_l2d_0todr_disp
+c1_l2dt_0todr_disp
+
+c0_l2itodr_snoop_ack
+c0_l2ittodr_snoop_ack
+c0_l2d_0todr_snoop_ack
+c0_l2dt_0todr_snoop_ack
+c1_l2itodr_snoop_ack
+c1_l2ittodr_snoop_ack
+c1_l2d_0todr_snoop_ack
+c1_l2dt_0todr_snoop_ack
+
+c0_l2itodr_pfreq
+c0_l2d_0todr_pfreq
+c1_l2itodr_pfreq
+c1_l2d_0todr_pfreq
+
+Inputs for drtol2
+dr0tol2_snack
+dr0tol2_dack
+dr1tol2_snack
+dr1tol2_dack
+*/
+
+struct InputPacket_c0_l2itodr_req {
+  uint8_t nid;
+  uint8_t l2id;
+  uint8_t cmd;
+  uint64_t paddr;
 };
 
-struct InputPacketB {
-  int inp_b;
+struct InputPacket_c0_l2ittodr_req {
+  uint8_t nid;
+  uint8_t l2id;
+  uint8_t cmd;
+  uint64_t paddr;
 };
 
-struct OutputPacket {
-  int nset ;
-  int sum;
+struct InputPacket_c0_l2d_0todr_req {
+  uint8_t nid;
+  uint8_t l2id;
+  uint8_t cmd;
+  uint64_t paddr;
+};
+
+struct InputPacket_c0_l2dt_0todr_req {
+  uint8_t nid;
+  uint8_t l2id;
+  uint8_t cmd;
+  uint64_t paddr;
+};
+
+struct InputPacket_c1_l2itodr_req {
+  uint8_t nid;
+  uint8_t l2id;
+  uint8_t cmd;
+  uint64_t paddr;
+};
+
+struct InputPacket_c1_l2ittodr_req {
+  uint8_t nid;
+  uint8_t l2id;
+  uint8_t cmd;
+  uint64_t paddr;
+};
+
+struct InputPacket_c1_l2d_0todr_req {
+  uint8_t nid;
+  uint8_t l2id;
+  uint8_t cmd;
+  uint64_t paddr;
+};
+
+struct InputPacket_c1_l2dt_0todr_req {
+  uint8_t nid;
+  uint8_t l2id;
+  uint8_t cmd;
+  uint64_t paddr;
+};
+
+struct OutputPacket_l2todr0_req {
+  uint8_t nid;
+  uint8_t l2id;
+  uint8_t cmd;
+  uint64_t paddr;
+};
+
+struct OutputPacket_l2todr1_req {
+  uint8_t nid;
+  uint8_t l2id;
+  uint8_t cmd;
+  uint64_t paddr;
 };
 
 double sc_time_stamp() {
   return 0;
 }
 
-//std::list<InputPacketA>  inpa_list;
-//std::list<InputPacketB>  inpb_list;
-//std::list<OutputPacket> out_list;
+std::list<InputPacket_c0_l2itodr_req>  inp_list_c0_l2i_req;
+std::list<InputPacket_c0_l2ittodr_req>  inp_list_c0_l2it_req;
+std::list<InputPacket_c0_l2d_0todr_req>  inp_list_c0_l2d_req;
+std::list<InputPacket_c0_l2dt_0todr_req>  inp_list_c0_l2dt_req;
+std::list<InputPacket_c1_l2itodr_req>  inp_list_c1_l2i_req;
+std::list<InputPacket_c1_l2ittodr_req>  inp_list_c1_l2it_req;
+std::list<InputPacket_c1_l2d_0todr_req>  inp_list_c1_l2d_req;
+std::list<InputPacket_c1_l2dt_0todr_req>  inp_list_c1_l2dt_req;
+std::list<OutputPacket_l2todr0_req>  out_list_d0_req;
+std::list<OutputPacket_l2todr1_req>  out_list_d1_req;
 
-void try_send_packet(Vnet_2core2dr *top) {
-  top->sumRetry = (rand()&0xF)==0; // randomly, one every 8 packets
 
-  if (!top->inp_aRetry) {
-    top->inp_a = rand();
-    if (inpa_list.empty() || (rand() & 0x3)) { // Once every 4
-      top->inp_aValid = 0;
+void try_send_packet(Vnet_2core2dr_wp *top) {
+  #if 0 // This code should be completed after manual tests
+  // req
+  top->l2todr0_req_retry = (rand()&0x3F)==0; 
+  top->l2todr1_req_retry = (rand()&0x3F)==0; 
+
+  if (!top->c0_l2itodr_req_retry) {
+    top->c0_l2itodr_req_paddr = rand();
+    if (inp_list_c0_l2i_req.empty() || (rand() & 0x3)) { // Once every 4
+      top->c0_l2itodr_req_valid = 0;
     }else{
-      top->inp_aValid = 1;
+      top->c0_l2itodr_req_valid = 1;
+    }
+  }
+  if (!top->c0_l2ittodr_req_retry) {
+    top->c0_l2ittodr_req_paddr = rand();
+    if (inp_list_c0_l2it_req.empty() || (rand() & 0x3)) { // Once every 4
+      top->c0_l2ittodr_req_valid = 0;
+    }else{
+      top->c0_l2ittodr_req_valid = 1;
+    }
+  }
+  if (!top->c0_l2d_0todr_req_retry) {
+    top->c0_l2d_0todr_req_paddr = rand();
+    if (inp_list_c0_l2d_req.empty() || (rand() & 0x3)) { // Once every 4
+      top->c0_l2d_0todr_req_valid = 0;
+    }else{
+      top->c0_l2d_0todr_req_valid = 1;
+    }
+  }
+  if (!top->c0_l2dt_0todr_req_retry) {
+    top->c0_l2dt_0todr_req_paddr = rand();
+    if (inp_list_c0_l2dt_req.empty() || (rand() & 0x3)) { // Once every 4
+      top->c0_l2dt_0todr_req_valid = 0;
+    }else{
+      top->c0_l2dt_0todr_req_valid = 1;
+    }
+  }
+  if (!top->c1_l2itodr_req_retry) {
+    top->c1_l2itodr_req_paddr = rand();
+    if (inp_list_c1_l2i_req.empty() || (rand() & 0x3)) { // Once every 4
+      top->c1_l2itodr_req_valid = 0;
+    }else{
+      top->c1_l2itodr_req_valid = 1;
+    }
+  }
+  if (!top->c1_l2ittodr_req_retry) {
+    top->c1_l2ittodr_req_paddr = rand();
+    if (inp_list_c1_l2it_req.empty() || (rand() & 0x3)) { // Once every 4
+      top->c1_l2ittodr_req_valid = 0;
+    }else{
+      top->c1_l2ittodr_req_valid = 1;
+    }
+  }
+  if (!top->c1_l2d_0todr_req_retry) {
+    top->c1_l2d_0todr_req_paddr = rand();
+    if (inp_list_c1_l2d_req.empty() || (rand() & 0x3)) { // Once every 4
+      top->c1_l2d_0todr_req_valid = 0;
+    }else{
+      top->c1_l2d_0todr_req_valid = 1;
+    }
+  }
+  if (!top->c1_l2dt_0todr_req_retry) {
+    top->c1_l2dt_0todr_req_paddr = rand();
+    if (inp_list_c1_l2dt_req.empty() || (rand() & 0x3)) { // Once every 4
+      top->c1_l2dt_0todr_req_valid = 0;
+    }else{
+      top->c1_l2dt_0todr_req_valid = 1;
     }
   }
 
-  if (!top->inp_bRetry) {
-    top->inp_b = rand();
-
-    if (inpb_list.empty() || (rand() & 0x7)) { // Once every 8 cycles
-      top->inp_bValid = 0;
-    }else{
-      top->inp_bValid = 1;
-    }
-  }
-
-  if (top->inp_aValid && !top->inp_aRetry) {
-    if (inpa_list.empty()) {
+  //req
+  if (top->c0_l2itodr_req_valid && !top->c0_l2itodr_req_retry) {
+    if (inp_list_c0_l2i_req.empty()) {
       fprintf(stderr,"ERROR: Internal error, could not be empty inpa\n");
+      error_found(top);
     }
-    InputPacketA inp = inpa_list.back();
-    top->inp_a = inp.inp_a;
-#ifdef DEBUG_TRACE
-    printf("@%lld inp_a=%d\n",global_time, inp.inp_a);
-#endif
-    inpa_list.pop_back();
-  }
 
-  if (top->inp_bValid && !top->inp_bRetry) {
-    if (inpb_list.empty()) {
-      fprintf(stderr,"ERROR: Internal error, could not be empty inpb\n");
-    }
-    InputPacketB inp = inpb_list.back();
-    top->inp_b = inp.inp_b;
-#ifdef DEBUG_TRACE
-    printf("@%lld inp_b=%d\n",global_time, inp.inp_b);
-#endif
-    inpb_list.pop_back();
-  }
 
+    InputPacket_c0_l2itodr_req inp = inp_list_req.back();
+    top->l2todr_req_paddr = inp.paddr;
+    top->l2todr_req_nid = inp.nid;
+    top->l2todr_req_l2id = inp.l2id;
+#ifdef DEBUG_TRACE
+    printf("@%lu l2itodr req paddr:%lu, nid: %u, l2id: %u\n",global_time, inp.paddr, inp.nid, inp.l2id);
+#endif
+   
+    OutputPacket_l2todr0_req out1;
+    out1.paddr = inp2.paddr;
+    out_list_req.push_front(out2);
+    
+
+    inp_list_req.pop_back();
+  }
+#endif
 }
 
-void error_found(Vnet_2core2dr *top) {
+void error_found(Vnet_2core2dr_wp *top) {
   advance_half_clock(top);
   advance_half_clock(top);
   sim_finish(false);
 }
 
-void try_recv_packet(Vnet_2core2dr *top) {
-
-  if (top->sumValid && out_list.empty()) {
-    printf("ERROR: unexpected result %d\n",top->sum);
-    error_found(top);
-    return;
-  }
-
-  if (top->sumRetry)
-    return;
-
-  if (!top->sumValid)
-    return;
-
-  if (out_list.empty())
-    return;
-
-#ifdef DEBUG_TRACE
-    printf("@%lld sum=%d\n",global_time, top->sum);
-#endif
-  OutputPacket o = out_list.back();
-  if (top->sum != o.sum) {
-    printf("ERROR: expected %d but sum is %d\n",o.sum,top->sum);
-    error_found(top);
-  }
-
-  out_list.pop_back();
+void try_recv_packet(Vnet_2core2dr_wp *top) {
+  ;
 }
 
 
@@ -158,10 +290,14 @@ int main(int argc, char **argv, char **env) {
   int clk;
   Verilated::commandArgs(argc, argv);
   // init top verilog instance
-  Vnet_2core2dr* top = new Vnet_2core2dr;
+  Vnet_2core2dr_wp* top = new Vnet_2core2dr_wp;
 
   int t = (int)time(0);
+#if 0
+  srand(1477809920);
+#else
   srand(t);
+#endif
   printf("My RAND Seed is %d\n",t);
 
 #ifdef TRACE
@@ -175,43 +311,92 @@ int main(int argc, char **argv, char **env) {
 
   // initialize simulation inputs
   top->clk = 1;
-  top->reset = 1;
 
-  advance_clock(top,4); // May be larger as required by reset state machines
-  //-------------------------------------------------------
-  /*top->reset = 0;
-  top->inp_a = 1;
-  top->inp_b = 2;
-  top->inp_aValid = 0;
-  top->inp_bValid = 0;
-  top->sumRetry = 1;
+  for(int niters=0 ; niters < 50; niters++) {
+    //-------------------------------------------------------
 
-  advance_clock(top,1);
-
-#if 1
-  for(int i =0;i<1024;i++) {
-    try_send_packet(top);
-    advance_half_clock(top);
-    try_recv_packet(top);
-    advance_half_clock(top);
-
-    if (((rand() & 0x3)==0) && inpa_list.size() < 3 && inpb_list.size() < 3 ) {
-      InputPacketA ia;
-      InputPacketB ib;
-      ia.inp_a = rand() & 0xFF;
-      ib.inp_b = rand() & 0xFF;
-      inpa_list.push_front(ia);
-      inpb_list.push_front(ib);
-
-      OutputPacket o;
-      o.sum = (ia.inp_a + ib.inp_b) & 0xFF;
-
-      out_list.push_front(o);
-    }
-    //advance_clock(top,1);
-  }
+#ifdef DEBUG_TRACE
+    printf("reset\n");
 #endif
-*/
+    top->reset = 1;
+
+    inp_list_c0_l2i_req.clear();
+    inp_list_c0_l2it_req.clear();
+    inp_list_c0_l2d_req.clear();
+    inp_list_c0_l2dt_req.clear();
+    inp_list_c1_l2i_req.clear();
+    inp_list_c1_l2it_req.clear();
+    inp_list_c1_l2d_req.clear();
+    inp_list_c1_l2dt_req.clear();
+    out_list_d0_req.clear();
+    out_list_d1_req.clear();
+
+    top->c0_l2itodr_req_valid = 1;
+    top->c0_l2ittodr_req_valid = 1;
+    top->c0_l2d_0todr_req_valid = 1;
+    top->c0_l2dt_0todr_req_valid = 1;
+    top->c1_l2itodr_req_valid = 1;
+    top->c1_l2ittodr_req_valid = 1;
+    top->c1_l2d_0todr_req_valid = 1;
+    top->c1_l2dt_0todr_req_valid = 1;
+
+    int ncycles= rand() & 0xFF;
+    ncycles++; // At least one cycle reset
+    for(int i =0;i<ncycles;i++) {
+      advance_clock(top,1);
+    }
+
+#ifdef DEBUG_TRACE
+    printf("no reset\n");
+#endif
+    //-------------------------------------------------------
+    top->reset = 0;
+    top->c0_l2itodr_req_nid = rand() & 0x1F;
+    top->c0_l2itodr_req_l2id = rand() & 0x3;
+    top->c0_l2itodr_req_cmd = 0;
+    top->c0_l2itodr_req_paddr = 0;
+    top->l2todr1_req_retry = 1;
+    top->l2todr0_req_retry = 1;
+    advance_clock(top,1);
+    top->c0_l2itodr_req_nid = rand() & 0x1F;
+    top->c0_l2itodr_req_l2id = rand() & 0x3;
+    top->c0_l2itodr_req_cmd = 0;
+    top->c0_l2itodr_req_paddr = 1;
+    top->l2todr1_req_retry = 1;
+    top->l2todr0_req_retry = 1;
+    advance_clock(top,1);
+
+#if 0
+    for(int i =0;i<1024;i++) {
+      //try_send_packet(top);
+      advance_half_clock(top);
+     // try_recv_packet(top);
+      advance_half_clock(top);
+      
+      /*
+      if (((rand() & 0x3)==0) && inpa_list.size() < 3 && inpb_list.size() < 3 ) {
+        InputPacketA ia;
+        InputPacketB ib;
+        ia.inp_a = rand() & 0xFF;
+        ib.inp_b = rand() & 0xFF;
+        inpa_list.push_front(ia);
+        inpb_list.push_front(ib);
+
+        OutputPacket o;
+        o.sum = (ia.inp_a + ib.inp_b) & 0xFF;
+        o.inp_a = ia.inp_a;
+        o.inp_b = ib.inp_b;
+
+        out_list.push_front(o);
+      }
+      */
+      //advance_clock(top,1);
+    }
+#endif
+  }
+
+  printf("performed %lld test in %lld cycles\n",ntests,(long long)global_time/2);
+
   sim_finish(true);
 }
 
