@@ -13,6 +13,8 @@
 // invalidate all the associated TLB entries (and notify the L1 accordingly)
 //
 
+`include "scmem.vh"
+
 module l2tlb_wp(
   /* verilator lint_off UNUSED */
 	input	logic				clk
