@@ -348,27 +348,93 @@ module l2cache_pipe(
 `endif
 
 `ifdef L2_COMPLETE
-    `ifndef L2_PASSTHROUGH
-    // Pipeline regs
+    // Control regs
     // reg_new_l1tol2_req_tag_access_1
     logic   reg_new_l1tol2_req_tag_access_1;
-    logic   reg_new_l1tol2_req_tag_access_1_valid;
-    logic   reg_new_l1tol2_req_tag_access_1_retry;
     logic   reg_new_l1tol2_req_tag_access_1_next;
-    logic   reg_new_l1tol2_req_tag_access_1_next_valid;
-    logic   reg_new_l1tol2_req_tag_access_1_next_retry;
-    fflop #(.Size(1)) f_reg_new_l1tol2_req_tag_access_1 (
+    logic   reg_new_l1tol2_req_tag_access_2;
+    logic   reg_new_l1tol2_req_tag_access_2_next;
+    flop #(.Bits(1)) f_reg_new_l1tol2_req_tag_access_1 (
+    .clk      (clk),
+    .reset    (reset),
+    .d        (reg_new_l1tol2_req_tag_access_1_next),
+    .q        (reg_new_l1tol2_req_tag_access_1)
+    );
+    flop #(.Bits(1)) f_reg_new_l1tol2_req_tag_access_2 (
+    .clk      (clk),
+    .reset    (reset),
+    .d        (reg_new_l1tol2_req_tag_access_2_next),
+    .q        (reg_new_l1tol2_req_tag_access_2)
+    );
+
+    /*
+    fflop #(.Size($bits(I_l2tlbtol2_fwd_type))) f_l2tlbtol2_fwd_reg1 (
     .clk      (clk),
     .reset    (reset),
 
-    .din      (reg_new_l1tol2_req_tag_access_1_next),
-    .dinValid (reg_new_l1tol2_req_tag_access_1_next_valid),
-    .dinRetry (reg_new_l1tol2_req_tag_access_1_next_retry),
+    .din      (),
+    .dinValid (),
+    .dinRetry (),
 
-    .q        (reg_new_l1tol2_req_tag_access_1),
-    .qValid   (reg_new_l1tol2_req_tag_access_1_valid),
-    .qRetry   (reg_new_l1tol2_req_tag_access_1_retry)
+    .q        (),
+    .qValid   (),
+    .qRetry   ()
     );
+    */
+    // Data path pipe regs
+    // Register l1tol2_req
+    I_l1tol2_req_type   l1tol2_req_reg1;
+    logic   l1tol2_req_reg1_valid;
+    logic   l1tol2_req_reg1_retry;
+    fflop #(.Size($bits(I_l1tol2_req_type))) f_l1tol2_req_reg1 (
+    .clk      (clk),
+    .reset    (reset),
+
+    .din      (l1tol2_req),
+    .dinValid (l1tol2_req_valid),
+    .dinRetry (l1tol2_req_retry),
+
+    .q        (l1tol2_req_reg1),
+    .qValid   (l1tol2_req_reg1_valid),
+    .qRetry   (l1tol2_req_reg1_retry)
+    );
+
+    I_l1tol2_req_type   l1tol2_req_reg2;
+    logic   l1tol2_req_reg2_valid;
+    logic   l1tol2_req_reg2_retry;
+    fflop #(.Size($bits(I_l1tol2_req_type))) f_l1tol2_req_reg2 (
+    .clk      (clk),
+    .reset    (reset),
+
+    .din      (l1tol2_req_reg1),
+    .dinValid (l1tol2_req_reg1_valid),
+    .dinRetry (l1tol2_req_reg1_retry),
+
+    .q        (l1tol2_req_reg2),
+    .qValid   (l1tol2_req_reg2_valid),
+    .qRetry   (l1tol2_req_reg2_retry)
+    );
+
+    // Register l2tlbtol2_fwd
+    I_l2tlbtol2_fwd_type    l2tlbtol2_fwd_reg1;
+    logic   l2tlbtol2_fwd_reg1_valid;
+    logic   l2tlbtol2_fwd_reg1_retry;
+    fflop #(.Size($bits(I_l2tlbtol2_fwd_type))) f_l2tlbtol2_fwd_reg1 (
+    .clk      (clk),
+    .reset    (reset),
+
+    .din      (l2tlbtol2_fwd),
+    .dinValid (l2tlbtol2_fwd_valid),
+    .dinRetry (l2tlbtol2_fwd_retry),
+
+    .q        (l2tlbtol2_fwd_reg1),
+    .qValid   (l2tlbtol2_fwd_reg1_valid),
+    .qRetry   (l2tlbtol2_fwd_reg1_retry)
+    );
+
+
+    // Nothing blocks the second cycle of tag access
+    assign  reg_new_l1tol2_req_tag_access_2_next = reg_new_l1tol2_req_tag_access_1;
     // Signals for tag
     localparam  TAG_WIDTH = `TLB_HPADDRBITS;
     localparam  TAG_SIZE = 128;
@@ -382,7 +448,7 @@ module l2cache_pipe(
     logic   tag_ack_valid_bank0_way0;
     logic   tag_ack_retry_bank0_way0;
     logic   [TAG_WIDTH-1 : 0]  tag_ack_data_bank0_way0;
-    // Instatiate Tag RAM
+    // Instantiate Tag RAM
     // Width = TLB_HPADDRBITS
     // Size = 128 
     // Forward = 0
@@ -400,8 +466,49 @@ module l2cache_pipe(
         .ack_retry      (tag_ack_retry_bank0_way0),
         .ack_data       (tag_ack_data_bank0_way0)
     );
+
+    // Instantiate q_l1tol2_req
+    localparam  Q_L1TOL2_REQ_WIDTH ($bits(I_l1tol2_req_type) + 1); // The extra 1 bit is for ppaddr_corrected
+    ram_2port_fast #(.Width(), .Size(), .Forward(0)) (
+        .clk            (clk),
+        .reset          (reset),
+        
+        .req_wr_valid   (),
+        .req_wr_retry   (),
+        .req_wr_addr    (),
+        .req_wr_data    (),
+
+        .req_rd_valid   (),
+        .req_rd_retry   (),
+        .req_rd_addr    (),
+
+        .ack_rd_valid   (),
+        .ack_rd_retry   (),
+        .ack_rd_data    ()
+    ); 
+    /*
+    ram_2port_fast #(.Width(), .Size(), .Forward()) (
+        .clk            (),
+        .reset          (),
+        
+        .req_wr_valid   (),
+        .req_wr_retry   (),
+        .req_wr_addr    (),
+        .req_wr_data    (),
+
+        .req_rd_valid   (),
+        .req_rd_retry   (),
+        .req_rd_addr    (),
+
+        .ack_rd_valid   (),
+        .ack_rd_retry   (),
+        .ack_rd_data    ()
+    ); 
+
+    */
     localparam NEW_L1TOL2_REQ = 5'b00001;
     logic [4:0] winner_for_tag;
+    logic   l1_match_l2tlb_l1id_next;
     // -> l1tol2_req
     always_comb begin
         if (l1tol2_req_valid) begin
@@ -414,8 +521,6 @@ module l2cache_pipe(
         // it enters l1tol2_req_q, set reg_enqueue_l1tol2_req_1
         if (winner_for_tag != NEW_L1TOL2_REQ) begin
             reg_new_l1tol2_req_tag_access_1_next = 0;
-            l1tol2_req_retry = reg_new_l1tol2_req_tag_access_1_next_retry;
-            reg_new_l1tol2_req_tag_access_1_next_valid = 1;
         end
 
         case (winner_for_tag)
@@ -427,18 +532,69 @@ module l2cache_pipe(
                 case (tag_bank_id)
                     2'b00   :   begin
                         tag_req_valid_bank0_way0 = 1;
-                        l1tol2_req_retry = tag_req_retry_bank0_way0 & reg_new_l1tol2_req_tag_access_1_next_retry;
+                        l1tol2_req_retry = tag_req_retry_bank0_way0;
                         tag_req_we_bank0_way0 = 0; // Read tag
                         tag_req_pos_bank0_way0 = predicted_index;
                         // set reg_new_l1tol2_req_tag_access_1
-                        reg_new_l1tol2_req_tag_access_1_next = 0;
-                        reg_new_l1tol2_req_tag_access_1_next_valid = 1;
+                        reg_new_l1tol2_req_tag_access_1_next = 1;
                     end
                 endcase
             end // end of NEW_L1TOL2_REQ
         endcase
+    end // End of always_comb for l1tol2_req
+
+    // Handle input from l2tlb
+    logic [Q_L1TOL2_REQ_WIDTH-1 : 0] req_q_l1tol2_req_data;
+    logic   
+    always_comb begin
+        l1_match_l2tlb_l1id_next = 0;
+        l1_match_l2tlb_ppaddr_next = 0;
+        req_ppaddr_corrected = 0;
+        if (l2tlbtol2_fwd_valid) begin
+            if (reg_new_l1tol2_req_tag_access_1) begin
+                // l2tlb send a packet on time
+                if (l1tol2_req_reg1_valid) begin
+                    // Compare l1_id
+                    if (l1tol2_req_reg1.l1id == l2tlbtol2_fwd.l1id) begin
+                        // l1id match
+                        l1_match_l2tlb_l1id_next = 1;
+                    end
+                    // verify ppaddr
+                    if (l2tlbtol2_fwd.paddr[12] == l1tol2_req_reg1.ppaddr[2]) begin// For 128
+                        // ppaddr is correct
+                        l1_match_l2tlb_ppaddr_next = 1;
+                    end
+                    else begin
+                        // ppaddr is incorrect
+                        // Enqueue l1tol2_req to q_l1tol2_req with corrected ppaddr
+                        req_ppaddr_corrected = 1;
+                    end
+                end
+            end // end of if (reg_new_l1tol2_req_tag_access_1) 
+            else begin
+                // l2tlb send a delayed packet
+            end
+        end
     end
-    `endif
+    
+    logic [TLB_hpaddr_type-1 :0]  hpaddr_from_tag;
+    assign hpaddr_from_tag = tag_ack_data_bank0_way0; // TODO extract hpaddr
+    // Handle tag result
+    always_comb begin
+        tag_hit_next = 0;
+        if (reg_new_l1tol2_req_tag_access_2) begin
+            // Tag access result is ready
+            if (l2tlbtol2_fwd_reg1_valid && l1_match_l2tlb_l1id && l1_match_l2tlb_ppaddr) begin
+                // l1id matched and ppaddr is correct
+                if (tag_ack_valid_bank0_way0) begin
+                    if (hpaddr_from_tag == l2tlbtol2_fwd_reg1.hpaddr) begin
+                        // (hpaddr) Tag hit
+                        tag_hit_next = 1;
+                    end
+                end
+            end
+        end
+    end
 `endif
 endmodule
 
