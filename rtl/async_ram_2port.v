@@ -87,7 +87,7 @@ module async_ram_2port
 
    always_comb begin
      if (p0_enable) begin
-       d0 = 'bx;
+       d0 = {Width{1'bx}};
      end else begin
        d0 = data[p0_pos];
      end
@@ -95,7 +95,7 @@ module async_ram_2port
 
    always_comb begin
      if (p1_enable) begin
-       d1 = 'bx;
+       d1 = {Width{1'bx}};
      end else begin
        d1 = data[p1_pos];
      end

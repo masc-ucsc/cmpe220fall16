@@ -28,12 +28,13 @@ module ram_2port_fast #(parameter Width = 64, Size=128, Forward=0) (
  );
 
  logic [Width-1:0]                 ack_rd_data_next;
+ logic [Width-1:0]                 ack_wr_data_next;
 
  async_ram_2port 
   #(.Width(Width), .Size(Size))
  ram (
   // 1st port: write
-   .p0_pos      (req_wr_pos)
+   .p0_pos      (req_wr_addr)
   ,.p0_enable   (req_wr_valid)
   ,.p0_in_data  (req_wr_data)
   ,.p0_out_data (ack_wr_data_next)
@@ -44,12 +45,9 @@ module ram_2port_fast #(parameter Width = 64, Size=128, Forward=0) (
   ,.p1_out_data (ack_rd_data_next)
   );
 
-  logic req_retry_next;
-  always_comb begin
     // If it is a write, the retry has no effect. We can write one per cycle
     // (token consumed)
-    req_retry = req_retry_next & !req_we;
-  end
+  assign    req_wr_retry = 0; 
 
   fflop #(.Size(Width)) f1 (
     .clk      (clk),
@@ -57,7 +55,7 @@ module ram_2port_fast #(parameter Width = 64, Size=128, Forward=0) (
 
     .din      (ack_rd_data_next),
     .dinValid (req_rd_valid),
-    .dinRetry (ack_rd_retry),
+    .dinRetry (req_rd_retry),
 
     .q        (ack_rd_data),
     .qValid   (ack_rd_valid),
