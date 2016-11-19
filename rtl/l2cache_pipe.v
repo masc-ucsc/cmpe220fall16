@@ -418,10 +418,10 @@ module l2cache_pipe(
     .q        (tag_hit)
     );
 
-    logic [15:0]    hit_way_next;
-    logic [15:0]    hit_way;
+    logic [3:0]    hit_way_next;
+    logic [3:0]    hit_way;
 
-    flop #(.Bits(16)) f_reg_hit_way (
+    flop #(.Bits(4)) f_reg_hit_way (
     .clk      (clk),
     .reset    (reset),
     .d        (hit_way_next),
@@ -462,6 +462,7 @@ module l2cache_pipe(
 
     I_l1tol2_req_type   l1tol2_req_reg2;
     logic   l1tol2_req_reg2_valid;
+    logic   l1tol2_req_reg2_retry_direct;
     logic   l1tol2_req_reg2_retry;
     fflop #(.Size($bits(I_l1tol2_req_type))) f_l1tol2_req_reg2 (
     .clk      (clk),
@@ -497,73 +498,73 @@ module l2cache_pipe(
     I_l2tlbtol2_fwd_type    l2tlbtol2_fwd_reg1;
     logic   l2tlbtol2_fwd_reg1_valid;
     logic   l2tlbtol2_fwd_reg1_retry;
+    logic   l2tlbtol2_fwd_retry_direct;
     fflop #(.Size($bits(I_l2tlbtol2_fwd_type))) f_l2tlbtol2_fwd_reg1 (
     .clk      (clk),
     .reset    (reset),
 
     .din      (l2tlbtol2_fwd),
     .dinValid (l2tlbtol2_fwd_valid),
-    .dinRetry (l2tlbtol2_fwd_retry),
+    .dinRetry (l2tlbtol2_fwd_retry_direct),
 
     .q        (l2tlbtol2_fwd_reg1),
     .qValid   (l2tlbtol2_fwd_reg1_valid),
     .qRetry   (l2tlbtol2_fwd_reg1_retry)
     );
 
-
     // Nothing blocks the second cycle of tag access
     assign  reg_new_l1tol2_req_tag_access_1_next = reg_new_l1tol2_req_tag_access_0;
     assign  reg_new_l1tol2_req_tag_access_2_next = reg_new_l1tol2_req_tag_access_1;
 
     // Signals for tag
-    localparam  TAG_WIDTH = `TLB_HPADDRBITS;
+    // Each tag "line" contains all 16 ways 
+    localparam  TAG_WIDTH = (16 * `TLB_HPADDRBITS);
     localparam  TAG_SIZE = 128;
     logic   [1:0]   tag_bank_id;
     logic   [6:0]  predicted_index;
     // bank0
     // way0 to way15
-    logic tag_req_valid_bank0_way[16];
-    logic tag_req_retry_bank0_way[16];
-    logic tag_req_we_bank0_way[16];
-    logic   [`log2(TAG_SIZE)-1:0]  tag_req_pos_bank0_way[16];
-    logic   [TAG_WIDTH-1 : 0]  tag_req_data_bank0_way[16];
-    logic   tag_ack_valid_bank0_way[16];
-    logic   tag_ack_retry_bank0_way[16];
-    logic   [TAG_WIDTH-1 : 0]  tag_ack_data_bank0_way[16];
+    logic tag_req_valid_bank0_ways;
+    logic tag_req_retry_bank0_ways;
+    logic tag_req_we_bank0_ways;
+    logic   [`log2(TAG_SIZE)-1:0]  tag_req_pos_bank0_ways;
+    logic   [TAG_WIDTH-1 : 0]  tag_req_data_bank0_ways;
+    logic   tag_ack_valid_bank0_ways;
+    logic   tag_ack_retry_bank0_ways;
+    logic   [TAG_WIDTH-1 : 0]  tag_ack_data_bank0_ways;
 
     // bank1
     // way0 to way15
-    logic tag_req_valid_bank1_way[16];
-    logic tag_req_retry_bank1_way[16];
-    logic tag_req_we_bank1_way[16];
-    logic   [`log2(TAG_SIZE)-1:0]  tag_req_pos_bank1_way[16];
-    logic   [TAG_WIDTH-1 : 0]  tag_req_data_bank1_way[16];
-    logic   tag_ack_valid_bank1_way[16];
-    logic   tag_ack_retry_bank1_way[16];
-    logic   [TAG_WIDTH-1 : 0]  tag_ack_data_bank1_way[16];
+    logic tag_req_valid_bank1_ways;
+    logic tag_req_retry_bank1_ways;
+    logic tag_req_we_bank1_ways;
+    logic   [`log2(TAG_SIZE)-1:0]  tag_req_pos_bank1_ways;
+    logic   [TAG_WIDTH-1 : 0]  tag_req_data_bank1_ways;
+    logic   tag_ack_valid_bank1_ways;
+    logic   tag_ack_retry_bank1_ways;
+    logic   [TAG_WIDTH-1 : 0]  tag_ack_data_bank1_ways;
 
     // bank2
     // way0 to way15
-    logic tag_req_valid_bank2_way[16];
-    logic tag_req_retry_bank2_way[16];
-    logic tag_req_we_bank2_way[16];
-    logic   [`log2(TAG_SIZE)-1:0]  tag_req_pos_bank2_way[16];
-    logic   [TAG_WIDTH-1 : 0]  tag_req_data_bank2_way[16];
-    logic   tag_ack_valid_bank2_way[16];
-    logic   tag_ack_retry_bank2_way[16];
-    logic   [TAG_WIDTH-1 : 0]  tag_ack_data_bank2_way[16];
+    logic tag_req_valid_bank2_ways;
+    logic tag_req_retry_bank2_ways;
+    logic tag_req_we_bank2_ways;
+    logic   [`log2(TAG_SIZE)-1:0]  tag_req_pos_bank2_ways;
+    logic   [TAG_WIDTH-1 : 0]  tag_req_data_bank2_ways;
+    logic   tag_ack_valid_bank2_ways;
+    logic   tag_ack_retry_bank2_ways;
+    logic   [TAG_WIDTH-1 : 0]  tag_ack_data_bank2_ways;
 
     // bank3
     // way0 to way15
-    logic tag_req_valid_bank3_way[16];
-    logic tag_req_retry_bank3_way[16];
-    logic tag_req_we_bank3_way[16];
-    logic   [`log2(TAG_SIZE)-1:0]  tag_req_pos_bank3_way[16];
-    logic   [TAG_WIDTH-1 : 0]  tag_req_data_bank3_way[16];
-    logic   tag_ack_valid_bank3_way[16];
-    logic   tag_ack_retry_bank3_way[16];
-    logic   [TAG_WIDTH-1 : 0]  tag_ack_data_bank3_way[16];
-
+    logic tag_req_valid_bank3_ways;
+    logic tag_req_retry_bank3_ways;
+    logic tag_req_we_bank3_ways;
+    logic   [`log2(TAG_SIZE)-1:0]  tag_req_pos_bank3_ways;
+    logic   [TAG_WIDTH-1 : 0]  tag_req_data_bank3_ways;
+    logic   tag_ack_valid_bank3_ways;
+    logic   tag_ack_retry_bank3_ways;
+    logic   [TAG_WIDTH-1 : 0]  tag_ack_data_bank3_ways;
 
 
     // Signals for Data Bank
@@ -573,46 +574,48 @@ module l2cache_pipe(
         logic           valid;
     } I_data_bank_line_type;
     localparam  DATA_BANK_WIDTH = $bits(I_data_bank_line_type);
-    localparam  DATA_BANK_SIZE = 128;
+    // Each way can be addressed independantly using the highest 4 bits of Data Bank Index
+    localparam  DATA_BANK_SIZE = 16 * 128;
     // Data bank0
-    logic data_req_valid_bank0_way[16];
-    logic data_req_retry_bank0_way[16];
-    logic data_req_we_bank0_way[16];
-    logic   [`log2(TAG_SIZE)-1:0]  data_req_pos_bank0_way[16];
-    I_data_bank_line_type   data_req_data_bank0_way[16];
-    logic   data_ack_valid_bank0_way[16];
-    logic   data_ack_retry_bank0_way[16];
-    I_data_bank_line_type   data_ack_data_bank0_way[16];
+    logic data_req_valid_bank0_way;
+    logic data_req_retry_bank0_way;
+    logic data_req_we_bank0_way;
+    logic   [`log2(DATA_BANK_SIZE)-1:0]  data_req_pos_bank0_way;
+    I_data_bank_line_type   data_req_data_bank0_way;
+    logic   data_ack_valid_bank0_way;
+    logic   data_ack_retry_bank0_way;
+    I_data_bank_line_type   data_ack_data_bank0_way;
+    logic   data_req_back_press;
 
     // Data bank1
-    logic data_req_valid_bank1_way[16];
-    logic data_req_retry_bank1_way[16];
-    logic data_req_we_bank1_way[16];
-    logic   [`log2(TAG_SIZE)-1:0]  data_req_pos_bank1_way[16];
-    I_data_bank_line_type   data_req_data_bank1_way[16];
-    logic   data_ack_valid_bank1_way[16];
-    logic   data_ack_retry_bank1_way[16];
-    I_data_bank_line_type   data_ack_data_bank1_way[16];
+    logic data_req_valid_bank1_way;
+    logic data_req_retry_bank1_way;
+    logic data_req_we_bank1_way;
+    logic   [`log2(DATA_BANK_SIZE)-1:0]  data_req_pos_bank1_way;
+    I_data_bank_line_type   data_req_data_bank1_way;
+    logic   data_ack_valid_bank1_way;
+    logic   data_ack_retry_bank1_way;
+    I_data_bank_line_type   data_ack_data_bank1_way;
 
     // Data bank2
-    logic data_req_valid_bank2_way[16];
-    logic data_req_retry_bank2_way[16];
-    logic data_req_we_bank2_way[16];
-    logic   [`log2(TAG_SIZE)-1:0]  data_req_pos_bank2_way[16];
-    I_data_bank_line_type   data_req_data_bank2_way[16];
-    logic   data_ack_valid_bank2_way[16];
-    logic   data_ack_retry_bank2_way[16];
-    I_data_bank_line_type   data_ack_data_bank2_way[16];
+    logic data_req_valid_bank2_way;
+    logic data_req_retry_bank2_way;
+    logic data_req_we_bank2_way;
+    logic   [`log2(DATA_BANK_SIZE)-1:0]  data_req_pos_bank2_way;
+    I_data_bank_line_type   data_req_data_bank2_way;
+    logic   data_ack_valid_bank2_way;
+    logic   data_ack_retry_bank2_way;
+    I_data_bank_line_type   data_ack_data_bank2_way;
 
     // Data bank3
-    logic data_req_valid_bank3_way[16];
-    logic data_req_retry_bank3_way[16];
-    logic data_req_we_bank3_way[16];
-    logic   [`log2(TAG_SIZE)-1:0]  data_req_pos_bank3_way[16];
-    I_data_bank_line_type   data_req_data_bank3_way[16];
-    logic   data_ack_valid_bank3_way[16];
-    logic   data_ack_retry_bank3_way[16];
-    I_data_bank_line_type   data_ack_data_bank3_way[16];
+    logic data_req_valid_bank3_way;
+    logic data_req_retry_bank3_way;
+    logic data_req_we_bank3_way;
+    logic   [`log2(DATA_BANK_SIZE)-1:0]  data_req_pos_bank3_way;
+    I_data_bank_line_type   data_req_data_bank3_way;
+    logic   data_ack_valid_bank3_way;
+    logic   data_ack_retry_bank3_way;
+    I_data_bank_line_type   data_ack_data_bank3_way;
 
 
     // Instantiate Tag RAM
@@ -620,1929 +623,126 @@ module l2cache_pipe(
     // Size = 128 
     // Forward = 0
     // Bank0 Way0
-    ram_1port_dense #(TAG_WIDTH, TAG_SIZE, 0) tag_bank0_way0 (
+    ram_1port_dense #(TAG_WIDTH, TAG_SIZE, 0) tag_bank0_ways (
         .clk            (clk),
         .reset          (reset),
         
-        .req_valid      (tag_req_valid_bank0_way[0]),
-        .req_retry      (tag_req_retry_bank0_way[0]),
-        .req_we         (tag_req_we_bank0_way[0]),
-        .req_pos        (tag_req_pos_bank0_way[0]),
-        .req_data       (tag_req_data_bank0_way[0]),
+        .req_valid      (tag_req_valid_bank0_ways),
+        .req_retry      (tag_req_retry_bank0_ways),
+        .req_we         (tag_req_we_bank0_ways),
+        .req_pos        (tag_req_pos_bank0_ways),
+        .req_data       (tag_req_data_bank0_ways),
 
-        .ack_valid      (tag_ack_valid_bank0_way[0]),
-        .ack_retry      (tag_ack_retry_bank0_way[0]),
-        .ack_data       (tag_ack_data_bank0_way[0])
+        .ack_valid      (tag_ack_valid_bank0_ways),
+        .ack_retry      (tag_ack_retry_bank0_ways),
+        .ack_data       (tag_ack_data_bank0_ways)
     );
 
-    ram_1port_dense #(TAG_WIDTH, TAG_SIZE, 0) tag_bank0_way1 (
+    ram_1port_dense #(TAG_WIDTH, TAG_SIZE, 0) tag_bank1_ways (
         .clk            (clk),
         .reset          (reset),
         
-        .req_valid      (tag_req_valid_bank0_way[1]),
-        .req_retry      (tag_req_retry_bank0_way[1]),
-        .req_we         (tag_req_we_bank0_way[1]),
-        .req_pos        (tag_req_pos_bank0_way[1]),
-        .req_data       (tag_req_data_bank0_way[1]),
+        .req_valid      (tag_req_valid_bank1_ways),
+        .req_retry      (tag_req_retry_bank1_ways),
+        .req_we         (tag_req_we_bank1_ways),
+        .req_pos        (tag_req_pos_bank1_ways),
+        .req_data       (tag_req_data_bank1_ways),
 
-        .ack_valid      (tag_ack_valid_bank0_way[1]),
-        .ack_retry      (tag_ack_retry_bank0_way[1]),
-        .ack_data       (tag_ack_data_bank0_way[1])
+        .ack_valid      (tag_ack_valid_bank1_ways),
+        .ack_retry      (tag_ack_retry_bank1_ways),
+        .ack_data       (tag_ack_data_bank1_ways)
     );
 
-    ram_1port_dense #(TAG_WIDTH, TAG_SIZE, 0) tag_bank0_way2 (
+    ram_1port_dense #(TAG_WIDTH, TAG_SIZE, 0) tag_bank2_ways (
         .clk            (clk),
         .reset          (reset),
         
-        .req_valid      (tag_req_valid_bank0_way[2]),
-        .req_retry      (tag_req_retry_bank0_way[2]),
-        .req_we         (tag_req_we_bank0_way[2]),
-        .req_pos        (tag_req_pos_bank0_way[2]),
-        .req_data       (tag_req_data_bank0_way[2]),
+        .req_valid      (tag_req_valid_bank2_ways),
+        .req_retry      (tag_req_retry_bank2_ways),
+        .req_we         (tag_req_we_bank2_ways),
+        .req_pos        (tag_req_pos_bank2_ways),
+        .req_data       (tag_req_data_bank2_ways),
 
-        .ack_valid      (tag_ack_valid_bank0_way[2]),
-        .ack_retry      (tag_ack_retry_bank0_way[2]),
-        .ack_data       (tag_ack_data_bank0_way[2])
+        .ack_valid      (tag_ack_valid_bank2_ways),
+        .ack_retry      (tag_ack_retry_bank2_ways),
+        .ack_data       (tag_ack_data_bank2_ways)
     );
 
-    ram_1port_dense #(TAG_WIDTH, TAG_SIZE, 0) tag_bank0_way3 (
+    ram_1port_dense #(TAG_WIDTH, TAG_SIZE, 0) tag_bank3_ways (
         .clk            (clk),
         .reset          (reset),
         
-        .req_valid      (tag_req_valid_bank0_way[3]),
-        .req_retry      (tag_req_retry_bank0_way[3]),
-        .req_we         (tag_req_we_bank0_way[3]),
-        .req_pos        (tag_req_pos_bank0_way[3]),
-        .req_data       (tag_req_data_bank0_way[3]),
+        .req_valid      (tag_req_valid_bank3_ways),
+        .req_retry      (tag_req_retry_bank3_ways),
+        .req_we         (tag_req_we_bank3_ways),
+        .req_pos        (tag_req_pos_bank3_ways),
+        .req_data       (tag_req_data_bank3_ways),
 
-        .ack_valid      (tag_ack_valid_bank0_way[3]),
-        .ack_retry      (tag_ack_retry_bank0_way[3]),
-        .ack_data       (tag_ack_data_bank0_way[3])
+        .ack_valid      (tag_ack_valid_bank3_ways),
+        .ack_retry      (tag_ack_retry_bank3_ways),
+        .ack_data       (tag_ack_data_bank3_ways)
     );
-
-    ram_1port_dense #(TAG_WIDTH, TAG_SIZE, 0) tag_bank0_way4 (
-        .clk            (clk),
-        .reset          (reset),
-        
-        .req_valid      (tag_req_valid_bank0_way[4]),
-        .req_retry      (tag_req_retry_bank0_way[4]),
-        .req_we         (tag_req_we_bank0_way[4]),
-        .req_pos        (tag_req_pos_bank0_way[4]),
-        .req_data       (tag_req_data_bank0_way[4]),
-
-        .ack_valid      (tag_ack_valid_bank0_way[4]),
-        .ack_retry      (tag_ack_retry_bank0_way[4]),
-        .ack_data       (tag_ack_data_bank0_way[4])
-    );
-
-    ram_1port_dense #(TAG_WIDTH, TAG_SIZE, 0) tag_bank0_way5 (
-        .clk            (clk),
-        .reset          (reset),
-        
-        .req_valid      (tag_req_valid_bank0_way[5]),
-        .req_retry      (tag_req_retry_bank0_way[5]),
-        .req_we         (tag_req_we_bank0_way[5]),
-        .req_pos        (tag_req_pos_bank0_way[5]),
-        .req_data       (tag_req_data_bank0_way[5]),
-
-        .ack_valid      (tag_ack_valid_bank0_way[5]),
-        .ack_retry      (tag_ack_retry_bank0_way[5]),
-        .ack_data       (tag_ack_data_bank0_way[5])
-    );
-
-    ram_1port_dense #(TAG_WIDTH, TAG_SIZE, 0) tag_bank0_way6 (
-        .clk            (clk),
-        .reset          (reset),
-        
-        .req_valid      (tag_req_valid_bank0_way[6]),
-        .req_retry      (tag_req_retry_bank0_way[6]),
-        .req_we         (tag_req_we_bank0_way[6]),
-        .req_pos        (tag_req_pos_bank0_way[6]),
-        .req_data       (tag_req_data_bank0_way[6]),
-
-        .ack_valid      (tag_ack_valid_bank0_way[6]),
-        .ack_retry      (tag_ack_retry_bank0_way[6]),
-        .ack_data       (tag_ack_data_bank0_way[6])
-    );
-
-    ram_1port_dense #(TAG_WIDTH, TAG_SIZE, 0) tag_bank0_way7 (
-        .clk            (clk),
-        .reset          (reset),
-        
-        .req_valid      (tag_req_valid_bank0_way[7]),
-        .req_retry      (tag_req_retry_bank0_way[7]),
-        .req_we         (tag_req_we_bank0_way[7]),
-        .req_pos        (tag_req_pos_bank0_way[7]),
-        .req_data       (tag_req_data_bank0_way[7]),
-
-        .ack_valid      (tag_ack_valid_bank0_way[7]),
-        .ack_retry      (tag_ack_retry_bank0_way[7]),
-        .ack_data       (tag_ack_data_bank0_way[7])
-    );
-
-    ram_1port_dense #(TAG_WIDTH, TAG_SIZE, 0) tag_bank0_way8 (
-        .clk            (clk),
-        .reset          (reset),
-        
-        .req_valid      (tag_req_valid_bank0_way[8]),
-        .req_retry      (tag_req_retry_bank0_way[8]),
-        .req_we         (tag_req_we_bank0_way[8]),
-        .req_pos        (tag_req_pos_bank0_way[8]),
-        .req_data       (tag_req_data_bank0_way[8]),
-
-        .ack_valid      (tag_ack_valid_bank0_way[8]),
-        .ack_retry      (tag_ack_retry_bank0_way[8]),
-        .ack_data       (tag_ack_data_bank0_way[8])
-    );
-
-    ram_1port_dense #(TAG_WIDTH, TAG_SIZE, 0) tag_bank0_way9 (
-        .clk            (clk),
-        .reset          (reset),
-        
-        .req_valid      (tag_req_valid_bank0_way[9]),
-        .req_retry      (tag_req_retry_bank0_way[9]),
-        .req_we         (tag_req_we_bank0_way[9]),
-        .req_pos        (tag_req_pos_bank0_way[9]),
-        .req_data       (tag_req_data_bank0_way[9]),
-
-        .ack_valid      (tag_ack_valid_bank0_way[9]),
-        .ack_retry      (tag_ack_retry_bank0_way[9]),
-        .ack_data       (tag_ack_data_bank0_way[9])
-    );
-
-    ram_1port_dense #(TAG_WIDTH, TAG_SIZE, 0) tag_bank0_way10 (
-        .clk            (clk),
-        .reset          (reset),
-        
-        .req_valid      (tag_req_valid_bank0_way[10]),
-        .req_retry      (tag_req_retry_bank0_way[10]),
-        .req_we         (tag_req_we_bank0_way[10]),
-        .req_pos        (tag_req_pos_bank0_way[10]),
-        .req_data       (tag_req_data_bank0_way[10]),
-
-        .ack_valid      (tag_ack_valid_bank0_way[10]),
-        .ack_retry      (tag_ack_retry_bank0_way[10]),
-        .ack_data       (tag_ack_data_bank0_way[10])
-    );
-
-    ram_1port_dense #(TAG_WIDTH, TAG_SIZE, 0) tag_bank0_way11 (
-        .clk            (clk),
-        .reset          (reset),
-        
-        .req_valid      (tag_req_valid_bank0_way[11]),
-        .req_retry      (tag_req_retry_bank0_way[11]),
-        .req_we         (tag_req_we_bank0_way[11]),
-        .req_pos        (tag_req_pos_bank0_way[11]),
-        .req_data       (tag_req_data_bank0_way[11]),
-
-        .ack_valid      (tag_ack_valid_bank0_way[11]),
-        .ack_retry      (tag_ack_retry_bank0_way[11]),
-        .ack_data       (tag_ack_data_bank0_way[11])
-    );
-
-    ram_1port_dense #(TAG_WIDTH, TAG_SIZE, 0) tag_bank0_way12 (
-        .clk            (clk),
-        .reset          (reset),
-        
-        .req_valid      (tag_req_valid_bank0_way[12]),
-        .req_retry      (tag_req_retry_bank0_way[12]),
-        .req_we         (tag_req_we_bank0_way[12]),
-        .req_pos        (tag_req_pos_bank0_way[12]),
-        .req_data       (tag_req_data_bank0_way[12]),
-
-        .ack_valid      (tag_ack_valid_bank0_way[12]),
-        .ack_retry      (tag_ack_retry_bank0_way[12]),
-        .ack_data       (tag_ack_data_bank0_way[12])
-    );
-
-    ram_1port_dense #(TAG_WIDTH, TAG_SIZE, 0) tag_bank0_way13 (
-        .clk            (clk),
-        .reset          (reset),
-        
-        .req_valid      (tag_req_valid_bank0_way[13]),
-        .req_retry      (tag_req_retry_bank0_way[13]),
-        .req_we         (tag_req_we_bank0_way[13]),
-        .req_pos        (tag_req_pos_bank0_way[13]),
-        .req_data       (tag_req_data_bank0_way[13]),
-
-        .ack_valid      (tag_ack_valid_bank0_way[13]),
-        .ack_retry      (tag_ack_retry_bank0_way[13]),
-        .ack_data       (tag_ack_data_bank0_way[13])
-    );
-
-    ram_1port_dense #(TAG_WIDTH, TAG_SIZE, 0) tag_bank0_way14 (
-        .clk            (clk),
-        .reset          (reset),
-        
-        .req_valid      (tag_req_valid_bank0_way[14]),
-        .req_retry      (tag_req_retry_bank0_way[14]),
-        .req_we         (tag_req_we_bank0_way[14]),
-        .req_pos        (tag_req_pos_bank0_way[14]),
-        .req_data       (tag_req_data_bank0_way[14]),
-
-        .ack_valid      (tag_ack_valid_bank0_way[14]),
-        .ack_retry      (tag_ack_retry_bank0_way[14]),
-        .ack_data       (tag_ack_data_bank0_way[14])
-    );
-
-    ram_1port_dense #(TAG_WIDTH, TAG_SIZE, 0) tag_bank0_way15 (
-        .clk            (clk),
-        .reset          (reset),
-        
-        .req_valid      (tag_req_valid_bank0_way[15]),
-        .req_retry      (tag_req_retry_bank0_way[15]),
-        .req_we         (tag_req_we_bank0_way[15]),
-        .req_pos        (tag_req_pos_bank0_way[15]),
-        .req_data       (tag_req_data_bank0_way[15]),
-
-        .ack_valid      (tag_ack_valid_bank0_way[15]),
-        .ack_retry      (tag_ack_retry_bank0_way[15]),
-        .ack_data       (tag_ack_data_bank0_way[15])
-    );
-
-ram_1port_dense #(TAG_WIDTH, TAG_SIZE, 0) tag_bank1_way0 (
-        .clk            (clk),
-        .reset          (reset),
-        
-        .req_valid      (tag_req_valid_bank1_way[0]),
-        .req_retry      (tag_req_retry_bank1_way[0]),
-        .req_we         (tag_req_we_bank1_way[0]),
-        .req_pos        (tag_req_pos_bank1_way[0]),
-        .req_data       (tag_req_data_bank1_way[0]),
-
-        .ack_valid      (tag_ack_valid_bank1_way[0]),
-        .ack_retry      (tag_ack_retry_bank1_way[0]),
-        .ack_data       (tag_ack_data_bank1_way[0])
-    );
-
-    ram_1port_dense #(TAG_WIDTH, TAG_SIZE, 0) tag_bank1_way1 (
-        .clk            (clk),
-        .reset          (reset),
-        
-        .req_valid      (tag_req_valid_bank1_way[1]),
-        .req_retry      (tag_req_retry_bank1_way[1]),
-        .req_we         (tag_req_we_bank1_way[1]),
-        .req_pos        (tag_req_pos_bank1_way[1]),
-        .req_data       (tag_req_data_bank1_way[1]),
-
-        .ack_valid      (tag_ack_valid_bank1_way[1]),
-        .ack_retry      (tag_ack_retry_bank1_way[1]),
-        .ack_data       (tag_ack_data_bank1_way[1])
-    );
-
-    ram_1port_dense #(TAG_WIDTH, TAG_SIZE, 0) tag_bank1_way2 (
-        .clk            (clk),
-        .reset          (reset),
-        
-        .req_valid      (tag_req_valid_bank1_way[2]),
-        .req_retry      (tag_req_retry_bank1_way[2]),
-        .req_we         (tag_req_we_bank1_way[2]),
-        .req_pos        (tag_req_pos_bank1_way[2]),
-        .req_data       (tag_req_data_bank1_way[2]),
-
-        .ack_valid      (tag_ack_valid_bank1_way[2]),
-        .ack_retry      (tag_ack_retry_bank1_way[2]),
-        .ack_data       (tag_ack_data_bank1_way[2])
-    );
-
-    ram_1port_dense #(TAG_WIDTH, TAG_SIZE, 0) tag_bank1_way3 (
-        .clk            (clk),
-        .reset          (reset),
-        
-        .req_valid      (tag_req_valid_bank1_way[3]),
-        .req_retry      (tag_req_retry_bank1_way[3]),
-        .req_we         (tag_req_we_bank1_way[3]),
-        .req_pos        (tag_req_pos_bank1_way[3]),
-        .req_data       (tag_req_data_bank1_way[3]),
-
-        .ack_valid      (tag_ack_valid_bank1_way[3]),
-        .ack_retry      (tag_ack_retry_bank1_way[3]),
-        .ack_data       (tag_ack_data_bank1_way[3])
-    );
-
-    ram_1port_dense #(TAG_WIDTH, TAG_SIZE, 0) tag_bank1_way4 (
-        .clk            (clk),
-        .reset          (reset),
-        
-        .req_valid      (tag_req_valid_bank1_way[4]),
-        .req_retry      (tag_req_retry_bank1_way[4]),
-        .req_we         (tag_req_we_bank1_way[4]),
-        .req_pos        (tag_req_pos_bank1_way[4]),
-        .req_data       (tag_req_data_bank1_way[4]),
-
-        .ack_valid      (tag_ack_valid_bank1_way[4]),
-        .ack_retry      (tag_ack_retry_bank1_way[4]),
-        .ack_data       (tag_ack_data_bank1_way[4])
-    );
-
-    ram_1port_dense #(TAG_WIDTH, TAG_SIZE, 0) tag_bank1_way5 (
-        .clk            (clk),
-        .reset          (reset),
-        
-        .req_valid      (tag_req_valid_bank1_way[5]),
-        .req_retry      (tag_req_retry_bank1_way[5]),
-        .req_we         (tag_req_we_bank1_way[5]),
-        .req_pos        (tag_req_pos_bank1_way[5]),
-        .req_data       (tag_req_data_bank1_way[5]),
-
-        .ack_valid      (tag_ack_valid_bank1_way[5]),
-        .ack_retry      (tag_ack_retry_bank1_way[5]),
-        .ack_data       (tag_ack_data_bank1_way[5])
-    );
-
-    ram_1port_dense #(TAG_WIDTH, TAG_SIZE, 0) tag_bank1_way6 (
-        .clk            (clk),
-        .reset          (reset),
-        
-        .req_valid      (tag_req_valid_bank1_way[6]),
-        .req_retry      (tag_req_retry_bank1_way[6]),
-        .req_we         (tag_req_we_bank1_way[6]),
-        .req_pos        (tag_req_pos_bank1_way[6]),
-        .req_data       (tag_req_data_bank1_way[6]),
-
-        .ack_valid      (tag_ack_valid_bank1_way[6]),
-        .ack_retry      (tag_ack_retry_bank1_way[6]),
-        .ack_data       (tag_ack_data_bank1_way[6])
-    );
-
-    ram_1port_dense #(TAG_WIDTH, TAG_SIZE, 0) tag_bank1_way7 (
-        .clk            (clk),
-        .reset          (reset),
-        
-        .req_valid      (tag_req_valid_bank1_way[7]),
-        .req_retry      (tag_req_retry_bank1_way[7]),
-        .req_we         (tag_req_we_bank1_way[7]),
-        .req_pos        (tag_req_pos_bank1_way[7]),
-        .req_data       (tag_req_data_bank1_way[7]),
-
-        .ack_valid      (tag_ack_valid_bank1_way[7]),
-        .ack_retry      (tag_ack_retry_bank1_way[7]),
-        .ack_data       (tag_ack_data_bank1_way[7])
-    );
-
-    ram_1port_dense #(TAG_WIDTH, TAG_SIZE, 0) tag_bank1_way8 (
-        .clk            (clk),
-        .reset          (reset),
-        
-        .req_valid      (tag_req_valid_bank1_way[8]),
-        .req_retry      (tag_req_retry_bank1_way[8]),
-        .req_we         (tag_req_we_bank1_way[8]),
-        .req_pos        (tag_req_pos_bank1_way[8]),
-        .req_data       (tag_req_data_bank1_way[8]),
-
-        .ack_valid      (tag_ack_valid_bank1_way[8]),
-        .ack_retry      (tag_ack_retry_bank1_way[8]),
-        .ack_data       (tag_ack_data_bank1_way[8])
-    );
-
-    ram_1port_dense #(TAG_WIDTH, TAG_SIZE, 0) tag_bank1_way9 (
-        .clk            (clk),
-        .reset          (reset),
-        
-        .req_valid      (tag_req_valid_bank1_way[9]),
-        .req_retry      (tag_req_retry_bank1_way[9]),
-        .req_we         (tag_req_we_bank1_way[9]),
-        .req_pos        (tag_req_pos_bank1_way[9]),
-        .req_data       (tag_req_data_bank1_way[9]),
-
-        .ack_valid      (tag_ack_valid_bank1_way[9]),
-        .ack_retry      (tag_ack_retry_bank1_way[9]),
-        .ack_data       (tag_ack_data_bank1_way[9])
-    );
-
-    ram_1port_dense #(TAG_WIDTH, TAG_SIZE, 0) tag_bank1_way10 (
-        .clk            (clk),
-        .reset          (reset),
-        
-        .req_valid      (tag_req_valid_bank1_way[10]),
-        .req_retry      (tag_req_retry_bank1_way[10]),
-        .req_we         (tag_req_we_bank1_way[10]),
-        .req_pos        (tag_req_pos_bank1_way[10]),
-        .req_data       (tag_req_data_bank1_way[10]),
-
-        .ack_valid      (tag_ack_valid_bank1_way[10]),
-        .ack_retry      (tag_ack_retry_bank1_way[10]),
-        .ack_data       (tag_ack_data_bank1_way[10])
-    );
-
-    ram_1port_dense #(TAG_WIDTH, TAG_SIZE, 0) tag_bank1_way11 (
-        .clk            (clk),
-        .reset          (reset),
-        
-        .req_valid      (tag_req_valid_bank1_way[11]),
-        .req_retry      (tag_req_retry_bank1_way[11]),
-        .req_we         (tag_req_we_bank1_way[11]),
-        .req_pos        (tag_req_pos_bank1_way[11]),
-        .req_data       (tag_req_data_bank1_way[11]),
-
-        .ack_valid      (tag_ack_valid_bank1_way[11]),
-        .ack_retry      (tag_ack_retry_bank1_way[11]),
-        .ack_data       (tag_ack_data_bank1_way[11])
-    );
-
-    ram_1port_dense #(TAG_WIDTH, TAG_SIZE, 0) tag_bank1_way12 (
-        .clk            (clk),
-        .reset          (reset),
-        
-        .req_valid      (tag_req_valid_bank1_way[12]),
-        .req_retry      (tag_req_retry_bank1_way[12]),
-        .req_we         (tag_req_we_bank1_way[12]),
-        .req_pos        (tag_req_pos_bank1_way[12]),
-        .req_data       (tag_req_data_bank1_way[12]),
-
-        .ack_valid      (tag_ack_valid_bank1_way[12]),
-        .ack_retry      (tag_ack_retry_bank1_way[12]),
-        .ack_data       (tag_ack_data_bank1_way[12])
-    );
-
-    ram_1port_dense #(TAG_WIDTH, TAG_SIZE, 0) tag_bank1_way13 (
-        .clk            (clk),
-        .reset          (reset),
-        
-        .req_valid      (tag_req_valid_bank1_way[13]),
-        .req_retry      (tag_req_retry_bank1_way[13]),
-        .req_we         (tag_req_we_bank1_way[13]),
-        .req_pos        (tag_req_pos_bank1_way[13]),
-        .req_data       (tag_req_data_bank1_way[13]),
-
-        .ack_valid      (tag_ack_valid_bank1_way[13]),
-        .ack_retry      (tag_ack_retry_bank1_way[13]),
-        .ack_data       (tag_ack_data_bank1_way[13])
-    );
-
-    ram_1port_dense #(TAG_WIDTH, TAG_SIZE, 0) tag_bank1_way14 (
-        .clk            (clk),
-        .reset          (reset),
-        
-        .req_valid      (tag_req_valid_bank1_way[14]),
-        .req_retry      (tag_req_retry_bank1_way[14]),
-        .req_we         (tag_req_we_bank1_way[14]),
-        .req_pos        (tag_req_pos_bank1_way[14]),
-        .req_data       (tag_req_data_bank1_way[14]),
-
-        .ack_valid      (tag_ack_valid_bank1_way[14]),
-        .ack_retry      (tag_ack_retry_bank1_way[14]),
-        .ack_data       (tag_ack_data_bank1_way[14])
-    );
-
-    ram_1port_dense #(TAG_WIDTH, TAG_SIZE, 0) tag_bank1_way15 (
-        .clk            (clk),
-        .reset          (reset),
-        
-        .req_valid      (tag_req_valid_bank1_way[15]),
-        .req_retry      (tag_req_retry_bank1_way[15]),
-        .req_we         (tag_req_we_bank1_way[15]),
-        .req_pos        (tag_req_pos_bank1_way[15]),
-        .req_data       (tag_req_data_bank1_way[15]),
-
-        .ack_valid      (tag_ack_valid_bank1_way[15]),
-        .ack_retry      (tag_ack_retry_bank1_way[15]),
-        .ack_data       (tag_ack_data_bank1_way[15])
-    );
-
-ram_1port_dense #(TAG_WIDTH, TAG_SIZE, 0) tag_bank2_way0 (
-        .clk            (clk),
-        .reset          (reset),
-        
-        .req_valid      (tag_req_valid_bank2_way[0]),
-        .req_retry      (tag_req_retry_bank2_way[0]),
-        .req_we         (tag_req_we_bank2_way[0]),
-        .req_pos        (tag_req_pos_bank2_way[0]),
-        .req_data       (tag_req_data_bank2_way[0]),
-
-        .ack_valid      (tag_ack_valid_bank2_way[0]),
-        .ack_retry      (tag_ack_retry_bank2_way[0]),
-        .ack_data       (tag_ack_data_bank2_way[0])
-    );
-
-    ram_1port_dense #(TAG_WIDTH, TAG_SIZE, 0) tag_bank2_way1 (
-        .clk            (clk),
-        .reset          (reset),
-        
-        .req_valid      (tag_req_valid_bank2_way[1]),
-        .req_retry      (tag_req_retry_bank2_way[1]),
-        .req_we         (tag_req_we_bank2_way[1]),
-        .req_pos        (tag_req_pos_bank2_way[1]),
-        .req_data       (tag_req_data_bank2_way[1]),
-
-        .ack_valid      (tag_ack_valid_bank2_way[1]),
-        .ack_retry      (tag_ack_retry_bank2_way[1]),
-        .ack_data       (tag_ack_data_bank2_way[1])
-    );
-
-    ram_1port_dense #(TAG_WIDTH, TAG_SIZE, 0) tag_bank2_way2 (
-        .clk            (clk),
-        .reset          (reset),
-        
-        .req_valid      (tag_req_valid_bank2_way[2]),
-        .req_retry      (tag_req_retry_bank2_way[2]),
-        .req_we         (tag_req_we_bank2_way[2]),
-        .req_pos        (tag_req_pos_bank2_way[2]),
-        .req_data       (tag_req_data_bank2_way[2]),
-
-        .ack_valid      (tag_ack_valid_bank2_way[2]),
-        .ack_retry      (tag_ack_retry_bank2_way[2]),
-        .ack_data       (tag_ack_data_bank2_way[2])
-    );
-
-    ram_1port_dense #(TAG_WIDTH, TAG_SIZE, 0) tag_bank2_way3 (
-        .clk            (clk),
-        .reset          (reset),
-        
-        .req_valid      (tag_req_valid_bank2_way[3]),
-        .req_retry      (tag_req_retry_bank2_way[3]),
-        .req_we         (tag_req_we_bank2_way[3]),
-        .req_pos        (tag_req_pos_bank2_way[3]),
-        .req_data       (tag_req_data_bank2_way[3]),
-
-        .ack_valid      (tag_ack_valid_bank2_way[3]),
-        .ack_retry      (tag_ack_retry_bank2_way[3]),
-        .ack_data       (tag_ack_data_bank2_way[3])
-    );
-
-    ram_1port_dense #(TAG_WIDTH, TAG_SIZE, 0) tag_bank2_way4 (
-        .clk            (clk),
-        .reset          (reset),
-        
-        .req_valid      (tag_req_valid_bank2_way[4]),
-        .req_retry      (tag_req_retry_bank2_way[4]),
-        .req_we         (tag_req_we_bank2_way[4]),
-        .req_pos        (tag_req_pos_bank2_way[4]),
-        .req_data       (tag_req_data_bank2_way[4]),
-
-        .ack_valid      (tag_ack_valid_bank2_way[4]),
-        .ack_retry      (tag_ack_retry_bank2_way[4]),
-        .ack_data       (tag_ack_data_bank2_way[4])
-    );
-
-    ram_1port_dense #(TAG_WIDTH, TAG_SIZE, 0) tag_bank2_way5 (
-        .clk            (clk),
-        .reset          (reset),
-        
-        .req_valid      (tag_req_valid_bank2_way[5]),
-        .req_retry      (tag_req_retry_bank2_way[5]),
-        .req_we         (tag_req_we_bank2_way[5]),
-        .req_pos        (tag_req_pos_bank2_way[5]),
-        .req_data       (tag_req_data_bank2_way[5]),
-
-        .ack_valid      (tag_ack_valid_bank2_way[5]),
-        .ack_retry      (tag_ack_retry_bank2_way[5]),
-        .ack_data       (tag_ack_data_bank2_way[5])
-    );
-
-    ram_1port_dense #(TAG_WIDTH, TAG_SIZE, 0) tag_bank2_way6 (
-        .clk            (clk),
-        .reset          (reset),
-        
-        .req_valid      (tag_req_valid_bank2_way[6]),
-        .req_retry      (tag_req_retry_bank2_way[6]),
-        .req_we         (tag_req_we_bank2_way[6]),
-        .req_pos        (tag_req_pos_bank2_way[6]),
-        .req_data       (tag_req_data_bank2_way[6]),
-
-        .ack_valid      (tag_ack_valid_bank2_way[6]),
-        .ack_retry      (tag_ack_retry_bank2_way[6]),
-        .ack_data       (tag_ack_data_bank2_way[6])
-    );
-
-    ram_1port_dense #(TAG_WIDTH, TAG_SIZE, 0) tag_bank2_way7 (
-        .clk            (clk),
-        .reset          (reset),
-        
-        .req_valid      (tag_req_valid_bank2_way[7]),
-        .req_retry      (tag_req_retry_bank2_way[7]),
-        .req_we         (tag_req_we_bank2_way[7]),
-        .req_pos        (tag_req_pos_bank2_way[7]),
-        .req_data       (tag_req_data_bank2_way[7]),
-
-        .ack_valid      (tag_ack_valid_bank2_way[7]),
-        .ack_retry      (tag_ack_retry_bank2_way[7]),
-        .ack_data       (tag_ack_data_bank2_way[7])
-    );
-
-    ram_1port_dense #(TAG_WIDTH, TAG_SIZE, 0) tag_bank2_way8 (
-        .clk            (clk),
-        .reset          (reset),
-        
-        .req_valid      (tag_req_valid_bank2_way[8]),
-        .req_retry      (tag_req_retry_bank2_way[8]),
-        .req_we         (tag_req_we_bank2_way[8]),
-        .req_pos        (tag_req_pos_bank2_way[8]),
-        .req_data       (tag_req_data_bank2_way[8]),
-
-        .ack_valid      (tag_ack_valid_bank2_way[8]),
-        .ack_retry      (tag_ack_retry_bank2_way[8]),
-        .ack_data       (tag_ack_data_bank2_way[8])
-    );
-
-    ram_1port_dense #(TAG_WIDTH, TAG_SIZE, 0) tag_bank2_way9 (
-        .clk            (clk),
-        .reset          (reset),
-        
-        .req_valid      (tag_req_valid_bank2_way[9]),
-        .req_retry      (tag_req_retry_bank2_way[9]),
-        .req_we         (tag_req_we_bank2_way[9]),
-        .req_pos        (tag_req_pos_bank2_way[9]),
-        .req_data       (tag_req_data_bank2_way[9]),
-
-        .ack_valid      (tag_ack_valid_bank2_way[9]),
-        .ack_retry      (tag_ack_retry_bank2_way[9]),
-        .ack_data       (tag_ack_data_bank2_way[9])
-    );
-
-    ram_1port_dense #(TAG_WIDTH, TAG_SIZE, 0) tag_bank2_way10 (
-        .clk            (clk),
-        .reset          (reset),
-        
-        .req_valid      (tag_req_valid_bank2_way[10]),
-        .req_retry      (tag_req_retry_bank2_way[10]),
-        .req_we         (tag_req_we_bank2_way[10]),
-        .req_pos        (tag_req_pos_bank2_way[10]),
-        .req_data       (tag_req_data_bank2_way[10]),
-
-        .ack_valid      (tag_ack_valid_bank2_way[10]),
-        .ack_retry      (tag_ack_retry_bank2_way[10]),
-        .ack_data       (tag_ack_data_bank2_way[10])
-    );
-
-    ram_1port_dense #(TAG_WIDTH, TAG_SIZE, 0) tag_bank2_way11 (
-        .clk            (clk),
-        .reset          (reset),
-        
-        .req_valid      (tag_req_valid_bank2_way[11]),
-        .req_retry      (tag_req_retry_bank2_way[11]),
-        .req_we         (tag_req_we_bank2_way[11]),
-        .req_pos        (tag_req_pos_bank2_way[11]),
-        .req_data       (tag_req_data_bank2_way[11]),
-
-        .ack_valid      (tag_ack_valid_bank2_way[11]),
-        .ack_retry      (tag_ack_retry_bank2_way[11]),
-        .ack_data       (tag_ack_data_bank2_way[11])
-    );
-
-    ram_1port_dense #(TAG_WIDTH, TAG_SIZE, 0) tag_bank2_way12 (
-        .clk            (clk),
-        .reset          (reset),
-        
-        .req_valid      (tag_req_valid_bank2_way[12]),
-        .req_retry      (tag_req_retry_bank2_way[12]),
-        .req_we         (tag_req_we_bank2_way[12]),
-        .req_pos        (tag_req_pos_bank2_way[12]),
-        .req_data       (tag_req_data_bank2_way[12]),
-
-        .ack_valid      (tag_ack_valid_bank2_way[12]),
-        .ack_retry      (tag_ack_retry_bank2_way[12]),
-        .ack_data       (tag_ack_data_bank2_way[12])
-    );
-
-    ram_1port_dense #(TAG_WIDTH, TAG_SIZE, 0) tag_bank2_way13 (
-        .clk            (clk),
-        .reset          (reset),
-        
-        .req_valid      (tag_req_valid_bank2_way[13]),
-        .req_retry      (tag_req_retry_bank2_way[13]),
-        .req_we         (tag_req_we_bank2_way[13]),
-        .req_pos        (tag_req_pos_bank2_way[13]),
-        .req_data       (tag_req_data_bank2_way[13]),
-
-        .ack_valid      (tag_ack_valid_bank2_way[13]),
-        .ack_retry      (tag_ack_retry_bank2_way[13]),
-        .ack_data       (tag_ack_data_bank2_way[13])
-    );
-
-    ram_1port_dense #(TAG_WIDTH, TAG_SIZE, 0) tag_bank2_way14 (
-        .clk            (clk),
-        .reset          (reset),
-        
-        .req_valid      (tag_req_valid_bank2_way[14]),
-        .req_retry      (tag_req_retry_bank2_way[14]),
-        .req_we         (tag_req_we_bank2_way[14]),
-        .req_pos        (tag_req_pos_bank2_way[14]),
-        .req_data       (tag_req_data_bank2_way[14]),
-
-        .ack_valid      (tag_ack_valid_bank2_way[14]),
-        .ack_retry      (tag_ack_retry_bank2_way[14]),
-        .ack_data       (tag_ack_data_bank2_way[14])
-    );
-
-    ram_1port_dense #(TAG_WIDTH, TAG_SIZE, 0) tag_bank2_way15 (
-        .clk            (clk),
-        .reset          (reset),
-        
-        .req_valid      (tag_req_valid_bank2_way[15]),
-        .req_retry      (tag_req_retry_bank2_way[15]),
-        .req_we         (tag_req_we_bank2_way[15]),
-        .req_pos        (tag_req_pos_bank2_way[15]),
-        .req_data       (tag_req_data_bank2_way[15]),
-
-        .ack_valid      (tag_ack_valid_bank2_way[15]),
-        .ack_retry      (tag_ack_retry_bank2_way[15]),
-        .ack_data       (tag_ack_data_bank2_way[15])
-    );
-
-ram_1port_dense #(TAG_WIDTH, TAG_SIZE, 0) tag_bank3_way0 (
-        .clk            (clk),
-        .reset          (reset),
-        
-        .req_valid      (tag_req_valid_bank3_way[0]),
-        .req_retry      (tag_req_retry_bank3_way[0]),
-        .req_we         (tag_req_we_bank3_way[0]),
-        .req_pos        (tag_req_pos_bank3_way[0]),
-        .req_data       (tag_req_data_bank3_way[0]),
-
-        .ack_valid      (tag_ack_valid_bank3_way[0]),
-        .ack_retry      (tag_ack_retry_bank3_way[0]),
-        .ack_data       (tag_ack_data_bank3_way[0])
-    );
-
-    ram_1port_dense #(TAG_WIDTH, TAG_SIZE, 0) tag_bank3_way1 (
-        .clk            (clk),
-        .reset          (reset),
-        
-        .req_valid      (tag_req_valid_bank3_way[1]),
-        .req_retry      (tag_req_retry_bank3_way[1]),
-        .req_we         (tag_req_we_bank3_way[1]),
-        .req_pos        (tag_req_pos_bank3_way[1]),
-        .req_data       (tag_req_data_bank3_way[1]),
-
-        .ack_valid      (tag_ack_valid_bank3_way[1]),
-        .ack_retry      (tag_ack_retry_bank3_way[1]),
-        .ack_data       (tag_ack_data_bank3_way[1])
-    );
-
-    ram_1port_dense #(TAG_WIDTH, TAG_SIZE, 0) tag_bank3_way2 (
-        .clk            (clk),
-        .reset          (reset),
-        
-        .req_valid      (tag_req_valid_bank3_way[2]),
-        .req_retry      (tag_req_retry_bank3_way[2]),
-        .req_we         (tag_req_we_bank3_way[2]),
-        .req_pos        (tag_req_pos_bank3_way[2]),
-        .req_data       (tag_req_data_bank3_way[2]),
-
-        .ack_valid      (tag_ack_valid_bank3_way[2]),
-        .ack_retry      (tag_ack_retry_bank3_way[2]),
-        .ack_data       (tag_ack_data_bank3_way[2])
-    );
-
-    ram_1port_dense #(TAG_WIDTH, TAG_SIZE, 0) tag_bank3_way3 (
-        .clk            (clk),
-        .reset          (reset),
-        
-        .req_valid      (tag_req_valid_bank3_way[3]),
-        .req_retry      (tag_req_retry_bank3_way[3]),
-        .req_we         (tag_req_we_bank3_way[3]),
-        .req_pos        (tag_req_pos_bank3_way[3]),
-        .req_data       (tag_req_data_bank3_way[3]),
-
-        .ack_valid      (tag_ack_valid_bank3_way[3]),
-        .ack_retry      (tag_ack_retry_bank3_way[3]),
-        .ack_data       (tag_ack_data_bank3_way[3])
-    );
-
-    ram_1port_dense #(TAG_WIDTH, TAG_SIZE, 0) tag_bank3_way4 (
-        .clk            (clk),
-        .reset          (reset),
-        
-        .req_valid      (tag_req_valid_bank3_way[4]),
-        .req_retry      (tag_req_retry_bank3_way[4]),
-        .req_we         (tag_req_we_bank3_way[4]),
-        .req_pos        (tag_req_pos_bank3_way[4]),
-        .req_data       (tag_req_data_bank3_way[4]),
-
-        .ack_valid      (tag_ack_valid_bank3_way[4]),
-        .ack_retry      (tag_ack_retry_bank3_way[4]),
-        .ack_data       (tag_ack_data_bank3_way[4])
-    );
-
-    ram_1port_dense #(TAG_WIDTH, TAG_SIZE, 0) tag_bank3_way5 (
-        .clk            (clk),
-        .reset          (reset),
-        
-        .req_valid      (tag_req_valid_bank3_way[5]),
-        .req_retry      (tag_req_retry_bank3_way[5]),
-        .req_we         (tag_req_we_bank3_way[5]),
-        .req_pos        (tag_req_pos_bank3_way[5]),
-        .req_data       (tag_req_data_bank3_way[5]),
-
-        .ack_valid      (tag_ack_valid_bank3_way[5]),
-        .ack_retry      (tag_ack_retry_bank3_way[5]),
-        .ack_data       (tag_ack_data_bank3_way[5])
-    );
-
-    ram_1port_dense #(TAG_WIDTH, TAG_SIZE, 0) tag_bank3_way6 (
-        .clk            (clk),
-        .reset          (reset),
-        
-        .req_valid      (tag_req_valid_bank3_way[6]),
-        .req_retry      (tag_req_retry_bank3_way[6]),
-        .req_we         (tag_req_we_bank3_way[6]),
-        .req_pos        (tag_req_pos_bank3_way[6]),
-        .req_data       (tag_req_data_bank3_way[6]),
-
-        .ack_valid      (tag_ack_valid_bank3_way[6]),
-        .ack_retry      (tag_ack_retry_bank3_way[6]),
-        .ack_data       (tag_ack_data_bank3_way[6])
-    );
-
-    ram_1port_dense #(TAG_WIDTH, TAG_SIZE, 0) tag_bank3_way7 (
-        .clk            (clk),
-        .reset          (reset),
-        
-        .req_valid      (tag_req_valid_bank3_way[7]),
-        .req_retry      (tag_req_retry_bank3_way[7]),
-        .req_we         (tag_req_we_bank3_way[7]),
-        .req_pos        (tag_req_pos_bank3_way[7]),
-        .req_data       (tag_req_data_bank3_way[7]),
-
-        .ack_valid      (tag_ack_valid_bank3_way[7]),
-        .ack_retry      (tag_ack_retry_bank3_way[7]),
-        .ack_data       (tag_ack_data_bank3_way[7])
-    );
-
-    ram_1port_dense #(TAG_WIDTH, TAG_SIZE, 0) tag_bank3_way8 (
-        .clk            (clk),
-        .reset          (reset),
-        
-        .req_valid      (tag_req_valid_bank3_way[8]),
-        .req_retry      (tag_req_retry_bank3_way[8]),
-        .req_we         (tag_req_we_bank3_way[8]),
-        .req_pos        (tag_req_pos_bank3_way[8]),
-        .req_data       (tag_req_data_bank3_way[8]),
-
-        .ack_valid      (tag_ack_valid_bank3_way[8]),
-        .ack_retry      (tag_ack_retry_bank3_way[8]),
-        .ack_data       (tag_ack_data_bank3_way[8])
-    );
-
-    ram_1port_dense #(TAG_WIDTH, TAG_SIZE, 0) tag_bank3_way9 (
-        .clk            (clk),
-        .reset          (reset),
-        
-        .req_valid      (tag_req_valid_bank3_way[9]),
-        .req_retry      (tag_req_retry_bank3_way[9]),
-        .req_we         (tag_req_we_bank3_way[9]),
-        .req_pos        (tag_req_pos_bank3_way[9]),
-        .req_data       (tag_req_data_bank3_way[9]),
-
-        .ack_valid      (tag_ack_valid_bank3_way[9]),
-        .ack_retry      (tag_ack_retry_bank3_way[9]),
-        .ack_data       (tag_ack_data_bank3_way[9])
-    );
-
-    ram_1port_dense #(TAG_WIDTH, TAG_SIZE, 0) tag_bank3_way10 (
-        .clk            (clk),
-        .reset          (reset),
-        
-        .req_valid      (tag_req_valid_bank3_way[10]),
-        .req_retry      (tag_req_retry_bank3_way[10]),
-        .req_we         (tag_req_we_bank3_way[10]),
-        .req_pos        (tag_req_pos_bank3_way[10]),
-        .req_data       (tag_req_data_bank3_way[10]),
-
-        .ack_valid      (tag_ack_valid_bank3_way[10]),
-        .ack_retry      (tag_ack_retry_bank3_way[10]),
-        .ack_data       (tag_ack_data_bank3_way[10])
-    );
-
-    ram_1port_dense #(TAG_WIDTH, TAG_SIZE, 0) tag_bank3_way11 (
-        .clk            (clk),
-        .reset          (reset),
-        
-        .req_valid      (tag_req_valid_bank3_way[11]),
-        .req_retry      (tag_req_retry_bank3_way[11]),
-        .req_we         (tag_req_we_bank3_way[11]),
-        .req_pos        (tag_req_pos_bank3_way[11]),
-        .req_data       (tag_req_data_bank3_way[11]),
-
-        .ack_valid      (tag_ack_valid_bank3_way[11]),
-        .ack_retry      (tag_ack_retry_bank3_way[11]),
-        .ack_data       (tag_ack_data_bank3_way[11])
-    );
-
-    ram_1port_dense #(TAG_WIDTH, TAG_SIZE, 0) tag_bank3_way12 (
-        .clk            (clk),
-        .reset          (reset),
-        
-        .req_valid      (tag_req_valid_bank3_way[12]),
-        .req_retry      (tag_req_retry_bank3_way[12]),
-        .req_we         (tag_req_we_bank3_way[12]),
-        .req_pos        (tag_req_pos_bank3_way[12]),
-        .req_data       (tag_req_data_bank3_way[12]),
-
-        .ack_valid      (tag_ack_valid_bank3_way[12]),
-        .ack_retry      (tag_ack_retry_bank3_way[12]),
-        .ack_data       (tag_ack_data_bank3_way[12])
-    );
-
-    ram_1port_dense #(TAG_WIDTH, TAG_SIZE, 0) tag_bank3_way13 (
-        .clk            (clk),
-        .reset          (reset),
-        
-        .req_valid      (tag_req_valid_bank3_way[13]),
-        .req_retry      (tag_req_retry_bank3_way[13]),
-        .req_we         (tag_req_we_bank3_way[13]),
-        .req_pos        (tag_req_pos_bank3_way[13]),
-        .req_data       (tag_req_data_bank3_way[13]),
-
-        .ack_valid      (tag_ack_valid_bank3_way[13]),
-        .ack_retry      (tag_ack_retry_bank3_way[13]),
-        .ack_data       (tag_ack_data_bank3_way[13])
-    );
-
-    ram_1port_dense #(TAG_WIDTH, TAG_SIZE, 0) tag_bank3_way14 (
-        .clk            (clk),
-        .reset          (reset),
-        
-        .req_valid      (tag_req_valid_bank3_way[14]),
-        .req_retry      (tag_req_retry_bank3_way[14]),
-        .req_we         (tag_req_we_bank3_way[14]),
-        .req_pos        (tag_req_pos_bank3_way[14]),
-        .req_data       (tag_req_data_bank3_way[14]),
-
-        .ack_valid      (tag_ack_valid_bank3_way[14]),
-        .ack_retry      (tag_ack_retry_bank3_way[14]),
-        .ack_data       (tag_ack_data_bank3_way[14])
-    );
-
-    ram_1port_dense #(TAG_WIDTH, TAG_SIZE, 0) tag_bank3_way15 (
-        .clk            (clk),
-        .reset          (reset),
-        
-        .req_valid      (tag_req_valid_bank3_way[15]),
-        .req_retry      (tag_req_retry_bank3_way[15]),
-        .req_we         (tag_req_we_bank3_way[15]),
-        .req_pos        (tag_req_pos_bank3_way[15]),
-        .req_data       (tag_req_data_bank3_way[15]),
-
-        .ack_valid      (tag_ack_valid_bank3_way[15]),
-        .ack_retry      (tag_ack_retry_bank3_way[15]),
-        .ack_data       (tag_ack_data_bank3_way[15])
-    );
-
-
 
     // Instantiate Dank RAM
-    ram_1port_dense #(DATA_BANK_WIDTH, DATA_BANK_SIZE, 0) data_bank0_way0 (
+    ram_1port_dense #(DATA_BANK_WIDTH, DATA_BANK_SIZE, 0) data_bank0_way (
         .clk            (clk),
         .reset          (reset),
         
-        .req_valid      (data_req_valid_bank0_way[0]),
-        .req_retry      (data_req_retry_bank0_way[0]),
-        .req_we         (data_req_we_bank0_way[0]),
-        .req_pos        (data_req_pos_bank0_way[0]),
-        .req_data       (data_req_data_bank0_way[0]),
+        .req_valid      (data_req_valid_bank0_way),
+        .req_retry      (data_req_retry_bank0_way),
+        .req_we         (data_req_we_bank0_way),
+        .req_pos        (data_req_pos_bank0_way),
+        .req_data       (data_req_data_bank0_way),
 
-        .ack_valid      (data_ack_valid_bank0_way[0]),
-        .ack_retry      (data_ack_retry_bank0_way[0]),
-        .ack_data       (data_ack_data_bank0_way[0])
+        .ack_valid      (data_ack_valid_bank0_way),
+        .ack_retry      (data_ack_retry_bank0_way),
+        .ack_data       (data_ack_data_bank0_way)
     );
 
-ram_1port_dense #(DATA_BANK_WIDTH, DATA_BANK_SIZE, 0) data_bank0_way1 (
+    ram_1port_dense #(DATA_BANK_WIDTH, DATA_BANK_SIZE, 0) data_bank1_way (
         .clk            (clk),
         .reset          (reset),
         
-        .req_valid      (data_req_valid_bank0_way[1]),
-        .req_retry      (data_req_retry_bank0_way[1]),
-        .req_we         (data_req_we_bank0_way[1]),
-        .req_pos        (data_req_pos_bank0_way[1]),
-        .req_data       (data_req_data_bank0_way[1]),
+        .req_valid      (data_req_valid_bank1_way),
+        .req_retry      (data_req_retry_bank1_way),
+        .req_we         (data_req_we_bank1_way),
+        .req_pos        (data_req_pos_bank1_way),
+        .req_data       (data_req_data_bank1_way),
 
-        .ack_valid      (data_ack_valid_bank0_way[1]),
-        .ack_retry      (data_ack_retry_bank0_way[1]),
-        .ack_data       (data_ack_data_bank0_way[1])
+        .ack_valid      (data_ack_valid_bank1_way),
+        .ack_retry      (data_ack_retry_bank1_way),
+        .ack_data       (data_ack_data_bank1_way)
     );
 
-    ram_1port_dense #(DATA_BANK_WIDTH, DATA_BANK_SIZE, 0) data_bank0_way2 (
+    ram_1port_dense #(DATA_BANK_WIDTH, DATA_BANK_SIZE, 0) data_bank2_way (
         .clk            (clk),
         .reset          (reset),
         
-        .req_valid      (data_req_valid_bank0_way[2]),
-        .req_retry      (data_req_retry_bank0_way[2]),
-        .req_we         (data_req_we_bank0_way[2]),
-        .req_pos        (data_req_pos_bank0_way[2]),
-        .req_data       (data_req_data_bank0_way[2]),
+        .req_valid      (data_req_valid_bank2_way),
+        .req_retry      (data_req_retry_bank2_way),
+        .req_we         (data_req_we_bank2_way),
+        .req_pos        (data_req_pos_bank2_way),
+        .req_data       (data_req_data_bank2_way),
 
-        .ack_valid      (data_ack_valid_bank0_way[2]),
-        .ack_retry      (data_ack_retry_bank0_way[2]),
-        .ack_data       (data_ack_data_bank0_way[2])
+        .ack_valid      (data_ack_valid_bank2_way),
+        .ack_retry      (data_ack_retry_bank2_way),
+        .ack_data       (data_ack_data_bank2_way)
     );
 
-    ram_1port_dense #(DATA_BANK_WIDTH, DATA_BANK_SIZE, 0) data_bank0_way3 (
+    ram_1port_dense #(DATA_BANK_WIDTH, DATA_BANK_SIZE, 0) data_bank3_way (
         .clk            (clk),
         .reset          (reset),
         
-        .req_valid      (data_req_valid_bank0_way[3]),
-        .req_retry      (data_req_retry_bank0_way[3]),
-        .req_we         (data_req_we_bank0_way[3]),
-        .req_pos        (data_req_pos_bank0_way[3]),
-        .req_data       (data_req_data_bank0_way[3]),
+        .req_valid      (data_req_valid_bank3_way),
+        .req_retry      (data_req_retry_bank3_way),
+        .req_we         (data_req_we_bank3_way),
+        .req_pos        (data_req_pos_bank3_way),
+        .req_data       (data_req_data_bank3_way),
 
-        .ack_valid      (data_ack_valid_bank0_way[3]),
-        .ack_retry      (data_ack_retry_bank0_way[3]),
-        .ack_data       (data_ack_data_bank0_way[3])
+        .ack_valid      (data_ack_valid_bank3_way),
+        .ack_retry      (data_ack_retry_bank3_way),
+        .ack_data       (data_ack_data_bank3_way)
     );
-
-    ram_1port_dense #(DATA_BANK_WIDTH, DATA_BANK_SIZE, 0) data_bank0_way4 (
-        .clk            (clk),
-        .reset          (reset),
-        
-        .req_valid      (data_req_valid_bank0_way[4]),
-        .req_retry      (data_req_retry_bank0_way[4]),
-        .req_we         (data_req_we_bank0_way[4]),
-        .req_pos        (data_req_pos_bank0_way[4]),
-        .req_data       (data_req_data_bank0_way[4]),
-
-        .ack_valid      (data_ack_valid_bank0_way[4]),
-        .ack_retry      (data_ack_retry_bank0_way[4]),
-        .ack_data       (data_ack_data_bank0_way[4])
-    );
-
-    ram_1port_dense #(DATA_BANK_WIDTH, DATA_BANK_SIZE, 0) data_bank0_way5 (
-        .clk            (clk),
-        .reset          (reset),
-        
-        .req_valid      (data_req_valid_bank0_way[5]),
-        .req_retry      (data_req_retry_bank0_way[5]),
-        .req_we         (data_req_we_bank0_way[5]),
-        .req_pos        (data_req_pos_bank0_way[5]),
-        .req_data       (data_req_data_bank0_way[5]),
-
-        .ack_valid      (data_ack_valid_bank0_way[5]),
-        .ack_retry      (data_ack_retry_bank0_way[5]),
-        .ack_data       (data_ack_data_bank0_way[5])
-    );
-
-    ram_1port_dense #(DATA_BANK_WIDTH, DATA_BANK_SIZE, 0) data_bank0_way6 (
-        .clk            (clk),
-        .reset          (reset),
-        
-        .req_valid      (data_req_valid_bank0_way[6]),
-        .req_retry      (data_req_retry_bank0_way[6]),
-        .req_we         (data_req_we_bank0_way[6]),
-        .req_pos        (data_req_pos_bank0_way[6]),
-        .req_data       (data_req_data_bank0_way[6]),
-
-        .ack_valid      (data_ack_valid_bank0_way[6]),
-        .ack_retry      (data_ack_retry_bank0_way[6]),
-        .ack_data       (data_ack_data_bank0_way[6])
-    );
-
-    ram_1port_dense #(DATA_BANK_WIDTH, DATA_BANK_SIZE, 0) data_bank0_way7 (
-        .clk            (clk),
-        .reset          (reset),
-        
-        .req_valid      (data_req_valid_bank0_way[7]),
-        .req_retry      (data_req_retry_bank0_way[7]),
-        .req_we         (data_req_we_bank0_way[7]),
-        .req_pos        (data_req_pos_bank0_way[7]),
-        .req_data       (data_req_data_bank0_way[7]),
-
-        .ack_valid      (data_ack_valid_bank0_way[7]),
-        .ack_retry      (data_ack_retry_bank0_way[7]),
-        .ack_data       (data_ack_data_bank0_way[7])
-    );
-
-    ram_1port_dense #(DATA_BANK_WIDTH, DATA_BANK_SIZE, 0) data_bank0_way8 (
-        .clk            (clk),
-        .reset          (reset),
-        
-        .req_valid      (data_req_valid_bank0_way[8]),
-        .req_retry      (data_req_retry_bank0_way[8]),
-        .req_we         (data_req_we_bank0_way[8]),
-        .req_pos        (data_req_pos_bank0_way[8]),
-        .req_data       (data_req_data_bank0_way[8]),
-
-        .ack_valid      (data_ack_valid_bank0_way[8]),
-        .ack_retry      (data_ack_retry_bank0_way[8]),
-        .ack_data       (data_ack_data_bank0_way[8])
-    );
-
-    ram_1port_dense #(DATA_BANK_WIDTH, DATA_BANK_SIZE, 0) data_bank0_way9 (
-        .clk            (clk),
-        .reset          (reset),
-        
-        .req_valid      (data_req_valid_bank0_way[9]),
-        .req_retry      (data_req_retry_bank0_way[9]),
-        .req_we         (data_req_we_bank0_way[9]),
-        .req_pos        (data_req_pos_bank0_way[9]),
-        .req_data       (data_req_data_bank0_way[9]),
-
-        .ack_valid      (data_ack_valid_bank0_way[9]),
-        .ack_retry      (data_ack_retry_bank0_way[9]),
-        .ack_data       (data_ack_data_bank0_way[9])
-    );
-
-    ram_1port_dense #(DATA_BANK_WIDTH, DATA_BANK_SIZE, 0) data_bank0_way10 (
-        .clk            (clk),
-        .reset          (reset),
-        
-        .req_valid      (data_req_valid_bank0_way[10]),
-        .req_retry      (data_req_retry_bank0_way[10]),
-        .req_we         (data_req_we_bank0_way[10]),
-        .req_pos        (data_req_pos_bank0_way[10]),
-        .req_data       (data_req_data_bank0_way[10]),
-
-        .ack_valid      (data_ack_valid_bank0_way[10]),
-        .ack_retry      (data_ack_retry_bank0_way[10]),
-        .ack_data       (data_ack_data_bank0_way[10])
-    );
-
-    ram_1port_dense #(DATA_BANK_WIDTH, DATA_BANK_SIZE, 0) data_bank0_way11 (
-        .clk            (clk),
-        .reset          (reset),
-        
-        .req_valid      (data_req_valid_bank0_way[11]),
-        .req_retry      (data_req_retry_bank0_way[11]),
-        .req_we         (data_req_we_bank0_way[11]),
-        .req_pos        (data_req_pos_bank0_way[11]),
-        .req_data       (data_req_data_bank0_way[11]),
-
-        .ack_valid      (data_ack_valid_bank0_way[11]),
-        .ack_retry      (data_ack_retry_bank0_way[11]),
-        .ack_data       (data_ack_data_bank0_way[11])
-    );
-
-    ram_1port_dense #(DATA_BANK_WIDTH, DATA_BANK_SIZE, 0) data_bank0_way12 (
-        .clk            (clk),
-        .reset          (reset),
-        
-        .req_valid      (data_req_valid_bank0_way[12]),
-        .req_retry      (data_req_retry_bank0_way[12]),
-        .req_we         (data_req_we_bank0_way[12]),
-        .req_pos        (data_req_pos_bank0_way[12]),
-        .req_data       (data_req_data_bank0_way[12]),
-
-        .ack_valid      (data_ack_valid_bank0_way[12]),
-        .ack_retry      (data_ack_retry_bank0_way[12]),
-        .ack_data       (data_ack_data_bank0_way[12])
-    );
-
-    ram_1port_dense #(DATA_BANK_WIDTH, DATA_BANK_SIZE, 0) data_bank0_way13 (
-        .clk            (clk),
-        .reset          (reset),
-        
-        .req_valid      (data_req_valid_bank0_way[13]),
-        .req_retry      (data_req_retry_bank0_way[13]),
-        .req_we         (data_req_we_bank0_way[13]),
-        .req_pos        (data_req_pos_bank0_way[13]),
-        .req_data       (data_req_data_bank0_way[13]),
-
-        .ack_valid      (data_ack_valid_bank0_way[13]),
-        .ack_retry      (data_ack_retry_bank0_way[13]),
-        .ack_data       (data_ack_data_bank0_way[13])
-    );
-
-    ram_1port_dense #(DATA_BANK_WIDTH, DATA_BANK_SIZE, 0) data_bank0_way14 (
-        .clk            (clk),
-        .reset          (reset),
-        
-        .req_valid      (data_req_valid_bank0_way[14]),
-        .req_retry      (data_req_retry_bank0_way[14]),
-        .req_we         (data_req_we_bank0_way[14]),
-        .req_pos        (data_req_pos_bank0_way[14]),
-        .req_data       (data_req_data_bank0_way[14]),
-
-        .ack_valid      (data_ack_valid_bank0_way[14]),
-        .ack_retry      (data_ack_retry_bank0_way[14]),
-        .ack_data       (data_ack_data_bank0_way[14])
-    );
-
-    ram_1port_dense #(DATA_BANK_WIDTH, DATA_BANK_SIZE, 0) data_bank0_way15 (
-        .clk            (clk),
-        .reset          (reset),
-        
-        .req_valid      (data_req_valid_bank0_way[15]),
-        .req_retry      (data_req_retry_bank0_way[15]),
-        .req_we         (data_req_we_bank0_way[15]),
-        .req_pos        (data_req_pos_bank0_way[15]),
-        .req_data       (data_req_data_bank0_way[15]),
-
-        .ack_valid      (data_ack_valid_bank0_way[15]),
-        .ack_retry      (data_ack_retry_bank0_way[15]),
-        .ack_data       (data_ack_data_bank0_way[15])
-    );
-
-    ram_1port_dense #(DATA_BANK_WIDTH, DATA_BANK_SIZE, 0) data_bank1_way0 (
-        .clk            (clk),
-        .reset          (reset),
-        
-        .req_valid      (data_req_valid_bank1_way[0]),
-        .req_retry      (data_req_retry_bank1_way[0]),
-        .req_we         (data_req_we_bank1_way[0]),
-        .req_pos        (data_req_pos_bank1_way[0]),
-        .req_data       (data_req_data_bank1_way[0]),
-
-        .ack_valid      (data_ack_valid_bank1_way[0]),
-        .ack_retry      (data_ack_retry_bank1_way[0]),
-        .ack_data       (data_ack_data_bank1_way[0])
-    );
-
-ram_1port_dense #(DATA_BANK_WIDTH, DATA_BANK_SIZE, 0) data_bank1_way1 (
-        .clk            (clk),
-        .reset          (reset),
-        
-        .req_valid      (data_req_valid_bank1_way[1]),
-        .req_retry      (data_req_retry_bank1_way[1]),
-        .req_we         (data_req_we_bank1_way[1]),
-        .req_pos        (data_req_pos_bank1_way[1]),
-        .req_data       (data_req_data_bank1_way[1]),
-
-        .ack_valid      (data_ack_valid_bank1_way[1]),
-        .ack_retry      (data_ack_retry_bank1_way[1]),
-        .ack_data       (data_ack_data_bank1_way[1])
-    );
-
-    ram_1port_dense #(DATA_BANK_WIDTH, DATA_BANK_SIZE, 0) data_bank1_way2 (
-        .clk            (clk),
-        .reset          (reset),
-        
-        .req_valid      (data_req_valid_bank1_way[2]),
-        .req_retry      (data_req_retry_bank1_way[2]),
-        .req_we         (data_req_we_bank1_way[2]),
-        .req_pos        (data_req_pos_bank1_way[2]),
-        .req_data       (data_req_data_bank1_way[2]),
-
-        .ack_valid      (data_ack_valid_bank1_way[2]),
-        .ack_retry      (data_ack_retry_bank1_way[2]),
-        .ack_data       (data_ack_data_bank1_way[2])
-    );
-
-    ram_1port_dense #(DATA_BANK_WIDTH, DATA_BANK_SIZE, 0) data_bank1_way3 (
-        .clk            (clk),
-        .reset          (reset),
-        
-        .req_valid      (data_req_valid_bank1_way[3]),
-        .req_retry      (data_req_retry_bank1_way[3]),
-        .req_we         (data_req_we_bank1_way[3]),
-        .req_pos        (data_req_pos_bank1_way[3]),
-        .req_data       (data_req_data_bank1_way[3]),
-
-        .ack_valid      (data_ack_valid_bank1_way[3]),
-        .ack_retry      (data_ack_retry_bank1_way[3]),
-        .ack_data       (data_ack_data_bank1_way[3])
-    );
-
-    ram_1port_dense #(DATA_BANK_WIDTH, DATA_BANK_SIZE, 0) data_bank1_way4 (
-        .clk            (clk),
-        .reset          (reset),
-        
-        .req_valid      (data_req_valid_bank1_way[4]),
-        .req_retry      (data_req_retry_bank1_way[4]),
-        .req_we         (data_req_we_bank1_way[4]),
-        .req_pos        (data_req_pos_bank1_way[4]),
-        .req_data       (data_req_data_bank1_way[4]),
-
-        .ack_valid      (data_ack_valid_bank1_way[4]),
-        .ack_retry      (data_ack_retry_bank1_way[4]),
-        .ack_data       (data_ack_data_bank1_way[4])
-    );
-
-    ram_1port_dense #(DATA_BANK_WIDTH, DATA_BANK_SIZE, 0) data_bank1_way5 (
-        .clk            (clk),
-        .reset          (reset),
-        
-        .req_valid      (data_req_valid_bank1_way[5]),
-        .req_retry      (data_req_retry_bank1_way[5]),
-        .req_we         (data_req_we_bank1_way[5]),
-        .req_pos        (data_req_pos_bank1_way[5]),
-        .req_data       (data_req_data_bank1_way[5]),
-
-        .ack_valid      (data_ack_valid_bank1_way[5]),
-        .ack_retry      (data_ack_retry_bank1_way[5]),
-        .ack_data       (data_ack_data_bank1_way[5])
-    );
-
-    ram_1port_dense #(DATA_BANK_WIDTH, DATA_BANK_SIZE, 0) data_bank1_way6 (
-        .clk            (clk),
-        .reset          (reset),
-        
-        .req_valid      (data_req_valid_bank1_way[6]),
-        .req_retry      (data_req_retry_bank1_way[6]),
-        .req_we         (data_req_we_bank1_way[6]),
-        .req_pos        (data_req_pos_bank1_way[6]),
-        .req_data       (data_req_data_bank1_way[6]),
-
-        .ack_valid      (data_ack_valid_bank1_way[6]),
-        .ack_retry      (data_ack_retry_bank1_way[6]),
-        .ack_data       (data_ack_data_bank1_way[6])
-    );
-
-    ram_1port_dense #(DATA_BANK_WIDTH, DATA_BANK_SIZE, 0) data_bank1_way7 (
-        .clk            (clk),
-        .reset          (reset),
-        
-        .req_valid      (data_req_valid_bank1_way[7]),
-        .req_retry      (data_req_retry_bank1_way[7]),
-        .req_we         (data_req_we_bank1_way[7]),
-        .req_pos        (data_req_pos_bank1_way[7]),
-        .req_data       (data_req_data_bank1_way[7]),
-
-        .ack_valid      (data_ack_valid_bank1_way[7]),
-        .ack_retry      (data_ack_retry_bank1_way[7]),
-        .ack_data       (data_ack_data_bank1_way[7])
-    );
-
-    ram_1port_dense #(DATA_BANK_WIDTH, DATA_BANK_SIZE, 0) data_bank1_way8 (
-        .clk            (clk),
-        .reset          (reset),
-        
-        .req_valid      (data_req_valid_bank1_way[8]),
-        .req_retry      (data_req_retry_bank1_way[8]),
-        .req_we         (data_req_we_bank1_way[8]),
-        .req_pos        (data_req_pos_bank1_way[8]),
-        .req_data       (data_req_data_bank1_way[8]),
-
-        .ack_valid      (data_ack_valid_bank1_way[8]),
-        .ack_retry      (data_ack_retry_bank1_way[8]),
-        .ack_data       (data_ack_data_bank1_way[8])
-    );
-
-    ram_1port_dense #(DATA_BANK_WIDTH, DATA_BANK_SIZE, 0) data_bank1_way9 (
-        .clk            (clk),
-        .reset          (reset),
-        
-        .req_valid      (data_req_valid_bank1_way[9]),
-        .req_retry      (data_req_retry_bank1_way[9]),
-        .req_we         (data_req_we_bank1_way[9]),
-        .req_pos        (data_req_pos_bank1_way[9]),
-        .req_data       (data_req_data_bank1_way[9]),
-
-        .ack_valid      (data_ack_valid_bank1_way[9]),
-        .ack_retry      (data_ack_retry_bank1_way[9]),
-        .ack_data       (data_ack_data_bank1_way[9])
-    );
-
-    ram_1port_dense #(DATA_BANK_WIDTH, DATA_BANK_SIZE, 0) data_bank1_way10 (
-        .clk            (clk),
-        .reset          (reset),
-        
-        .req_valid      (data_req_valid_bank1_way[10]),
-        .req_retry      (data_req_retry_bank1_way[10]),
-        .req_we         (data_req_we_bank1_way[10]),
-        .req_pos        (data_req_pos_bank1_way[10]),
-        .req_data       (data_req_data_bank1_way[10]),
-
-        .ack_valid      (data_ack_valid_bank1_way[10]),
-        .ack_retry      (data_ack_retry_bank1_way[10]),
-        .ack_data       (data_ack_data_bank1_way[10])
-    );
-
-    ram_1port_dense #(DATA_BANK_WIDTH, DATA_BANK_SIZE, 0) data_bank1_way11 (
-        .clk            (clk),
-        .reset          (reset),
-        
-        .req_valid      (data_req_valid_bank1_way[11]),
-        .req_retry      (data_req_retry_bank1_way[11]),
-        .req_we         (data_req_we_bank1_way[11]),
-        .req_pos        (data_req_pos_bank1_way[11]),
-        .req_data       (data_req_data_bank1_way[11]),
-
-        .ack_valid      (data_ack_valid_bank1_way[11]),
-        .ack_retry      (data_ack_retry_bank1_way[11]),
-        .ack_data       (data_ack_data_bank1_way[11])
-    );
-
-    ram_1port_dense #(DATA_BANK_WIDTH, DATA_BANK_SIZE, 0) data_bank1_way12 (
-        .clk            (clk),
-        .reset          (reset),
-        
-        .req_valid      (data_req_valid_bank1_way[12]),
-        .req_retry      (data_req_retry_bank1_way[12]),
-        .req_we         (data_req_we_bank1_way[12]),
-        .req_pos        (data_req_pos_bank1_way[12]),
-        .req_data       (data_req_data_bank1_way[12]),
-
-        .ack_valid      (data_ack_valid_bank1_way[12]),
-        .ack_retry      (data_ack_retry_bank1_way[12]),
-        .ack_data       (data_ack_data_bank1_way[12])
-    );
-
-    ram_1port_dense #(DATA_BANK_WIDTH, DATA_BANK_SIZE, 0) data_bank1_way13 (
-        .clk            (clk),
-        .reset          (reset),
-        
-        .req_valid      (data_req_valid_bank1_way[13]),
-        .req_retry      (data_req_retry_bank1_way[13]),
-        .req_we         (data_req_we_bank1_way[13]),
-        .req_pos        (data_req_pos_bank1_way[13]),
-        .req_data       (data_req_data_bank1_way[13]),
-
-        .ack_valid      (data_ack_valid_bank1_way[13]),
-        .ack_retry      (data_ack_retry_bank1_way[13]),
-        .ack_data       (data_ack_data_bank1_way[13])
-    );
-
-    ram_1port_dense #(DATA_BANK_WIDTH, DATA_BANK_SIZE, 0) data_bank1_way14 (
-        .clk            (clk),
-        .reset          (reset),
-        
-        .req_valid      (data_req_valid_bank1_way[14]),
-        .req_retry      (data_req_retry_bank1_way[14]),
-        .req_we         (data_req_we_bank1_way[14]),
-        .req_pos        (data_req_pos_bank1_way[14]),
-        .req_data       (data_req_data_bank1_way[14]),
-
-        .ack_valid      (data_ack_valid_bank1_way[14]),
-        .ack_retry      (data_ack_retry_bank1_way[14]),
-        .ack_data       (data_ack_data_bank1_way[14])
-    );
-
-    ram_1port_dense #(DATA_BANK_WIDTH, DATA_BANK_SIZE, 0) data_bank1_way15 (
-        .clk            (clk),
-        .reset          (reset),
-        
-        .req_valid      (data_req_valid_bank1_way[15]),
-        .req_retry      (data_req_retry_bank1_way[15]),
-        .req_we         (data_req_we_bank1_way[15]),
-        .req_pos        (data_req_pos_bank1_way[15]),
-        .req_data       (data_req_data_bank1_way[15]),
-
-        .ack_valid      (data_ack_valid_bank1_way[15]),
-        .ack_retry      (data_ack_retry_bank1_way[15]),
-        .ack_data       (data_ack_data_bank1_way[15])
-    );
-
-    ram_1port_dense #(DATA_BANK_WIDTH, DATA_BANK_SIZE, 0) data_bank2_way0 (
-        .clk            (clk),
-        .reset          (reset),
-        
-        .req_valid      (data_req_valid_bank2_way[0]),
-        .req_retry      (data_req_retry_bank2_way[0]),
-        .req_we         (data_req_we_bank2_way[0]),
-        .req_pos        (data_req_pos_bank2_way[0]),
-        .req_data       (data_req_data_bank2_way[0]),
-
-        .ack_valid      (data_ack_valid_bank2_way[0]),
-        .ack_retry      (data_ack_retry_bank2_way[0]),
-        .ack_data       (data_ack_data_bank2_way[0])
-    );
-
-ram_1port_dense #(DATA_BANK_WIDTH, DATA_BANK_SIZE, 0) data_bank2_way1 (
-        .clk            (clk),
-        .reset          (reset),
-        
-        .req_valid      (data_req_valid_bank2_way[1]),
-        .req_retry      (data_req_retry_bank2_way[1]),
-        .req_we         (data_req_we_bank2_way[1]),
-        .req_pos        (data_req_pos_bank2_way[1]),
-        .req_data       (data_req_data_bank2_way[1]),
-
-        .ack_valid      (data_ack_valid_bank2_way[1]),
-        .ack_retry      (data_ack_retry_bank2_way[1]),
-        .ack_data       (data_ack_data_bank2_way[1])
-    );
-
-    ram_1port_dense #(DATA_BANK_WIDTH, DATA_BANK_SIZE, 0) data_bank2_way2 (
-        .clk            (clk),
-        .reset          (reset),
-        
-        .req_valid      (data_req_valid_bank2_way[2]),
-        .req_retry      (data_req_retry_bank2_way[2]),
-        .req_we         (data_req_we_bank2_way[2]),
-        .req_pos        (data_req_pos_bank2_way[2]),
-        .req_data       (data_req_data_bank2_way[2]),
-
-        .ack_valid      (data_ack_valid_bank2_way[2]),
-        .ack_retry      (data_ack_retry_bank2_way[2]),
-        .ack_data       (data_ack_data_bank2_way[2])
-    );
-
-    ram_1port_dense #(DATA_BANK_WIDTH, DATA_BANK_SIZE, 0) data_bank2_way3 (
-        .clk            (clk),
-        .reset          (reset),
-        
-        .req_valid      (data_req_valid_bank2_way[3]),
-        .req_retry      (data_req_retry_bank2_way[3]),
-        .req_we         (data_req_we_bank2_way[3]),
-        .req_pos        (data_req_pos_bank2_way[3]),
-        .req_data       (data_req_data_bank2_way[3]),
-
-        .ack_valid      (data_ack_valid_bank2_way[3]),
-        .ack_retry      (data_ack_retry_bank2_way[3]),
-        .ack_data       (data_ack_data_bank2_way[3])
-    );
-
-    ram_1port_dense #(DATA_BANK_WIDTH, DATA_BANK_SIZE, 0) data_bank2_way4 (
-        .clk            (clk),
-        .reset          (reset),
-        
-        .req_valid      (data_req_valid_bank2_way[4]),
-        .req_retry      (data_req_retry_bank2_way[4]),
-        .req_we         (data_req_we_bank2_way[4]),
-        .req_pos        (data_req_pos_bank2_way[4]),
-        .req_data       (data_req_data_bank2_way[4]),
-
-        .ack_valid      (data_ack_valid_bank2_way[4]),
-        .ack_retry      (data_ack_retry_bank2_way[4]),
-        .ack_data       (data_ack_data_bank2_way[4])
-    );
-
-    ram_1port_dense #(DATA_BANK_WIDTH, DATA_BANK_SIZE, 0) data_bank2_way5 (
-        .clk            (clk),
-        .reset          (reset),
-        
-        .req_valid      (data_req_valid_bank2_way[5]),
-        .req_retry      (data_req_retry_bank2_way[5]),
-        .req_we         (data_req_we_bank2_way[5]),
-        .req_pos        (data_req_pos_bank2_way[5]),
-        .req_data       (data_req_data_bank2_way[5]),
-
-        .ack_valid      (data_ack_valid_bank2_way[5]),
-        .ack_retry      (data_ack_retry_bank2_way[5]),
-        .ack_data       (data_ack_data_bank2_way[5])
-    );
-
-    ram_1port_dense #(DATA_BANK_WIDTH, DATA_BANK_SIZE, 0) data_bank2_way6 (
-        .clk            (clk),
-        .reset          (reset),
-        
-        .req_valid      (data_req_valid_bank2_way[6]),
-        .req_retry      (data_req_retry_bank2_way[6]),
-        .req_we         (data_req_we_bank2_way[6]),
-        .req_pos        (data_req_pos_bank2_way[6]),
-        .req_data       (data_req_data_bank2_way[6]),
-
-        .ack_valid      (data_ack_valid_bank2_way[6]),
-        .ack_retry      (data_ack_retry_bank2_way[6]),
-        .ack_data       (data_ack_data_bank2_way[6])
-    );
-
-    ram_1port_dense #(DATA_BANK_WIDTH, DATA_BANK_SIZE, 0) data_bank2_way7 (
-        .clk            (clk),
-        .reset          (reset),
-        
-        .req_valid      (data_req_valid_bank2_way[7]),
-        .req_retry      (data_req_retry_bank2_way[7]),
-        .req_we         (data_req_we_bank2_way[7]),
-        .req_pos        (data_req_pos_bank2_way[7]),
-        .req_data       (data_req_data_bank2_way[7]),
-
-        .ack_valid      (data_ack_valid_bank2_way[7]),
-        .ack_retry      (data_ack_retry_bank2_way[7]),
-        .ack_data       (data_ack_data_bank2_way[7])
-    );
-
-    ram_1port_dense #(DATA_BANK_WIDTH, DATA_BANK_SIZE, 0) data_bank2_way8 (
-        .clk            (clk),
-        .reset          (reset),
-        
-        .req_valid      (data_req_valid_bank2_way[8]),
-        .req_retry      (data_req_retry_bank2_way[8]),
-        .req_we         (data_req_we_bank2_way[8]),
-        .req_pos        (data_req_pos_bank2_way[8]),
-        .req_data       (data_req_data_bank2_way[8]),
-
-        .ack_valid      (data_ack_valid_bank2_way[8]),
-        .ack_retry      (data_ack_retry_bank2_way[8]),
-        .ack_data       (data_ack_data_bank2_way[8])
-    );
-
-    ram_1port_dense #(DATA_BANK_WIDTH, DATA_BANK_SIZE, 0) data_bank2_way9 (
-        .clk            (clk),
-        .reset          (reset),
-        
-        .req_valid      (data_req_valid_bank2_way[9]),
-        .req_retry      (data_req_retry_bank2_way[9]),
-        .req_we         (data_req_we_bank2_way[9]),
-        .req_pos        (data_req_pos_bank2_way[9]),
-        .req_data       (data_req_data_bank2_way[9]),
-
-        .ack_valid      (data_ack_valid_bank2_way[9]),
-        .ack_retry      (data_ack_retry_bank2_way[9]),
-        .ack_data       (data_ack_data_bank2_way[9])
-    );
-
-    ram_1port_dense #(DATA_BANK_WIDTH, DATA_BANK_SIZE, 0) data_bank2_way10 (
-        .clk            (clk),
-        .reset          (reset),
-        
-        .req_valid      (data_req_valid_bank2_way[10]),
-        .req_retry      (data_req_retry_bank2_way[10]),
-        .req_we         (data_req_we_bank2_way[10]),
-        .req_pos        (data_req_pos_bank2_way[10]),
-        .req_data       (data_req_data_bank2_way[10]),
-
-        .ack_valid      (data_ack_valid_bank2_way[10]),
-        .ack_retry      (data_ack_retry_bank2_way[10]),
-        .ack_data       (data_ack_data_bank2_way[10])
-    );
-
-    ram_1port_dense #(DATA_BANK_WIDTH, DATA_BANK_SIZE, 0) data_bank2_way11 (
-        .clk            (clk),
-        .reset          (reset),
-        
-        .req_valid      (data_req_valid_bank2_way[11]),
-        .req_retry      (data_req_retry_bank2_way[11]),
-        .req_we         (data_req_we_bank2_way[11]),
-        .req_pos        (data_req_pos_bank2_way[11]),
-        .req_data       (data_req_data_bank2_way[11]),
-
-        .ack_valid      (data_ack_valid_bank2_way[11]),
-        .ack_retry      (data_ack_retry_bank2_way[11]),
-        .ack_data       (data_ack_data_bank2_way[11])
-    );
-
-    ram_1port_dense #(DATA_BANK_WIDTH, DATA_BANK_SIZE, 0) data_bank2_way12 (
-        .clk            (clk),
-        .reset          (reset),
-        
-        .req_valid      (data_req_valid_bank2_way[12]),
-        .req_retry      (data_req_retry_bank2_way[12]),
-        .req_we         (data_req_we_bank2_way[12]),
-        .req_pos        (data_req_pos_bank2_way[12]),
-        .req_data       (data_req_data_bank2_way[12]),
-
-        .ack_valid      (data_ack_valid_bank2_way[12]),
-        .ack_retry      (data_ack_retry_bank2_way[12]),
-        .ack_data       (data_ack_data_bank2_way[12])
-    );
-
-    ram_1port_dense #(DATA_BANK_WIDTH, DATA_BANK_SIZE, 0) data_bank2_way13 (
-        .clk            (clk),
-        .reset          (reset),
-        
-        .req_valid      (data_req_valid_bank2_way[13]),
-        .req_retry      (data_req_retry_bank2_way[13]),
-        .req_we         (data_req_we_bank2_way[13]),
-        .req_pos        (data_req_pos_bank2_way[13]),
-        .req_data       (data_req_data_bank2_way[13]),
-
-        .ack_valid      (data_ack_valid_bank2_way[13]),
-        .ack_retry      (data_ack_retry_bank2_way[13]),
-        .ack_data       (data_ack_data_bank2_way[13])
-    );
-
-    ram_1port_dense #(DATA_BANK_WIDTH, DATA_BANK_SIZE, 0) data_bank2_way14 (
-        .clk            (clk),
-        .reset          (reset),
-        
-        .req_valid      (data_req_valid_bank2_way[14]),
-        .req_retry      (data_req_retry_bank2_way[14]),
-        .req_we         (data_req_we_bank2_way[14]),
-        .req_pos        (data_req_pos_bank2_way[14]),
-        .req_data       (data_req_data_bank2_way[14]),
-
-        .ack_valid      (data_ack_valid_bank2_way[14]),
-        .ack_retry      (data_ack_retry_bank2_way[14]),
-        .ack_data       (data_ack_data_bank2_way[14])
-    );
-
-    ram_1port_dense #(DATA_BANK_WIDTH, DATA_BANK_SIZE, 0) data_bank2_way15 (
-        .clk            (clk),
-        .reset          (reset),
-        
-        .req_valid      (data_req_valid_bank2_way[15]),
-        .req_retry      (data_req_retry_bank2_way[15]),
-        .req_we         (data_req_we_bank2_way[15]),
-        .req_pos        (data_req_pos_bank2_way[15]),
-        .req_data       (data_req_data_bank2_way[15]),
-
-        .ack_valid      (data_ack_valid_bank2_way[15]),
-        .ack_retry      (data_ack_retry_bank2_way[15]),
-        .ack_data       (data_ack_data_bank2_way[15])
-    );
-
-    ram_1port_dense #(DATA_BANK_WIDTH, DATA_BANK_SIZE, 0) data_bank3_way0 (
-        .clk            (clk),
-        .reset          (reset),
-        
-        .req_valid      (data_req_valid_bank3_way[0]),
-        .req_retry      (data_req_retry_bank3_way[0]),
-        .req_we         (data_req_we_bank3_way[0]),
-        .req_pos        (data_req_pos_bank3_way[0]),
-        .req_data       (data_req_data_bank3_way[0]),
-
-        .ack_valid      (data_ack_valid_bank3_way[0]),
-        .ack_retry      (data_ack_retry_bank3_way[0]),
-        .ack_data       (data_ack_data_bank3_way[0])
-    );
-
-ram_1port_dense #(DATA_BANK_WIDTH, DATA_BANK_SIZE, 0) data_bank3_way1 (
-        .clk            (clk),
-        .reset          (reset),
-        
-        .req_valid      (data_req_valid_bank3_way[1]),
-        .req_retry      (data_req_retry_bank3_way[1]),
-        .req_we         (data_req_we_bank3_way[1]),
-        .req_pos        (data_req_pos_bank3_way[1]),
-        .req_data       (data_req_data_bank3_way[1]),
-
-        .ack_valid      (data_ack_valid_bank3_way[1]),
-        .ack_retry      (data_ack_retry_bank3_way[1]),
-        .ack_data       (data_ack_data_bank3_way[1])
-    );
-
-    ram_1port_dense #(DATA_BANK_WIDTH, DATA_BANK_SIZE, 0) data_bank3_way2 (
-        .clk            (clk),
-        .reset          (reset),
-        
-        .req_valid      (data_req_valid_bank3_way[2]),
-        .req_retry      (data_req_retry_bank3_way[2]),
-        .req_we         (data_req_we_bank3_way[2]),
-        .req_pos        (data_req_pos_bank3_way[2]),
-        .req_data       (data_req_data_bank3_way[2]),
-
-        .ack_valid      (data_ack_valid_bank3_way[2]),
-        .ack_retry      (data_ack_retry_bank3_way[2]),
-        .ack_data       (data_ack_data_bank3_way[2])
-    );
-
-    ram_1port_dense #(DATA_BANK_WIDTH, DATA_BANK_SIZE, 0) data_bank3_way3 (
-        .clk            (clk),
-        .reset          (reset),
-        
-        .req_valid      (data_req_valid_bank3_way[3]),
-        .req_retry      (data_req_retry_bank3_way[3]),
-        .req_we         (data_req_we_bank3_way[3]),
-        .req_pos        (data_req_pos_bank3_way[3]),
-        .req_data       (data_req_data_bank3_way[3]),
-
-        .ack_valid      (data_ack_valid_bank3_way[3]),
-        .ack_retry      (data_ack_retry_bank3_way[3]),
-        .ack_data       (data_ack_data_bank3_way[3])
-    );
-
-    ram_1port_dense #(DATA_BANK_WIDTH, DATA_BANK_SIZE, 0) data_bank3_way4 (
-        .clk            (clk),
-        .reset          (reset),
-        
-        .req_valid      (data_req_valid_bank3_way[4]),
-        .req_retry      (data_req_retry_bank3_way[4]),
-        .req_we         (data_req_we_bank3_way[4]),
-        .req_pos        (data_req_pos_bank3_way[4]),
-        .req_data       (data_req_data_bank3_way[4]),
-
-        .ack_valid      (data_ack_valid_bank3_way[4]),
-        .ack_retry      (data_ack_retry_bank3_way[4]),
-        .ack_data       (data_ack_data_bank3_way[4])
-    );
-
-    ram_1port_dense #(DATA_BANK_WIDTH, DATA_BANK_SIZE, 0) data_bank3_way5 (
-        .clk            (clk),
-        .reset          (reset),
-        
-        .req_valid      (data_req_valid_bank3_way[5]),
-        .req_retry      (data_req_retry_bank3_way[5]),
-        .req_we         (data_req_we_bank3_way[5]),
-        .req_pos        (data_req_pos_bank3_way[5]),
-        .req_data       (data_req_data_bank3_way[5]),
-
-        .ack_valid      (data_ack_valid_bank3_way[5]),
-        .ack_retry      (data_ack_retry_bank3_way[5]),
-        .ack_data       (data_ack_data_bank3_way[5])
-    );
-
-    ram_1port_dense #(DATA_BANK_WIDTH, DATA_BANK_SIZE, 0) data_bank3_way6 (
-        .clk            (clk),
-        .reset          (reset),
-        
-        .req_valid      (data_req_valid_bank3_way[6]),
-        .req_retry      (data_req_retry_bank3_way[6]),
-        .req_we         (data_req_we_bank3_way[6]),
-        .req_pos        (data_req_pos_bank3_way[6]),
-        .req_data       (data_req_data_bank3_way[6]),
-
-        .ack_valid      (data_ack_valid_bank3_way[6]),
-        .ack_retry      (data_ack_retry_bank3_way[6]),
-        .ack_data       (data_ack_data_bank3_way[6])
-    );
-
-    ram_1port_dense #(DATA_BANK_WIDTH, DATA_BANK_SIZE, 0) data_bank3_way7 (
-        .clk            (clk),
-        .reset          (reset),
-        
-        .req_valid      (data_req_valid_bank3_way[7]),
-        .req_retry      (data_req_retry_bank3_way[7]),
-        .req_we         (data_req_we_bank3_way[7]),
-        .req_pos        (data_req_pos_bank3_way[7]),
-        .req_data       (data_req_data_bank3_way[7]),
-
-        .ack_valid      (data_ack_valid_bank3_way[7]),
-        .ack_retry      (data_ack_retry_bank3_way[7]),
-        .ack_data       (data_ack_data_bank3_way[7])
-    );
-
-    ram_1port_dense #(DATA_BANK_WIDTH, DATA_BANK_SIZE, 0) data_bank3_way8 (
-        .clk            (clk),
-        .reset          (reset),
-        
-        .req_valid      (data_req_valid_bank3_way[8]),
-        .req_retry      (data_req_retry_bank3_way[8]),
-        .req_we         (data_req_we_bank3_way[8]),
-        .req_pos        (data_req_pos_bank3_way[8]),
-        .req_data       (data_req_data_bank3_way[8]),
-
-        .ack_valid      (data_ack_valid_bank3_way[8]),
-        .ack_retry      (data_ack_retry_bank3_way[8]),
-        .ack_data       (data_ack_data_bank3_way[8])
-    );
-
-    ram_1port_dense #(DATA_BANK_WIDTH, DATA_BANK_SIZE, 0) data_bank3_way9 (
-        .clk            (clk),
-        .reset          (reset),
-        
-        .req_valid      (data_req_valid_bank3_way[9]),
-        .req_retry      (data_req_retry_bank3_way[9]),
-        .req_we         (data_req_we_bank3_way[9]),
-        .req_pos        (data_req_pos_bank3_way[9]),
-        .req_data       (data_req_data_bank3_way[9]),
-
-        .ack_valid      (data_ack_valid_bank3_way[9]),
-        .ack_retry      (data_ack_retry_bank3_way[9]),
-        .ack_data       (data_ack_data_bank3_way[9])
-    );
-
-    ram_1port_dense #(DATA_BANK_WIDTH, DATA_BANK_SIZE, 0) data_bank3_way10 (
-        .clk            (clk),
-        .reset          (reset),
-        
-        .req_valid      (data_req_valid_bank3_way[10]),
-        .req_retry      (data_req_retry_bank3_way[10]),
-        .req_we         (data_req_we_bank3_way[10]),
-        .req_pos        (data_req_pos_bank3_way[10]),
-        .req_data       (data_req_data_bank3_way[10]),
-
-        .ack_valid      (data_ack_valid_bank3_way[10]),
-        .ack_retry      (data_ack_retry_bank3_way[10]),
-        .ack_data       (data_ack_data_bank3_way[10])
-    );
-
-    ram_1port_dense #(DATA_BANK_WIDTH, DATA_BANK_SIZE, 0) data_bank3_way11 (
-        .clk            (clk),
-        .reset          (reset),
-        
-        .req_valid      (data_req_valid_bank3_way[11]),
-        .req_retry      (data_req_retry_bank3_way[11]),
-        .req_we         (data_req_we_bank3_way[11]),
-        .req_pos        (data_req_pos_bank3_way[11]),
-        .req_data       (data_req_data_bank3_way[11]),
-
-        .ack_valid      (data_ack_valid_bank3_way[11]),
-        .ack_retry      (data_ack_retry_bank3_way[11]),
-        .ack_data       (data_ack_data_bank3_way[11])
-    );
-
-    ram_1port_dense #(DATA_BANK_WIDTH, DATA_BANK_SIZE, 0) data_bank3_way12 (
-        .clk            (clk),
-        .reset          (reset),
-        
-        .req_valid      (data_req_valid_bank3_way[12]),
-        .req_retry      (data_req_retry_bank3_way[12]),
-        .req_we         (data_req_we_bank3_way[12]),
-        .req_pos        (data_req_pos_bank3_way[12]),
-        .req_data       (data_req_data_bank3_way[12]),
-
-        .ack_valid      (data_ack_valid_bank3_way[12]),
-        .ack_retry      (data_ack_retry_bank3_way[12]),
-        .ack_data       (data_ack_data_bank3_way[12])
-    );
-
-    ram_1port_dense #(DATA_BANK_WIDTH, DATA_BANK_SIZE, 0) data_bank3_way13 (
-        .clk            (clk),
-        .reset          (reset),
-        
-        .req_valid      (data_req_valid_bank3_way[13]),
-        .req_retry      (data_req_retry_bank3_way[13]),
-        .req_we         (data_req_we_bank3_way[13]),
-        .req_pos        (data_req_pos_bank3_way[13]),
-        .req_data       (data_req_data_bank3_way[13]),
-
-        .ack_valid      (data_ack_valid_bank3_way[13]),
-        .ack_retry      (data_ack_retry_bank3_way[13]),
-        .ack_data       (data_ack_data_bank3_way[13])
-    );
-
-    ram_1port_dense #(DATA_BANK_WIDTH, DATA_BANK_SIZE, 0) data_bank3_way14 (
-        .clk            (clk),
-        .reset          (reset),
-        
-        .req_valid      (data_req_valid_bank3_way[14]),
-        .req_retry      (data_req_retry_bank3_way[14]),
-        .req_we         (data_req_we_bank3_way[14]),
-        .req_pos        (data_req_pos_bank3_way[14]),
-        .req_data       (data_req_data_bank3_way[14]),
-
-        .ack_valid      (data_ack_valid_bank3_way[14]),
-        .ack_retry      (data_ack_retry_bank3_way[14]),
-        .ack_data       (data_ack_data_bank3_way[14])
-    );
-
-    ram_1port_dense #(DATA_BANK_WIDTH, DATA_BANK_SIZE, 0) data_bank3_way15 (
-        .clk            (clk),
-        .reset          (reset),
-        
-        .req_valid      (data_req_valid_bank3_way[15]),
-        .req_retry      (data_req_retry_bank3_way[15]),
-        .req_we         (data_req_we_bank3_way[15]),
-        .req_pos        (data_req_pos_bank3_way[15]),
-        .req_data       (data_req_data_bank3_way[15]),
-
-        .ack_valid      (data_ack_valid_bank3_way[15]),
-        .ack_retry      (data_ack_retry_bank3_way[15]),
-        .ack_data       (data_ack_data_bank3_way[15])
-    );
-
 
 
     // Instantiate q_l1tol2_req
@@ -2561,6 +761,7 @@ ram_1port_dense #(DATA_BANK_WIDTH, DATA_BANK_SIZE, 0) data_bank3_way1 (
     logic                   ack_rd_q_l1tol2_req_retry;
     I_q_l1tol2_req_type     ack_rd_q_l1tol2_req_data;
 
+
     ram_2port_fast #(.Width(Q_L1TOL2_REQ_WIDTH), .Size(Q_L1TOL2_REQ_SIZE), .Forward(0))  q_l1tol2_req (
         .clk            (clk),
         .reset          (reset),
@@ -2577,7 +778,52 @@ ram_1port_dense #(DATA_BANK_WIDTH, DATA_BANK_SIZE, 0) data_bank3_way1 (
         .ack_rd_valid   (ack_rd_q_l1tol2_req_valid),
         .ack_rd_retry   (ack_rd_q_l1tol2_req_retry),
         .ack_rd_data    (ack_rd_q_l1tol2_req_data)
-    ); 
+    );
+
+    // read & write pointer and counter for the q_l1tol2_req
+    logic   [`log2(Q_L1TOL2_REQ_SIZE)-1 : 0] q_l1tol2_req_rd_pointer;
+    logic   [`log2(Q_L1TOL2_REQ_SIZE)-1 : 0] q_l1tol2_req_wr_pointer;
+    logic   [`log2(Q_L1TOL2_REQ_SIZE)-1 : 0] q_l1tol2_req_rd_pointer_next;
+    logic   [`log2(Q_L1TOL2_REQ_SIZE)-1 : 0] q_l1tol2_req_wr_pointer_next;
+    logic   [`log2(Q_L1TOL2_REQ_SIZE)-1 : 0] q_l1tol2_req_counter_next;
+    logic   [`log2(Q_L1TOL2_REQ_SIZE)-1 : 0] q_l1tol2_req_counter;
+    logic   [1:0]   q_l1tol2_req_rd_vs_wr;
+
+    // Increment pointers and Adjust counter
+    assign  q_l1tol2_req_rd_pointer_next = (req_rd_q_l1tol2_req_valid && req_rd_q_l1tol2_req_retry) ? (q_l1tol2_req_rd_pointer + 1) : q_l1tol2_req_rd_pointer;
+    assign  q_l1tol2_req_wr_pointer_next = (req_wr_q_l1tol2_req_valid && req_wr_q_l1tol2_req_retry) ? (q_l1tol2_req_wr_pointer + 1) : q_l1tol2_req_wr_pointer;
+    assign  q_l1tol2_req_rd_vs_wr = {(req_rd_q_l1tol2_req_valid && req_rd_q_l1tol2_req_retry),
+        (req_wr_q_l1tol2_req_valid && req_wr_q_l1tol2_req_retry) };
+    assign  q_l1tol2_req_counter_next = (q_l1tol2_req_rd_vs_wr==2'b01) ? (q_l1tol2_req_counter + 1) :
+        ((q_l1tol2_req_rd_vs_wr==2'b10) ? (q_l1tol2_req_counter - 1) : q_l1tol2_req_counter);
+    
+    // The pointers are the addresses for read and write
+    assign  req_rd_q_l1tol2_req_addr = q_l1tol2_req_rd_pointer;
+    assign  req_wr_q_l1tol2_req_addr = q_l1tol2_req_wr_pointer;
+
+
+    flop #(.Bits(`log2(Q_L1TOL2_REQ_SIZE))) f_reg_q_l1tol2_req_rd_pointer (
+    .clk      (clk),
+    .reset    (reset),
+    .d        (q_l1tol2_req_rd_pointer_next),
+    .q        (q_l1tol2_req_rd_pointer)
+    );
+
+    flop #(.Bits(`log2(Q_L1TOL2_REQ_SIZE))) f_reg_q_l1tol2_req_wr_pointer (
+    .clk      (clk),
+    .reset    (reset),
+    .d        (q_l1tol2_req_wr_pointer_next),
+    .q        (q_l1tol2_req_wr_pointer)
+    );
+
+    flop #(.Bits(`log2(Q_L1TOL2_REQ_SIZE))) f_reg_q_l1tol2_req_counter (
+    .clk      (clk),
+    .reset    (reset),
+    .d        (q_l1tol2_req_counter_next),
+    .q        (q_l1tol2_req_counter)
+    );
+
+
     /*
     ram_2port_fast #(.Width(), .Size(), .Forward()) (
         .clk            (),
@@ -2611,155 +857,34 @@ ram_1port_dense #(DATA_BANK_WIDTH, DATA_BANK_SIZE, 0) data_bank3_way1 (
     // If it has the highest priority then directly access tag
     assign  read_tag_for_sure = l1tol2_req_valid && (winner_for_tag == NEW_L1TOL2_REQ);
     // Access bank0
-    // Access way0
-    assign  tag_req_valid_bank0_way[0] = read_tag_for_sure && (tag_bank_id == 2'b00);
-    assign  tag_req_we_bank0_way[0] = tag_req_valid_bank0_way[0] ? 0 : 0;// Read tag
-    assign  tag_req_pos_bank0_way[0] = read_tag_for_sure ? predicted_index : 'b0;
+    assign  tag_req_valid_bank0_ways = read_tag_for_sure && (tag_bank_id == 2'b00);
+    assign  tag_req_we_bank0_ways = tag_req_valid_bank0_ways ? 0 : 0;// Read tag
+    assign  tag_req_pos_bank0_ways = read_tag_for_sure ? predicted_index : 'b0;
 
-    // Access way1
-    assign  tag_req_valid_bank0_way[1] = read_tag_for_sure && (tag_bank_id == 2'b00);
-    assign  tag_req_we_bank0_way[1] = tag_req_valid_bank0_way[1] ? 0 : 0;// Read tag
-    assign  tag_req_pos_bank0_way[1] = read_tag_for_sure ? predicted_index : 'b0;
+    // Access Bank1
+    assign  tag_req_valid_bank1_ways = read_tag_for_sure && (tag_bank_id == 2'b00);
+    assign  tag_req_we_bank1_ways = tag_req_valid_bank1_ways ? 0 : 0;// Read tag
+    assign  tag_req_pos_bank1_ways = read_tag_for_sure ? predicted_index : 'b0;
 
-    // Access way2
-    assign  tag_req_valid_bank0_way[2] = read_tag_for_sure && (tag_bank_id == 2'b00);
-    assign  tag_req_we_bank0_way[2] = tag_req_valid_bank0_way[2] ? 0 : 0;// Read tag
-    assign  tag_req_pos_bank0_way[2] = read_tag_for_sure ? predicted_index : 'b0;
+    // Access Bank2
+    assign  tag_req_valid_bank2_ways = read_tag_for_sure && (tag_bank_id == 2'b00);
+    assign  tag_req_we_bank2_ways = tag_req_valid_bank2_ways ? 0 : 0;// Read tag
+    assign  tag_req_pos_bank2_ways = read_tag_for_sure ? predicted_index : 'b0;
 
-    // Access way3
-    assign  tag_req_valid_bank0_way[3] = read_tag_for_sure && (tag_bank_id == 2'b00);
-    assign  tag_req_we_bank0_way[3] = tag_req_valid_bank0_way[3] ? 0 : 0;// Read tag
-    assign  tag_req_pos_bank0_way[3] = read_tag_for_sure ? predicted_index : 'b0;
-
-    // Access way4
-    assign  tag_req_valid_bank0_way[4] = read_tag_for_sure && (tag_bank_id == 2'b00);
-    assign  tag_req_we_bank0_way[4] = tag_req_valid_bank0_way[4] ? 0 : 0;// Read tag
-    assign  tag_req_pos_bank0_way[4] = read_tag_for_sure ? predicted_index : 'b0;
-
-    // Access way5
-    assign  tag_req_valid_bank0_way[5] = read_tag_for_sure && (tag_bank_id == 2'b00);
-    assign  tag_req_we_bank0_way[5] = tag_req_valid_bank0_way[5] ? 0 : 0;// Read tag
-    assign  tag_req_pos_bank0_way[5] = read_tag_for_sure ? predicted_index : 'b0;
-
-    // Access way6
-    assign  tag_req_valid_bank0_way[6] = read_tag_for_sure && (tag_bank_id == 2'b00);
-    assign  tag_req_we_bank0_way[6] = tag_req_valid_bank0_way[6] ? 0 : 0;// Read tag
-    assign  tag_req_pos_bank0_way[6] = read_tag_for_sure ? predicted_index : 'b0;
-
-    // Access way7
-    assign  tag_req_valid_bank0_way[7] = read_tag_for_sure && (tag_bank_id == 2'b00);
-    assign  tag_req_we_bank0_way[7] = tag_req_valid_bank0_way[7] ? 0 : 0;// Read tag
-    assign  tag_req_pos_bank0_way[7] = read_tag_for_sure ? predicted_index : 'b0;
-
-    // Access way8
-    assign  tag_req_valid_bank0_way[8] = read_tag_for_sure && (tag_bank_id == 2'b00);
-    assign  tag_req_we_bank0_way[8] = tag_req_valid_bank0_way[8] ? 0 : 0;// Read tag
-    assign  tag_req_pos_bank0_way[8] = read_tag_for_sure ? predicted_index : 'b0;
-
-    // Access way9
-    assign  tag_req_valid_bank0_way[9] = read_tag_for_sure && (tag_bank_id == 2'b00);
-    assign  tag_req_we_bank0_way[9] = tag_req_valid_bank0_way[9] ? 0 : 0;// Read tag
-    assign  tag_req_pos_bank0_way[9] = read_tag_for_sure ? predicted_index : 'b0;
-
-    // Access way10
-    assign  tag_req_valid_bank0_way[10] = read_tag_for_sure && (tag_bank_id == 2'b00);
-    assign  tag_req_we_bank0_way[10] = tag_req_valid_bank0_way[10] ? 0 : 0;// Read tag
-    assign  tag_req_pos_bank0_way[10] = read_tag_for_sure ? predicted_index : 'b0;
-
-    // Access way11
-    assign  tag_req_valid_bank0_way[11] = read_tag_for_sure && (tag_bank_id == 2'b00);
-    assign  tag_req_we_bank0_way[11] = tag_req_valid_bank0_way[11] ? 0 : 0;// Read tag
-    assign  tag_req_pos_bank0_way[11] = read_tag_for_sure ? predicted_index : 'b0;
-
-    // Access way12
-    assign  tag_req_valid_bank0_way[12] = read_tag_for_sure && (tag_bank_id == 2'b00);
-    assign  tag_req_we_bank0_way[12] = tag_req_valid_bank0_way[12] ? 0 : 0;// Read tag
-    assign  tag_req_pos_bank0_way[12] = read_tag_for_sure ? predicted_index : 'b0;
-
-    // Access way13
-    assign  tag_req_valid_bank0_way[13] = read_tag_for_sure && (tag_bank_id == 2'b00);
-    assign  tag_req_we_bank0_way[13]= tag_req_valid_bank0_way[13] ? 0 : 0;// Read tag
-    assign  tag_req_pos_bank0_way[13] = read_tag_for_sure ? predicted_index : 'b0;
-
-    // Access way14
-    assign  tag_req_valid_bank0_way[14] = read_tag_for_sure && (tag_bank_id == 2'b00);
-    assign  tag_req_we_bank0_way[14] = tag_req_valid_bank0_way[14] ? 0 : 0;// Read tag
-    assign  tag_req_pos_bank0_way[14] = read_tag_for_sure ? predicted_index : 'b0;
-
-    // Access way15
-    assign  tag_req_valid_bank0_way[15] = read_tag_for_sure && (tag_bank_id == 2'b00);
-    assign  tag_req_we_bank0_way[15] = tag_req_valid_bank0_way[15] ? 0 : 0;// Read tag
-    assign  tag_req_pos_bank0_way[15] = read_tag_for_sure ? predicted_index : 'b0;
+    // Access Bank3
+    assign  tag_req_valid_bank3_ways = read_tag_for_sure && (tag_bank_id == 2'b00);
+    assign  tag_req_we_bank3_ways = tag_req_valid_bank3_ways ? 0 : 0;// Read tag
+    assign  tag_req_pos_bank3_ways = read_tag_for_sure ? predicted_index : 'b0;
 
     // set reg_new_l1tol2_req_tag_access_0
     assign  reg_new_l1tol2_req_tag_access_0_next = read_tag_for_sure;
-    assign  l1tol2_req_retry =  (tag_req_valid_bank0_way[0] && tag_req_retry_bank0_way[0]) ||
-                                (tag_req_valid_bank0_way[1] && tag_req_retry_bank0_way[1]) ||
-                                (tag_req_valid_bank0_way[2] && tag_req_retry_bank0_way[2]) ||
-                                (tag_req_valid_bank0_way[3] && tag_req_retry_bank0_way[3]) ||
-                                (tag_req_valid_bank0_way[4] && tag_req_retry_bank0_way[4]) ||
-                                (tag_req_valid_bank0_way[5] && tag_req_retry_bank0_way[5]) ||
-                                (tag_req_valid_bank0_way[6] && tag_req_retry_bank0_way[6]) ||
-                                (tag_req_valid_bank0_way[7] && tag_req_retry_bank0_way[7]) ||
-                                (tag_req_valid_bank0_way[8] && tag_req_retry_bank0_way[8]) ||
-                                (tag_req_valid_bank0_way[9] && tag_req_retry_bank0_way[9]) ||
-                                (tag_req_valid_bank0_way[10] && tag_req_retry_bank0_way[10]) ||
-                                (tag_req_valid_bank0_way[11] && tag_req_retry_bank0_way[11]) ||
-                                (tag_req_valid_bank0_way[12] && tag_req_retry_bank0_way[12]) ||
-                                (tag_req_valid_bank0_way[13] && tag_req_retry_bank0_way[13]) ||
-                                (tag_req_valid_bank0_way[14] && tag_req_retry_bank0_way[14]) ||
-                                (tag_req_valid_bank0_way[15] && tag_req_retry_bank0_way[15]) ||
+    assign  l1tol2_req_retry =  (tag_req_valid_bank0_ways && tag_req_retry_bank0_ways) ||
 
-                                (tag_req_valid_bank1_way[0] && tag_req_retry_bank1_way[0]) ||
-                                (tag_req_valid_bank1_way[1] && tag_req_retry_bank1_way[1]) ||
-                                (tag_req_valid_bank1_way[2] && tag_req_retry_bank1_way[2]) ||
-                                (tag_req_valid_bank1_way[3] && tag_req_retry_bank1_way[3]) ||
-                                (tag_req_valid_bank1_way[4] && tag_req_retry_bank1_way[4]) ||
-                                (tag_req_valid_bank1_way[5] && tag_req_retry_bank1_way[5]) ||
-                                (tag_req_valid_bank1_way[6] && tag_req_retry_bank1_way[6]) ||
-                                (tag_req_valid_bank1_way[7] && tag_req_retry_bank1_way[7]) ||
-                                (tag_req_valid_bank1_way[8] && tag_req_retry_bank1_way[8]) ||
-                                (tag_req_valid_bank1_way[9] && tag_req_retry_bank1_way[9]) ||
-                                (tag_req_valid_bank1_way[10] && tag_req_retry_bank1_way[10]) ||
-                                (tag_req_valid_bank1_way[11] && tag_req_retry_bank1_way[11]) ||
-                                (tag_req_valid_bank1_way[12] && tag_req_retry_bank1_way[12]) ||
-                                (tag_req_valid_bank1_way[13] && tag_req_retry_bank1_way[13]) ||
-                                (tag_req_valid_bank1_way[14] && tag_req_retry_bank1_way[14]) ||
-                                (tag_req_valid_bank1_way[15] && tag_req_retry_bank1_way[15]) ||
+                                (tag_req_valid_bank1_ways && tag_req_retry_bank1_ways) ||
 
-                                (tag_req_valid_bank2_way[0] && tag_req_retry_bank2_way[0]) ||
-                                (tag_req_valid_bank2_way[1] && tag_req_retry_bank2_way[1]) ||
-                                (tag_req_valid_bank2_way[2] && tag_req_retry_bank2_way[2]) ||
-                                (tag_req_valid_bank2_way[3] && tag_req_retry_bank2_way[3]) ||
-                                (tag_req_valid_bank2_way[4] && tag_req_retry_bank2_way[4]) ||
-                                (tag_req_valid_bank2_way[5] && tag_req_retry_bank2_way[5]) ||
-                                (tag_req_valid_bank2_way[6] && tag_req_retry_bank2_way[6]) ||
-                                (tag_req_valid_bank2_way[7] && tag_req_retry_bank2_way[7]) ||
-                                (tag_req_valid_bank2_way[8] && tag_req_retry_bank2_way[8]) ||
-                                (tag_req_valid_bank2_way[9] && tag_req_retry_bank2_way[9]) ||
-                                (tag_req_valid_bank2_way[10] && tag_req_retry_bank2_way[10]) ||
-                                (tag_req_valid_bank2_way[11] && tag_req_retry_bank2_way[11]) ||
-                                (tag_req_valid_bank2_way[12] && tag_req_retry_bank2_way[12]) ||
-                                (tag_req_valid_bank2_way[13] && tag_req_retry_bank2_way[13]) ||
-                                (tag_req_valid_bank2_way[14] && tag_req_retry_bank2_way[14]) ||
-                                (tag_req_valid_bank2_way[15] && tag_req_retry_bank2_way[15]) ||
+                                (tag_req_valid_bank2_ways && tag_req_retry_bank2_ways) ||
 
-                                (tag_req_valid_bank3_way[0] && tag_req_retry_bank3_way[0]) ||
-                                (tag_req_valid_bank3_way[1] && tag_req_retry_bank3_way[1]) ||
-                                (tag_req_valid_bank3_way[2] && tag_req_retry_bank3_way[2]) ||
-                                (tag_req_valid_bank3_way[3] && tag_req_retry_bank3_way[3]) ||
-                                (tag_req_valid_bank3_way[4] && tag_req_retry_bank3_way[4]) ||
-                                (tag_req_valid_bank3_way[5] && tag_req_retry_bank3_way[5]) ||
-                                (tag_req_valid_bank3_way[6] && tag_req_retry_bank3_way[6]) ||
-                                (tag_req_valid_bank3_way[7] && tag_req_retry_bank3_way[7]) ||
-                                (tag_req_valid_bank3_way[8] && tag_req_retry_bank3_way[8]) ||
-                                (tag_req_valid_bank3_way[9] && tag_req_retry_bank3_way[9]) ||
-                                (tag_req_valid_bank3_way[10] && tag_req_retry_bank3_way[10]) ||
-                                (tag_req_valid_bank3_way[11] && tag_req_retry_bank3_way[11]) ||
-                                (tag_req_valid_bank3_way[12] && tag_req_retry_bank3_way[12]) ||
-                                (tag_req_valid_bank3_way[13] && tag_req_retry_bank3_way[13]) ||
-                                (tag_req_valid_bank3_way[14] && tag_req_retry_bank3_way[14]) ||
-                                (tag_req_valid_bank3_way[15] && tag_req_retry_bank3_way[15]);
+                                (tag_req_valid_bank3_ways && tag_req_retry_bank3_ways);
 
 
     // Handle input from l2tlb
@@ -2785,6 +910,8 @@ ram_1port_dense #(DATA_BANK_WIDTH, DATA_BANK_SIZE, 0) data_bank3_way1 (
                         // ppaddr is incorrect
                         // Enqueue l1tol2_req to q_l1tol2_req with corrected ppaddr
                         req_wr_q_l1tol2_req_data.l1tol2_req = l1tol2_req_reg1;
+                        // Correct ppaddr
+                        req_wr_q_l1tol2_req_data.l1tol2_req.ppaddr = l2tlbtol2_fwd.paddr[14:12];
                         req_wr_q_l1tol2_req_data.ppaddr_corrected = 1;
                         req_wr_q_l1tol2_req_valid = 1;
                     end
@@ -2797,8 +924,13 @@ ram_1port_dense #(DATA_BANK_WIDTH, DATA_BANK_SIZE, 0) data_bank3_way1 (
     end
     
     TLB_hpaddr_type  hpaddr_from_tag[16];
-    assign hpaddr_from_tag[0] = tag_ack_data_bank0_way[0]; // TODO extract hpaddr
-    assign hpaddr_from_tag[1] = tag_ack_data_bank0_way[1]; // TODO extract hpaddr
+    assign {hpaddr_from_tag[0], hpaddr_from_tag[1], hpaddr_from_tag[2], hpaddr_from_tag[3],
+            hpaddr_from_tag[4], hpaddr_from_tag[5], hpaddr_from_tag[6], hpaddr_from_tag[7],
+            hpaddr_from_tag[8], hpaddr_from_tag[9], hpaddr_from_tag[10], hpaddr_from_tag[11],
+            hpaddr_from_tag[12], hpaddr_from_tag[13], hpaddr_from_tag[14], hpaddr_from_tag[15]
+            } = tag_ack_data_bank0_ways;    // TODO extract hpaddr
+
+    /*
     assign hpaddr_from_tag[2] = tag_ack_data_bank0_way[2]; // TODO extract hpaddr
     assign hpaddr_from_tag[3] = tag_ack_data_bank0_way[3]; // TODO extract hpaddr
     assign hpaddr_from_tag[4] = tag_ack_data_bank0_way[4]; // TODO extract hpaddr
@@ -2813,6 +945,7 @@ ram_1port_dense #(DATA_BANK_WIDTH, DATA_BANK_SIZE, 0) data_bank3_way1 (
     assign hpaddr_from_tag[13] = tag_ack_data_bank0_way[13]; // TODO extract hpaddr
     assign hpaddr_from_tag[14] = tag_ack_data_bank0_way[14]; // TODO extract hpaddr
     assign hpaddr_from_tag[15] = tag_ack_data_bank0_way[15]; // TODO extract hpaddr
+    */
 
     // Handle tag result
     // reg_new_l1tol2_req_tag_access_2
@@ -2820,104 +953,104 @@ ram_1port_dense #(DATA_BANK_WIDTH, DATA_BANK_SIZE, 0) data_bank3_way1 (
         tag_hit_next = 0;
         if (reg_new_l1tol2_req_tag_access_2) begin
             // Tag access result is ready
-            if (l2tlbtol2_fwd_reg1_valid && l1_match_l2tlb_l1id && l1_match_l2tlb_ppaddr) begin
+            if (l2tlbtol2_fwd_reg1_valid && l1_match_l2tlb_l1id && l1_match_l2tlb_ppaddr && tag_ack_valid_bank0_ways) begin
                 // l1id matched and ppaddr is correct
                 case (1'b1)
                     // Check way0
-                    (tag_ack_valid_bank0_way[0] && (hpaddr_from_tag[0] == l2tlbtol2_fwd_reg1.hpaddr)) : begin
+                    ((hpaddr_from_tag[0] == l2tlbtol2_fwd_reg1.hpaddr)) : begin
                         // (hpaddr) Tag hit
                         tag_hit_next = 1;
-                        hit_way_next = 16'b0000_0000_0000_0001;
+                        hit_way_next = 4'b0000;
                     end
                     // Check way1
-                    (tag_ack_valid_bank0_way[1] && (hpaddr_from_tag[1] == l2tlbtol2_fwd_reg1.hpaddr)) : begin
+                    ((hpaddr_from_tag[1] == l2tlbtol2_fwd_reg1.hpaddr)) : begin
                         // (hpaddr) Tag hit
                         tag_hit_next = 1;
-                        hit_way_next = 16'b0000_0000_0000_0010;
+                        hit_way_next = 4'b0001;
                     end
                     // Check way2
-                    (tag_ack_valid_bank0_way[2] && (hpaddr_from_tag[2] == l2tlbtol2_fwd_reg1.hpaddr)) : begin
+                    ((hpaddr_from_tag[2] == l2tlbtol2_fwd_reg1.hpaddr)) : begin
                         // (hpaddr) Tag hit
                         tag_hit_next = 1;
-                        hit_way_next = 16'b0000_0000_0000_0100;
+                        hit_way_next = 4'b0010;
                     end
                     // Check way3
-                    (tag_ack_valid_bank0_way[3] && (hpaddr_from_tag[3] == l2tlbtol2_fwd_reg1.hpaddr)) : begin
+                    ((hpaddr_from_tag[3] == l2tlbtol2_fwd_reg1.hpaddr)) : begin
                         // (hpaddr) Tag hit
                         tag_hit_next = 1;
-                        hit_way_next = 16'b0000_0000_0000_1000;
+                        hit_way_next = 4'b0011;
                     end
                     // Check way4
-                    (tag_ack_valid_bank0_way[4] && (hpaddr_from_tag[4] == l2tlbtol2_fwd_reg1.hpaddr)) : begin
+                    ((hpaddr_from_tag[4] == l2tlbtol2_fwd_reg1.hpaddr)) : begin
                         // (hpaddr) Tag hit
                         tag_hit_next = 1;
-                        hit_way_next = 16'b0000_0000_0001_0000;
+                        hit_way_next = 4'b0100;
                     end
                     // Check way5
-                    (tag_ack_valid_bank0_way[5] && (hpaddr_from_tag[5] == l2tlbtol2_fwd_reg1.hpaddr)) : begin
+                    ((hpaddr_from_tag[5] == l2tlbtol2_fwd_reg1.hpaddr)) : begin
                         // (hpaddr) Tag hit
                         tag_hit_next = 1;
-                        hit_way_next = 16'b0000_0000_0010_0000;
+                        hit_way_next = 4'b0101;
                     end
                     // Check way6
-                    (tag_ack_valid_bank0_way[6] && (hpaddr_from_tag[6] == l2tlbtol2_fwd_reg1.hpaddr)) : begin
+                    ((hpaddr_from_tag[6] == l2tlbtol2_fwd_reg1.hpaddr)) : begin
                         // (hpaddr) Tag hit
                         tag_hit_next = 1;
-                        hit_way_next = 16'b0000_0000_0100_0000;
+                        hit_way_next = 4'b0110;
                     end
                     // Check way7
-                    (tag_ack_valid_bank0_way[7] && (hpaddr_from_tag[7] == l2tlbtol2_fwd_reg1.hpaddr)) : begin
+                    ((hpaddr_from_tag[7] == l2tlbtol2_fwd_reg1.hpaddr)) : begin
                         // (hpaddr) Tag hit
                         tag_hit_next = 1;
-                        hit_way_next = 16'b0000_0000_1000_0000;
+                        hit_way_next = 4'b0111;
                     end
                     // Check way8
-                    (tag_ack_valid_bank0_way[8] && (hpaddr_from_tag[8] == l2tlbtol2_fwd_reg1.hpaddr)) : begin
+                    ((hpaddr_from_tag[8] == l2tlbtol2_fwd_reg1.hpaddr)) : begin
                         // (hpaddr) Tag hit
                         tag_hit_next = 1;
-                        hit_way_next = 16'b0000_0001_0000_0000;
+                        hit_way_next = 4'b1000;
                     end
                     // Check way9
-                    (tag_ack_valid_bank0_way[9] && (hpaddr_from_tag[9] == l2tlbtol2_fwd_reg1.hpaddr)) : begin
+                    ((hpaddr_from_tag[9] == l2tlbtol2_fwd_reg1.hpaddr)) : begin
                         // (hpaddr) Tag hit
                         tag_hit_next = 1;
-                        hit_way_next = 16'b0000_0010_0000_0000;
+                        hit_way_next = 4'b1001;
                     end
                     // Check way10
-                    (tag_ack_valid_bank0_way[10] && (hpaddr_from_tag[10] == l2tlbtol2_fwd_reg1.hpaddr)) : begin
+                    ((hpaddr_from_tag[10] == l2tlbtol2_fwd_reg1.hpaddr)) : begin
                         // (hpaddr) Tag hit
                         tag_hit_next = 1;
-                        hit_way_next = 16'b0000_0100_0000_0000;
+                        hit_way_next = 4'b1010;
                     end
                     // Check way11
-                    (tag_ack_valid_bank0_way[11] && (hpaddr_from_tag[11] == l2tlbtol2_fwd_reg1.hpaddr)) : begin
+                    ((hpaddr_from_tag[11] == l2tlbtol2_fwd_reg1.hpaddr)) : begin
                         // (hpaddr) Tag hit
                         tag_hit_next = 1;
-                        hit_way_next = 16'b0000_1000_0000_0000;
+                        hit_way_next = 4'b1011;
                     end
                     // Check way12
-                    (tag_ack_valid_bank0_way[12] && (hpaddr_from_tag[12] == l2tlbtol2_fwd_reg1.hpaddr)) : begin
+                    ((hpaddr_from_tag[12] == l2tlbtol2_fwd_reg1.hpaddr)) : begin
                         // (hpaddr) Tag hit
                         tag_hit_next = 1;
-                        hit_way_next = 16'b0001_0000_0000_0000;
+                        hit_way_next = 4'b1100;
                     end
                     // Check way13
-                    (tag_ack_valid_bank0_way[13] && (hpaddr_from_tag[13] == l2tlbtol2_fwd_reg1.hpaddr)) : begin
+                    ((hpaddr_from_tag[13] == l2tlbtol2_fwd_reg1.hpaddr)) : begin
                         // (hpaddr) Tag hit
                         tag_hit_next = 1;
-                        hit_way_next = 16'b0010_0000_0000_0000;
+                        hit_way_next = 4'b1101;
                     end
                     // Check way14
-                    (tag_ack_valid_bank0_way[14] && (hpaddr_from_tag[14] == l2tlbtol2_fwd_reg1.hpaddr)) : begin
+                    ((hpaddr_from_tag[14] == l2tlbtol2_fwd_reg1.hpaddr)) : begin
                         // (hpaddr) Tag hit
                         tag_hit_next = 1;
-                        hit_way_next = 16'b0100_0000_0000_0000;
+                        hit_way_next = 4'b1110;
                     end
                     // Check way15
-                    (tag_ack_valid_bank0_way[15] && (hpaddr_from_tag[15] == l2tlbtol2_fwd_reg1.hpaddr)) : begin
+                    ((hpaddr_from_tag[15] == l2tlbtol2_fwd_reg1.hpaddr)) : begin
                         // (hpaddr) Tag hit
                         tag_hit_next = 1;
-                        hit_way_next = 16'b1000_0000_0000_0000;
+                        hit_way_next = 4'b1111;
                     end
                 endcase
             end
@@ -2926,263 +1059,26 @@ ram_1port_dense #(DATA_BANK_WIDTH, DATA_BANK_SIZE, 0) data_bank3_way1 (
 
     // Access data bank under tag hit
     // @ reg_new_l1tol2_req_tag_access_2
-    // TODO Pass retry to previous stages: should be l2tlbtol2_fwd_retry and l1tol2_req_reg2_retry
-    assign  data_req_valid_bank0_way[0] = (l1tol2_req_reg3.poffset[7:6]==2'b00) && reg_new_l1tol2_req_tag_access_2 && tag_hit_next && (hit_way_next == 16'b0000_0000_0000_0001);
-    assign  data_req_we_bank0_way[0] = (l1tol2_req_reg3.poffset[7:6]==2'b00) && reg_new_l1tol2_req_tag_access_2 ? 0 : 0; // read
-    assign  data_req_pos_bank0_way[0] = {l1tol2_req_reg3.ppaddr[2], l1tol2_req_reg3.poffset[11:6]};
+    // TODO Verify: Pass retry to previous stages: should be l2tlbtol2_fwd_retry and l1tol2_req_reg2_retry
+    assign  l2tlbtol2_fwd_retry = (l2tlbtol2_fwd_retry_direct || data_req_back_press);
+    assign  l1tol2_req_reg2_retry = (l1tol2_req_reg2_retry_direct || data_req_back_press);
+    assign  data_req_back_press = data_req_retry_bank0_way || data_req_retry_bank1_way || data_req_retry_bank2_way || data_req_retry_bank3_way;
+    assign  data_req_valid_bank0_way = (l1tol2_req_reg3.poffset[7:6]==2'b00) && reg_new_l1tol2_req_tag_access_2 && tag_hit_next;
+    assign  data_req_we_bank0_way = (l1tol2_req_reg3.poffset[7:6]==2'b00) && reg_new_l1tol2_req_tag_access_2 ? 0 : 0; // read
+    assign  data_req_pos_bank0_way = {hit_way_next, l1tol2_req_reg3.ppaddr[2], l1tol2_req_reg3.poffset[11:6]};
    
-    assign  data_req_valid_bank0_way[1] = (l1tol2_req_reg3.poffset[7:6]==2'b00) && reg_new_l1tol2_req_tag_access_2 && tag_hit_next && (hit_way_next == 16'b0000_0000_0000_0010);
-    assign  data_req_we_bank0_way[1] = (l1tol2_req_reg3.poffset[7:6]==2'b00) && reg_new_l1tol2_req_tag_access_2 ? 0 : 0; // read
-    assign  data_req_pos_bank0_way[1] = {l1tol2_req_reg3.ppaddr[2], l1tol2_req_reg3.poffset[11:6]};
-
-    assign  data_req_valid_bank0_way[2] = (l1tol2_req_reg3.poffset[7:6]==2'b00) && reg_new_l1tol2_req_tag_access_2 && tag_hit_next && (hit_way_next == 16'b0000_0000_0000_0100);
-    assign  data_req_we_bank0_way[2] = (l1tol2_req_reg3.poffset[7:6]==2'b00) && reg_new_l1tol2_req_tag_access_2 ? 0 : 0; // read
-    assign  data_req_pos_bank0_way[2] = {l1tol2_req_reg3.ppaddr[2], l1tol2_req_reg3.poffset[11:6]};
-
-    assign  data_req_valid_bank0_way[3] = (l1tol2_req_reg3.poffset[7:6]==2'b00) && reg_new_l1tol2_req_tag_access_2 && tag_hit_next && (hit_way_next == 16'b0000_0000_0000_1000);
-    assign  data_req_we_bank0_way[3] = (l1tol2_req_reg3.poffset[7:6]==2'b00) && reg_new_l1tol2_req_tag_access_2 ? 0 : 0; // read
-    assign  data_req_pos_bank0_way[3] = {l1tol2_req_reg3.ppaddr[2], l1tol2_req_reg3.poffset[11:6]};
-
-    assign  data_req_valid_bank0_way[4] = (l1tol2_req_reg3.poffset[7:6]==2'b00) && reg_new_l1tol2_req_tag_access_2 && tag_hit_next && (hit_way_next == 16'b0000_0000_0001_0000);
-    assign  data_req_we_bank0_way[4] = (l1tol2_req_reg3.poffset[7:6]==2'b00) && reg_new_l1tol2_req_tag_access_2 ? 0 : 0; // read
-    assign  data_req_pos_bank0_way[4] = {l1tol2_req_reg3.ppaddr[2], l1tol2_req_reg3.poffset[11:6]};
-
-    assign  data_req_valid_bank0_way[5] = (l1tol2_req_reg3.poffset[7:6]==2'b00) && reg_new_l1tol2_req_tag_access_2 && tag_hit_next && (hit_way_next == 16'b0000_0000_0010_0000);
-    assign  data_req_we_bank0_way[5] = (l1tol2_req_reg3.poffset[7:6]==2'b00) && reg_new_l1tol2_req_tag_access_2 ? 0 : 0; // read
-    assign  data_req_pos_bank0_way[5] = {l1tol2_req_reg3.ppaddr[2], l1tol2_req_reg3.poffset[11:6]};
-
-    assign  data_req_valid_bank0_way[6] = (l1tol2_req_reg3.poffset[7:6]==2'b00) && reg_new_l1tol2_req_tag_access_2 && tag_hit_next && (hit_way_next == 16'b0000_0000_0100_0000);
-    assign  data_req_we_bank0_way[6] = (l1tol2_req_reg3.poffset[7:6]==2'b00) && reg_new_l1tol2_req_tag_access_2 ? 0 : 0; // read
-    assign  data_req_pos_bank0_way[6] = {l1tol2_req_reg3.ppaddr[2], l1tol2_req_reg3.poffset[11:6]};
-
-    assign  data_req_valid_bank0_way[7] = (l1tol2_req_reg3.poffset[7:6]==2'b00) && reg_new_l1tol2_req_tag_access_2 && tag_hit_next && (hit_way_next == 16'b0000_0000_1000_0000);
-    assign  data_req_we_bank0_way[7] = (l1tol2_req_reg3.poffset[7:6]==2'b00) && reg_new_l1tol2_req_tag_access_2 ? 0 : 0; // read
-    assign  data_req_pos_bank0_way[7] = {l1tol2_req_reg3.ppaddr[2], l1tol2_req_reg3.poffset[11:6]};
-
-    assign  data_req_valid_bank0_way[8] = (l1tol2_req_reg3.poffset[7:6]==2'b00) && reg_new_l1tol2_req_tag_access_2 && tag_hit_next && (hit_way_next == 16'b0000_0001_0000_0000);
-    assign  data_req_we_bank0_way[8] = (l1tol2_req_reg3.poffset[7:6]==2'b00) && reg_new_l1tol2_req_tag_access_2 ? 0 : 0; // read
-    assign  data_req_pos_bank0_way[8] = {l1tol2_req_reg3.ppaddr[2], l1tol2_req_reg3.poffset[11:6]};
-
-    assign  data_req_valid_bank0_way[9] = (l1tol2_req_reg3.poffset[7:6]==2'b00) && reg_new_l1tol2_req_tag_access_2 && tag_hit_next && (hit_way_next == 16'b0000_0010_0000_0000);
-    assign  data_req_we_bank0_way[9] = (l1tol2_req_reg3.poffset[7:6]==2'b00) && reg_new_l1tol2_req_tag_access_2 ? 0 : 0; // read
-    assign  data_req_pos_bank0_way[9] = {l1tol2_req_reg3.ppaddr[2], l1tol2_req_reg3.poffset[11:6]};
-
-    assign  data_req_valid_bank0_way[10] = (l1tol2_req_reg3.poffset[7:6]==2'b00) && reg_new_l1tol2_req_tag_access_2 && tag_hit_next && (hit_way_next == 16'b0000_0100_0000_0000);
-    assign  data_req_we_bank0_way[10] = (l1tol2_req_reg3.poffset[7:6]==2'b00) && reg_new_l1tol2_req_tag_access_2 ? 0 : 0; // read
-    assign  data_req_pos_bank0_way[10] = {l1tol2_req_reg3.ppaddr[2], l1tol2_req_reg3.poffset[11:6]};
-
-    assign  data_req_valid_bank0_way[11] = (l1tol2_req_reg3.poffset[7:6]==2'b00) && reg_new_l1tol2_req_tag_access_2 && tag_hit_next && (hit_way_next == 16'b0000_1000_0000_0000);
-    assign  data_req_we_bank0_way[11] = (l1tol2_req_reg3.poffset[7:6]==2'b00) && reg_new_l1tol2_req_tag_access_2 ? 0 : 0; // read
-    assign  data_req_pos_bank0_way[11] = {l1tol2_req_reg3.ppaddr[2], l1tol2_req_reg3.poffset[11:6]};
-
-    assign  data_req_valid_bank0_way[12] = (l1tol2_req_reg3.poffset[7:6]==2'b00) && reg_new_l1tol2_req_tag_access_2 && tag_hit_next && (hit_way_next == 16'b0001_0000_0000_0000);
-    assign  data_req_we_bank0_way[12] = (l1tol2_req_reg3.poffset[7:6]==2'b00) && reg_new_l1tol2_req_tag_access_2 ? 0 : 0; // read
-    assign  data_req_pos_bank0_way[12] = {l1tol2_req_reg3.ppaddr[2], l1tol2_req_reg3.poffset[11:6]};
-
-    assign  data_req_valid_bank0_way[13] = (l1tol2_req_reg3.poffset[7:6]==2'b00) && reg_new_l1tol2_req_tag_access_2 && tag_hit_next && (hit_way_next == 16'b0010_0000_0000_0000);
-    assign  data_req_we_bank0_way[13] = (l1tol2_req_reg3.poffset[7:6]==2'b00) && reg_new_l1tol2_req_tag_access_2 ? 0 : 0; // read
-    assign  data_req_pos_bank0_way[13] = {l1tol2_req_reg3.ppaddr[2], l1tol2_req_reg3.poffset[11:6]};
-
-    assign  data_req_valid_bank0_way[14] = (l1tol2_req_reg3.poffset[7:6]==2'b00) && reg_new_l1tol2_req_tag_access_2 && tag_hit_next && (hit_way_next == 16'b0100_0000_0000_0000);
-    assign  data_req_we_bank0_way[14] = (l1tol2_req_reg3.poffset[7:6]==2'b00) && reg_new_l1tol2_req_tag_access_2 ? 0 : 0; // read
-    assign  data_req_pos_bank0_way[14] = {l1tol2_req_reg3.ppaddr[2], l1tol2_req_reg3.poffset[11:6]};
-
-    assign  data_req_valid_bank0_way[15] = (l1tol2_req_reg3.poffset[7:6]==2'b00) && reg_new_l1tol2_req_tag_access_2 && tag_hit_next && (hit_way_next == 16'b1000_0000_0000_0000);
-    assign  data_req_we_bank0_way[15] = (l1tol2_req_reg3.poffset[7:6]==2'b00) && reg_new_l1tol2_req_tag_access_2 ? 0 : 0; // read
-    assign  data_req_pos_bank0_way[15] = {l1tol2_req_reg3.ppaddr[2], l1tol2_req_reg3.poffset[11:6]};
-
-    assign  data_req_valid_bank1_way[0] = (l1tol2_req_reg3.poffset[7:6]==2'b00) && reg_new_l1tol2_req_tag_access_2 && tag_hit_next && (hit_way_next == 16'b0000_0000_0000_0001);
-    assign  data_req_we_bank1_way[0] = (l1tol2_req_reg3.poffset[7:6]==2'b01) && reg_new_l1tol2_req_tag_access_2 ? 0 : 0; // read
-    assign  data_req_pos_bank1_way[0] = {l1tol2_req_reg3.ppaddr[2], l1tol2_req_reg3.poffset[11:6]};
+    assign  data_req_valid_bank1_way = (l1tol2_req_reg3.poffset[7:6]==2'b00) && reg_new_l1tol2_req_tag_access_2 && tag_hit_next;
+    assign  data_req_we_bank1_way = (l1tol2_req_reg3.poffset[7:6]==2'b01) && reg_new_l1tol2_req_tag_access_2 ? 0 : 0; // read
+    assign  data_req_pos_bank1_way = {hit_way_next, l1tol2_req_reg3.ppaddr[2], l1tol2_req_reg3.poffset[11:6]};
    
-    assign  data_req_valid_bank1_way[1] = (l1tol2_req_reg3.poffset[7:6]==2'b01) && reg_new_l1tol2_req_tag_access_2 && tag_hit_next && (hit_way_next == 16'b0000_0000_0000_0010);
-    assign  data_req_we_bank1_way[1] = (l1tol2_req_reg3.poffset[7:6]==2'b01) && reg_new_l1tol2_req_tag_access_2 ? 0 : 0; // read
-    assign  data_req_pos_bank1_way[1] = {l1tol2_req_reg3.ppaddr[2], l1tol2_req_reg3.poffset[11:6]};
-
-    assign  data_req_valid_bank1_way[2] = (l1tol2_req_reg3.poffset[7:6]==2'b01) && reg_new_l1tol2_req_tag_access_2 && tag_hit_next && (hit_way_next == 16'b0000_0000_0000_0100);
-    assign  data_req_we_bank1_way[2] = (l1tol2_req_reg3.poffset[7:6]==2'b01) && reg_new_l1tol2_req_tag_access_2 ? 0 : 0; // read
-    assign  data_req_pos_bank1_way[2] = {l1tol2_req_reg3.ppaddr[2], l1tol2_req_reg3.poffset[11:6]};
-
-    assign  data_req_valid_bank1_way[3] = (l1tol2_req_reg3.poffset[7:6]==2'b01) && reg_new_l1tol2_req_tag_access_2 && tag_hit_next && (hit_way_next == 16'b0000_0000_0000_1000);
-    assign  data_req_we_bank1_way[3] = (l1tol2_req_reg3.poffset[7:6]==2'b01) && reg_new_l1tol2_req_tag_access_2 ? 0 : 0; // read
-    assign  data_req_pos_bank1_way[3] = {l1tol2_req_reg3.ppaddr[2], l1tol2_req_reg3.poffset[11:6]};
-
-    assign  data_req_valid_bank1_way[4] = (l1tol2_req_reg3.poffset[7:6]==2'b01) && reg_new_l1tol2_req_tag_access_2 && tag_hit_next && (hit_way_next == 16'b0000_0000_0001_0000);
-    assign  data_req_we_bank1_way[4] = (l1tol2_req_reg3.poffset[7:6]==2'b01) && reg_new_l1tol2_req_tag_access_2 ? 0 : 0; // read
-    assign  data_req_pos_bank1_way[4] = {l1tol2_req_reg3.ppaddr[2], l1tol2_req_reg3.poffset[11:6]};
-
-    assign  data_req_valid_bank1_way[5] = (l1tol2_req_reg3.poffset[7:6]==2'b01) && reg_new_l1tol2_req_tag_access_2 && tag_hit_next && (hit_way_next == 16'b0000_0000_0010_0000);
-    assign  data_req_we_bank1_way[5] = (l1tol2_req_reg3.poffset[7:6]==2'b01) && reg_new_l1tol2_req_tag_access_2 ? 0 : 0; // read
-    assign  data_req_pos_bank1_way[5] = {l1tol2_req_reg3.ppaddr[2], l1tol2_req_reg3.poffset[11:6]};
-
-    assign  data_req_valid_bank1_way[6] = (l1tol2_req_reg3.poffset[7:6]==2'b01) && reg_new_l1tol2_req_tag_access_2 && tag_hit_next && (hit_way_next == 16'b0000_0000_0100_0000);
-    assign  data_req_we_bank1_way[6] = (l1tol2_req_reg3.poffset[7:6]==2'b01) && reg_new_l1tol2_req_tag_access_2 ? 0 : 0; // read
-    assign  data_req_pos_bank1_way[6] = {l1tol2_req_reg3.ppaddr[2], l1tol2_req_reg3.poffset[11:6]};
-
-    assign  data_req_valid_bank1_way[7] = (l1tol2_req_reg3.poffset[7:6]==2'b01) && reg_new_l1tol2_req_tag_access_2 && tag_hit_next && (hit_way_next == 16'b0000_0000_1000_0000);
-    assign  data_req_we_bank1_way[7] = (l1tol2_req_reg3.poffset[7:6]==2'b01) && reg_new_l1tol2_req_tag_access_2 ? 0 : 0; // read
-    assign  data_req_pos_bank1_way[7] = {l1tol2_req_reg3.ppaddr[2], l1tol2_req_reg3.poffset[11:6]};
-
-    assign  data_req_valid_bank1_way[8] = (l1tol2_req_reg3.poffset[7:6]==2'b01) && reg_new_l1tol2_req_tag_access_2 && tag_hit_next && (hit_way_next == 16'b0000_0001_0000_0000);
-    assign  data_req_we_bank1_way[8] = (l1tol2_req_reg3.poffset[7:6]==2'b01) && reg_new_l1tol2_req_tag_access_2 ? 0 : 0; // read
-    assign  data_req_pos_bank1_way[8] = {l1tol2_req_reg3.ppaddr[2], l1tol2_req_reg3.poffset[11:6]};
-
-    assign  data_req_valid_bank1_way[9] = (l1tol2_req_reg3.poffset[7:6]==2'b01) && reg_new_l1tol2_req_tag_access_2 && tag_hit_next && (hit_way_next == 16'b0000_0010_0000_0000);
-    assign  data_req_we_bank1_way[9] = (l1tol2_req_reg3.poffset[7:6]==2'b01) && reg_new_l1tol2_req_tag_access_2 ? 0 : 0; // read
-    assign  data_req_pos_bank1_way[9] = {l1tol2_req_reg3.ppaddr[2], l1tol2_req_reg3.poffset[11:6]};
-
-    assign  data_req_valid_bank1_way[10] = (l1tol2_req_reg3.poffset[7:6]==2'b01) && reg_new_l1tol2_req_tag_access_2 && tag_hit_next && (hit_way_next == 16'b0000_0100_0000_0000);
-    assign  data_req_we_bank1_way[10] = (l1tol2_req_reg3.poffset[7:6]==2'b01) && reg_new_l1tol2_req_tag_access_2 ? 0 : 0; // read
-    assign  data_req_pos_bank1_way[10] = {l1tol2_req_reg3.ppaddr[2], l1tol2_req_reg3.poffset[11:6]};
-
-    assign  data_req_valid_bank1_way[11] = (l1tol2_req_reg3.poffset[7:6]==2'b01) && reg_new_l1tol2_req_tag_access_2 && tag_hit_next && (hit_way_next == 16'b0000_1000_0000_0000);
-    assign  data_req_we_bank1_way[11] = (l1tol2_req_reg3.poffset[7:6]==2'b01) && reg_new_l1tol2_req_tag_access_2 ? 0 : 0; // read
-    assign  data_req_pos_bank1_way[11] = {l1tol2_req_reg3.ppaddr[2], l1tol2_req_reg3.poffset[11:6]};
-
-    assign  data_req_valid_bank1_way[12] = (l1tol2_req_reg3.poffset[7:6]==2'b01) && reg_new_l1tol2_req_tag_access_2 && tag_hit_next && (hit_way_next == 16'b0001_0000_0000_0000);
-    assign  data_req_we_bank1_way[12] = (l1tol2_req_reg3.poffset[7:6]==2'b01) && reg_new_l1tol2_req_tag_access_2 ? 0 : 0; // read
-    assign  data_req_pos_bank1_way[12] = {l1tol2_req_reg3.ppaddr[2], l1tol2_req_reg3.poffset[11:6]};
-
-    assign  data_req_valid_bank1_way[13] = (l1tol2_req_reg3.poffset[7:6]==2'b01) && reg_new_l1tol2_req_tag_access_2 && tag_hit_next && (hit_way_next == 16'b0010_0000_0000_0000);
-    assign  data_req_we_bank1_way[13] = (l1tol2_req_reg3.poffset[7:6]==2'b01) && reg_new_l1tol2_req_tag_access_2 ? 0 : 0; // read
-    assign  data_req_pos_bank1_way[13] = {l1tol2_req_reg3.ppaddr[2], l1tol2_req_reg3.poffset[11:6]};
-
-    assign  data_req_valid_bank1_way[14] = (l1tol2_req_reg3.poffset[7:6]==2'b01) && reg_new_l1tol2_req_tag_access_2 && tag_hit_next && (hit_way_next == 16'b0100_0000_0000_0000);
-    assign  data_req_we_bank1_way[14] = (l1tol2_req_reg3.poffset[7:6]==2'b01) && reg_new_l1tol2_req_tag_access_2 ? 0 : 0; // read
-    assign  data_req_pos_bank1_way[14] = {l1tol2_req_reg3.ppaddr[2], l1tol2_req_reg3.poffset[11:6]};
-
-    assign  data_req_valid_bank1_way[15] = (l1tol2_req_reg3.poffset[7:6]==2'b01) && reg_new_l1tol2_req_tag_access_2 && tag_hit_next && (hit_way_next == 16'b1000_0000_0000_0000);
-    assign  data_req_we_bank1_way[15] = (l1tol2_req_reg3.poffset[7:6]==2'b01) && reg_new_l1tol2_req_tag_access_2 ? 0 : 0; // read
-    assign  data_req_pos_bank1_way[15] = {l1tol2_req_reg3.ppaddr[2], l1tol2_req_reg3.poffset[11:6]};
-
-    assign  data_req_valid_bank2_way[0] = (l1tol2_req_reg3.poffset[7:6]==2'b10) && reg_new_l1tol2_req_tag_access_2 && tag_hit_next && (hit_way_next == 16'b0000_0000_0000_0001);
-    assign  data_req_we_bank2_way[0] = (l1tol2_req_reg3.poffset[7:6]==2'b10) && reg_new_l1tol2_req_tag_access_2 ? 0 : 0; // read
-    assign  data_req_pos_bank2_way[0] = {l1tol2_req_reg3.ppaddr[2], l1tol2_req_reg3.poffset[11:6]};
+    assign  data_req_valid_bank2_way = (l1tol2_req_reg3.poffset[7:6]==2'b10) && reg_new_l1tol2_req_tag_access_2 && tag_hit_next;
+    assign  data_req_we_bank2_way = (l1tol2_req_reg3.poffset[7:6]==2'b10) && reg_new_l1tol2_req_tag_access_2 ? 0 : 0; // read
+    assign  data_req_pos_bank2_way = {hit_way_next, l1tol2_req_reg3.ppaddr[2], l1tol2_req_reg3.poffset[11:6]};
    
-    assign  data_req_valid_bank2_way[1] = (l1tol2_req_reg3.poffset[7:6]==2'b10) && reg_new_l1tol2_req_tag_access_2 && tag_hit_next && (hit_way_next == 16'b0000_0000_0000_0010);
-    assign  data_req_we_bank2_way[1] = (l1tol2_req_reg3.poffset[7:6]==2'b10) && reg_new_l1tol2_req_tag_access_2 ? 0 : 0; // read
-    assign  data_req_pos_bank2_way[1] = {l1tol2_req_reg3.ppaddr[2], l1tol2_req_reg3.poffset[11:6]};
-
-    assign  data_req_valid_bank2_way[2] = (l1tol2_req_reg3.poffset[7:6]==2'b10) && reg_new_l1tol2_req_tag_access_2 && tag_hit_next && (hit_way_next == 16'b0000_0000_0000_0100);
-    assign  data_req_we_bank2_way[2] = (l1tol2_req_reg3.poffset[7:6]==2'b10) && reg_new_l1tol2_req_tag_access_2 ? 0 : 0; // read
-    assign  data_req_pos_bank2_way[2] = {l1tol2_req_reg3.ppaddr[2], l1tol2_req_reg3.poffset[11:6]};
-
-    assign  data_req_valid_bank2_way[3] = (l1tol2_req_reg3.poffset[7:6]==2'b10) && reg_new_l1tol2_req_tag_access_2 && tag_hit_next && (hit_way_next == 16'b0000_0000_0000_1000);
-    assign  data_req_we_bank2_way[3] = (l1tol2_req_reg3.poffset[7:6]==2'b10) && reg_new_l1tol2_req_tag_access_2 ? 0 : 0; // read
-    assign  data_req_pos_bank2_way[3] = {l1tol2_req_reg3.ppaddr[2], l1tol2_req_reg3.poffset[11:6]};
-
-    assign  data_req_valid_bank2_way[4] = (l1tol2_req_reg3.poffset[7:6]==2'b10) && reg_new_l1tol2_req_tag_access_2 && tag_hit_next && (hit_way_next == 16'b0000_0000_0001_0000);
-    assign  data_req_we_bank2_way[4] = (l1tol2_req_reg3.poffset[7:6]==2'b10) && reg_new_l1tol2_req_tag_access_2 ? 0 : 0; // read
-    assign  data_req_pos_bank2_way[4] = {l1tol2_req_reg3.ppaddr[2], l1tol2_req_reg3.poffset[11:6]};
-
-    assign  data_req_valid_bank2_way[5] = (l1tol2_req_reg3.poffset[7:6]==2'b10) && reg_new_l1tol2_req_tag_access_2 && tag_hit_next && (hit_way_next == 16'b0000_0000_0010_0000);
-    assign  data_req_we_bank2_way[5] = (l1tol2_req_reg3.poffset[7:6]==2'b10) && reg_new_l1tol2_req_tag_access_2 ? 0 : 0; // read
-    assign  data_req_pos_bank2_way[5] = {l1tol2_req_reg3.ppaddr[2], l1tol2_req_reg3.poffset[11:6]};
-
-    assign  data_req_valid_bank2_way[6] = (l1tol2_req_reg3.poffset[7:6]==2'b10) && reg_new_l1tol2_req_tag_access_2 && tag_hit_next && (hit_way_next == 16'b0000_0000_0100_0000);
-    assign  data_req_we_bank2_way[6] = (l1tol2_req_reg3.poffset[7:6]==2'b10) && reg_new_l1tol2_req_tag_access_2 ? 0 : 0; // read
-    assign  data_req_pos_bank2_way[6] = {l1tol2_req_reg3.ppaddr[2], l1tol2_req_reg3.poffset[11:6]};
-
-    assign  data_req_valid_bank2_way[7] = (l1tol2_req_reg3.poffset[7:6]==2'b10) && reg_new_l1tol2_req_tag_access_2 && tag_hit_next && (hit_way_next == 16'b0000_0000_1000_0000);
-    assign  data_req_we_bank2_way[7] = (l1tol2_req_reg3.poffset[7:6]==2'b10) && reg_new_l1tol2_req_tag_access_2 ? 0 : 0; // read
-    assign  data_req_pos_bank2_way[7] = {l1tol2_req_reg3.ppaddr[2], l1tol2_req_reg3.poffset[11:6]};
-
-    assign  data_req_valid_bank2_way[8] = (l1tol2_req_reg3.poffset[7:6]==2'b10) && reg_new_l1tol2_req_tag_access_2 && tag_hit_next && (hit_way_next == 16'b0000_0001_0000_0000);
-    assign  data_req_we_bank2_way[8] = (l1tol2_req_reg3.poffset[7:6]==2'b10) && reg_new_l1tol2_req_tag_access_2 ? 0 : 0; // read
-    assign  data_req_pos_bank2_way[8] = {l1tol2_req_reg3.ppaddr[2], l1tol2_req_reg3.poffset[11:6]};
-
-    assign  data_req_valid_bank2_way[9] = (l1tol2_req_reg3.poffset[7:6]==2'b10) && reg_new_l1tol2_req_tag_access_2 && tag_hit_next && (hit_way_next == 16'b0000_0010_0000_0000);
-    assign  data_req_we_bank2_way[9] = (l1tol2_req_reg3.poffset[7:6]==2'b10) && reg_new_l1tol2_req_tag_access_2 ? 0 : 0; // read
-    assign  data_req_pos_bank2_way[9] = {l1tol2_req_reg3.ppaddr[2], l1tol2_req_reg3.poffset[11:6]};
-
-    assign  data_req_valid_bank2_way[10] = (l1tol2_req_reg3.poffset[7:6]==2'b10) && reg_new_l1tol2_req_tag_access_2 && tag_hit_next && (hit_way_next == 16'b0000_0100_0000_0000);
-    assign  data_req_we_bank2_way[10] = (l1tol2_req_reg3.poffset[7:6]==2'b10) && reg_new_l1tol2_req_tag_access_2 ? 0 : 0; // read
-    assign  data_req_pos_bank2_way[10] = {l1tol2_req_reg3.ppaddr[2], l1tol2_req_reg3.poffset[11:6]};
-
-    assign  data_req_valid_bank2_way[11] = (l1tol2_req_reg3.poffset[7:6]==2'b10) && reg_new_l1tol2_req_tag_access_2 && tag_hit_next && (hit_way_next == 16'b0000_1000_0000_0000);
-    assign  data_req_we_bank2_way[11] = (l1tol2_req_reg3.poffset[7:6]==2'b10) && reg_new_l1tol2_req_tag_access_2 ? 0 : 0; // read
-    assign  data_req_pos_bank2_way[11] = {l1tol2_req_reg3.ppaddr[2], l1tol2_req_reg3.poffset[11:6]};
-
-    assign  data_req_valid_bank2_way[12] = (l1tol2_req_reg3.poffset[7:6]==2'b10) && reg_new_l1tol2_req_tag_access_2 && tag_hit_next && (hit_way_next == 16'b0001_0000_0000_0000);
-    assign  data_req_we_bank2_way[12] = (l1tol2_req_reg3.poffset[7:6]==2'b10) && reg_new_l1tol2_req_tag_access_2 ? 0 : 0; // read
-    assign  data_req_pos_bank2_way[12] = {l1tol2_req_reg3.ppaddr[2], l1tol2_req_reg3.poffset[11:6]};
-
-    assign  data_req_valid_bank2_way[13] = (l1tol2_req_reg3.poffset[7:6]==2'b10) && reg_new_l1tol2_req_tag_access_2 && tag_hit_next && (hit_way_next == 16'b0010_0000_0000_0000);
-    assign  data_req_we_bank2_way[13] = (l1tol2_req_reg3.poffset[7:6]==2'b10) && reg_new_l1tol2_req_tag_access_2 ? 0 : 0; // read
-    assign  data_req_pos_bank2_way[13] = {l1tol2_req_reg3.ppaddr[2], l1tol2_req_reg3.poffset[11:6]};
-
-    assign  data_req_valid_bank2_way[14] = (l1tol2_req_reg3.poffset[7:6]==2'b10) && reg_new_l1tol2_req_tag_access_2 && tag_hit_next && (hit_way_next == 16'b0100_0000_0000_0000);
-    assign  data_req_we_bank2_way[14] = (l1tol2_req_reg3.poffset[7:6]==2'b10) && reg_new_l1tol2_req_tag_access_2 ? 0 : 0; // read
-    assign  data_req_pos_bank2_way[14] = {l1tol2_req_reg3.ppaddr[2], l1tol2_req_reg3.poffset[11:6]};
-
-    assign  data_req_valid_bank2_way[15] = (l1tol2_req_reg3.poffset[7:6]==2'b10) && reg_new_l1tol2_req_tag_access_2 && tag_hit_next && (hit_way_next == 16'b1000_0000_0000_0000);
-    assign  data_req_we_bank2_way[15] = (l1tol2_req_reg3.poffset[7:6]==2'b10) && reg_new_l1tol2_req_tag_access_2 ? 0 : 0; // read
-    assign  data_req_pos_bank2_way[15] = {l1tol2_req_reg3.ppaddr[2], l1tol2_req_reg3.poffset[11:6]};
-
-    assign  data_req_valid_bank3_way[0] = (l1tol2_req_reg3.poffset[7:6]==2'b00) && reg_new_l1tol2_req_tag_access_2 && tag_hit_next && (hit_way_next == 16'b0000_0000_0000_0001);
-    assign  data_req_we_bank3_way[0] = (l1tol2_req_reg3.poffset[7:6]==2'b11) && reg_new_l1tol2_req_tag_access_2 ? 0 : 0; // read
-    assign  data_req_pos_bank3_way[0] = {l1tol2_req_reg3.ppaddr[2], l1tol2_req_reg3.poffset[11:6]};
+    assign  data_req_valid_bank3_way = (l1tol2_req_reg3.poffset[7:6]==2'b00) && reg_new_l1tol2_req_tag_access_2 && tag_hit_next;
+    assign  data_req_we_bank3_way = (l1tol2_req_reg3.poffset[7:6]==2'b11) && reg_new_l1tol2_req_tag_access_2 ? 0 : 0; // read
+    assign  data_req_pos_bank3_way = {hit_way_next, l1tol2_req_reg3.ppaddr[2], l1tol2_req_reg3.poffset[11:6]};
    
-    assign  data_req_valid_bank3_way[1] = (l1tol2_req_reg3.poffset[7:6]==2'b11) && reg_new_l1tol2_req_tag_access_2 && tag_hit_next && (hit_way_next == 16'b0000_0000_0000_0010);
-    assign  data_req_we_bank3_way[1] = (l1tol2_req_reg3.poffset[7:6]==2'b11) && reg_new_l1tol2_req_tag_access_2 ? 0 : 0; // read
-    assign  data_req_pos_bank3_way[1] = {l1tol2_req_reg3.ppaddr[2], l1tol2_req_reg3.poffset[11:6]};
-
-    assign  data_req_valid_bank3_way[2] = (l1tol2_req_reg3.poffset[7:6]==2'b11) && reg_new_l1tol2_req_tag_access_2 && tag_hit_next && (hit_way_next == 16'b0000_0000_0000_0100);
-    assign  data_req_we_bank3_way[2] = (l1tol2_req_reg3.poffset[7:6]==2'b11) && reg_new_l1tol2_req_tag_access_2 ? 0 : 0; // read
-    assign  data_req_pos_bank3_way[2] = {l1tol2_req_reg3.ppaddr[2], l1tol2_req_reg3.poffset[11:6]};
-
-    assign  data_req_valid_bank3_way[3] = (l1tol2_req_reg3.poffset[7:6]==2'b11) && reg_new_l1tol2_req_tag_access_2 && tag_hit_next && (hit_way_next == 16'b0000_0000_0000_1000);
-    assign  data_req_we_bank3_way[3] = (l1tol2_req_reg3.poffset[7:6]==2'b11) && reg_new_l1tol2_req_tag_access_2 ? 0 : 0; // read
-    assign  data_req_pos_bank3_way[3] = {l1tol2_req_reg3.ppaddr[2], l1tol2_req_reg3.poffset[11:6]};
-
-    assign  data_req_valid_bank3_way[4] = (l1tol2_req_reg3.poffset[7:6]==2'b11) && reg_new_l1tol2_req_tag_access_2 && tag_hit_next && (hit_way_next == 16'b0000_0000_0001_0000);
-    assign  data_req_we_bank3_way[4] = (l1tol2_req_reg3.poffset[7:6]==2'b11) && reg_new_l1tol2_req_tag_access_2 ? 0 : 0; // read
-    assign  data_req_pos_bank3_way[4] = {l1tol2_req_reg3.ppaddr[2], l1tol2_req_reg3.poffset[11:6]};
-
-    assign  data_req_valid_bank3_way[5] = (l1tol2_req_reg3.poffset[7:6]==2'b11) && reg_new_l1tol2_req_tag_access_2 && tag_hit_next && (hit_way_next == 16'b0000_0000_0010_0000);
-    assign  data_req_we_bank3_way[5] = (l1tol2_req_reg3.poffset[7:6]==2'b11) && reg_new_l1tol2_req_tag_access_2 ? 0 : 0; // read
-    assign  data_req_pos_bank3_way[5] = {l1tol2_req_reg3.ppaddr[2], l1tol2_req_reg3.poffset[11:6]};
-
-    assign  data_req_valid_bank3_way[6] = (l1tol2_req_reg3.poffset[7:6]==2'b11) && reg_new_l1tol2_req_tag_access_2 && tag_hit_next && (hit_way_next == 16'b0000_0000_0100_0000);
-    assign  data_req_we_bank3_way[6] = (l1tol2_req_reg3.poffset[7:6]==2'b11) && reg_new_l1tol2_req_tag_access_2 ? 0 : 0; // read
-    assign  data_req_pos_bank3_way[6] = {l1tol2_req_reg3.ppaddr[2], l1tol2_req_reg3.poffset[11:6]};
-
-    assign  data_req_valid_bank3_way[7] = (l1tol2_req_reg3.poffset[7:6]==2'b11) && reg_new_l1tol2_req_tag_access_2 && tag_hit_next && (hit_way_next == 16'b0000_0000_1000_0000);
-    assign  data_req_we_bank3_way[7] = (l1tol2_req_reg3.poffset[7:6]==2'b11) && reg_new_l1tol2_req_tag_access_2 ? 0 : 0; // read
-    assign  data_req_pos_bank3_way[7] = {l1tol2_req_reg3.ppaddr[2], l1tol2_req_reg3.poffset[11:6]};
-
-    assign  data_req_valid_bank3_way[8] = (l1tol2_req_reg3.poffset[7:6]==2'b11) && reg_new_l1tol2_req_tag_access_2 && tag_hit_next && (hit_way_next == 16'b0000_0001_0000_0000);
-    assign  data_req_we_bank3_way[8] = (l1tol2_req_reg3.poffset[7:6]==2'b11) && reg_new_l1tol2_req_tag_access_2 ? 0 : 0; // read
-    assign  data_req_pos_bank3_way[8] = {l1tol2_req_reg3.ppaddr[2], l1tol2_req_reg3.poffset[11:6]};
-
-    assign  data_req_valid_bank3_way[9] = (l1tol2_req_reg3.poffset[7:6]==2'b11) && reg_new_l1tol2_req_tag_access_2 && tag_hit_next && (hit_way_next == 16'b0000_0010_0000_0000);
-    assign  data_req_we_bank3_way[9] = (l1tol2_req_reg3.poffset[7:6]==2'b11) && reg_new_l1tol2_req_tag_access_2 ? 0 : 0; // read
-    assign  data_req_pos_bank3_way[9] = {l1tol2_req_reg3.ppaddr[2], l1tol2_req_reg3.poffset[11:6]};
-
-    assign  data_req_valid_bank3_way[10] = (l1tol2_req_reg3.poffset[7:6]==2'b11) && reg_new_l1tol2_req_tag_access_2 && tag_hit_next && (hit_way_next == 16'b0000_0100_0000_0000);
-    assign  data_req_we_bank3_way[10] = (l1tol2_req_reg3.poffset[7:6]==2'b11) && reg_new_l1tol2_req_tag_access_2 ? 0 : 0; // read
-    assign  data_req_pos_bank3_way[10] = {l1tol2_req_reg3.ppaddr[2], l1tol2_req_reg3.poffset[11:6]};
-
-    assign  data_req_valid_bank3_way[11] = (l1tol2_req_reg3.poffset[7:6]==2'b11) && reg_new_l1tol2_req_tag_access_2 && tag_hit_next && (hit_way_next == 16'b0000_1000_0000_0000);
-    assign  data_req_we_bank3_way[11] = (l1tol2_req_reg3.poffset[7:6]==2'b11) && reg_new_l1tol2_req_tag_access_2 ? 0 : 0; // read
-    assign  data_req_pos_bank3_way[11] = {l1tol2_req_reg3.ppaddr[2], l1tol2_req_reg3.poffset[11:6]};
-
-    assign  data_req_valid_bank3_way[12] = (l1tol2_req_reg3.poffset[7:6]==2'b11) && reg_new_l1tol2_req_tag_access_2 && tag_hit_next && (hit_way_next == 16'b0001_0000_0000_0000);
-    assign  data_req_we_bank3_way[12] = (l1tol2_req_reg3.poffset[7:6]==2'b11) && reg_new_l1tol2_req_tag_access_2 ? 0 : 0; // read
-    assign  data_req_pos_bank3_way[12] = {l1tol2_req_reg3.ppaddr[2], l1tol2_req_reg3.poffset[11:6]};
-
-    assign  data_req_valid_bank3_way[13] = (l1tol2_req_reg3.poffset[7:6]==2'b11) && reg_new_l1tol2_req_tag_access_2 && tag_hit_next && (hit_way_next == 16'b0010_0000_0000_0000);
-    assign  data_req_we_bank3_way[13] = (l1tol2_req_reg3.poffset[7:6]==2'b11) && reg_new_l1tol2_req_tag_access_2 ? 0 : 0; // read
-    assign  data_req_pos_bank3_way[13] = {l1tol2_req_reg3.ppaddr[2], l1tol2_req_reg3.poffset[11:6]};
-
-    assign  data_req_valid_bank3_way[14] = (l1tol2_req_reg3.poffset[7:6]==2'b11) && reg_new_l1tol2_req_tag_access_2 && tag_hit_next && (hit_way_next == 16'b0100_0000_0000_0000);
-    assign  data_req_we_bank3_way[14] = (l1tol2_req_reg3.poffset[7:6]==2'b11) && reg_new_l1tol2_req_tag_access_2 ? 0 : 0; // read
-    assign  data_req_pos_bank3_way[14] = {l1tol2_req_reg3.ppaddr[2], l1tol2_req_reg3.poffset[11:6]};
-
-    assign  data_req_valid_bank3_way[15] = (l1tol2_req_reg3.poffset[7:6]==2'b11) && reg_new_l1tol2_req_tag_access_2 && tag_hit_next && (hit_way_next == 16'b1000_0000_0000_0000);
-    assign  data_req_we_bank3_way[15] = (l1tol2_req_reg3.poffset[7:6]==2'b11) && reg_new_l1tol2_req_tag_access_2 ? 0 : 0; // read
-    assign  data_req_pos_bank3_way[15] = {l1tol2_req_reg3.ppaddr[2], l1tol2_req_reg3.poffset[11:6]};
-
 `endif
 endmodule
 
