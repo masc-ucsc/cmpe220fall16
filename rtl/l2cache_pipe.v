@@ -365,8 +365,12 @@ module l2cache_pipe(
     flop #(.Bits(1)) f_reg_new_l1tol2_req_tag_access_0 (
     .clk      (clk),
     .reset    (reset),
-    .d        (reg_new_l1tol2_req_tag_access_0_next),
+    
+    .d      (reg_new_l1tol2_req_tag_access_0_next),
+
     .q        (reg_new_l1tol2_req_tag_access_0)
+    //.qRetry   (reg_new_l1tol2_req_tag_access_0_valid)
+
     );
     flop #(.Bits(1)) f_reg_new_l1tol2_req_tag_access_1 (
     .clk      (clk),
@@ -381,7 +385,36 @@ module l2cache_pipe(
     .q        (reg_new_l1tol2_req_tag_access_2)
     );
 
+    // Data bank stage
+    logic   reg_new_l1tol2_req_data_access_0;
+    logic   reg_new_l1tol2_req_data_access_0_next;
+    flop #(.Bits(1)) f_reg_new_l1tol2_data_access_0 (
+    .clk      (clk),
+    .reset    (reset),
+    .d        (reg_new_l1tol2_req_data_access_0_next),
+    .q        (reg_new_l1tol2_req_data_access_0)
+    );
 
+    logic   reg_new_l1tol2_req_data_access_1;
+    logic   reg_new_l1tol2_req_data_access_1_next;
+    flop #(.Bits(1)) f_reg_new_l1tol2_data_access_1 (
+    .clk      (clk),
+    .reset    (reset),
+    .d        (reg_new_l1tol2_req_data_access_1_next),
+    .q        (reg_new_l1tol2_req_data_access_1)
+    );
+
+    logic   reg_new_l1tol2_req_data_access_2;
+    logic   reg_new_l1tol2_req_data_access_2_next;
+    flop #(.Bits(1)) f_reg_new_l1tol2_data_access_2 (
+    .clk      (clk),
+    .reset    (reset),
+    .d        (reg_new_l1tol2_req_data_access_2_next),
+    .q        (reg_new_l1tol2_req_data_access_2)
+    );
+
+
+    //
     /*
     flop #(.Bits()) f_reg_ (
     .clk      (clk),
@@ -457,12 +490,12 @@ module l2cache_pipe(
 
     .q        (l1tol2_req_reg1),
     .qValid   (l1tol2_req_reg1_valid),
-    .qRetry   (l1tol2_req_reg1_retry)
+    .qRetry     (1'b0)
+    //.qRetry   (l1tol2_req_reg1_retry)
     );
 
     I_l1tol2_req_type   l1tol2_req_reg2;
     logic   l1tol2_req_reg2_valid;
-    logic   l1tol2_req_reg2_retry_direct;
     logic   l1tol2_req_reg2_retry;
     fflop #(.Size($bits(I_l1tol2_req_type))) f_l1tol2_req_reg2 (
     .clk      (clk),
@@ -474,7 +507,8 @@ module l2cache_pipe(
 
     .q        (l1tol2_req_reg2),
     .qValid   (l1tol2_req_reg2_valid),
-    .qRetry   (l1tol2_req_reg2_retry)
+    .qRetry (1'b0)
+    //.qRetry   (l1tol2_req_reg2_retry)
     );
 
     I_l1tol2_req_type   l1tol2_req_reg3;
@@ -490,7 +524,25 @@ module l2cache_pipe(
 
     .q        (l1tol2_req_reg3),
     .qValid   (l1tol2_req_reg3_valid),
-    .qRetry   (l1tol2_req_reg3_retry)
+    .qRetry     (1'b0)
+    //.qRetry   (l1tol2_req_reg3_retry)
+    );
+
+    I_l1tol2_req_type   l1tol2_req_reg4;
+    logic   l1tol2_req_reg4_valid;
+    logic   l1tol2_req_reg4_retry;
+    fflop #(.Size($bits(I_l1tol2_req_type))) f_l1tol2_req_reg4 (
+    .clk      (clk),
+    .reset    (reset),
+
+    .din      (l1tol2_req_reg3),
+    .dinValid (l1tol2_req_reg3_valid),
+    .dinRetry (l1tol2_req_reg3_retry),
+
+    .q        (l1tol2_req_reg4),
+    .qValid   (l1tol2_req_reg4_valid),
+    .qRetry     (1'b0)
+    //.qRetry   (l1tol2_req_reg4_retry)
     );
 
 
@@ -498,18 +550,18 @@ module l2cache_pipe(
     I_l2tlbtol2_fwd_type    l2tlbtol2_fwd_reg1;
     logic   l2tlbtol2_fwd_reg1_valid;
     logic   l2tlbtol2_fwd_reg1_retry;
-    logic   l2tlbtol2_fwd_retry_direct;
     fflop #(.Size($bits(I_l2tlbtol2_fwd_type))) f_l2tlbtol2_fwd_reg1 (
     .clk      (clk),
     .reset    (reset),
 
     .din      (l2tlbtol2_fwd),
     .dinValid (l2tlbtol2_fwd_valid),
-    .dinRetry (l2tlbtol2_fwd_retry_direct),
+    .dinRetry (l2tlbtol2_fwd_retry),
 
     .q        (l2tlbtol2_fwd_reg1),
     .qValid   (l2tlbtol2_fwd_reg1_valid),
-    .qRetry   (l2tlbtol2_fwd_reg1_retry)
+    .qRetry     (1'b0)
+    //.qRetry   (l2tlbtol2_fwd_reg1_retry)
     );
 
     // Nothing blocks the second cycle of tag access
@@ -520,8 +572,10 @@ module l2cache_pipe(
     // Each tag "line" contains all 16 ways 
     localparam  TAG_WIDTH = (16 * `TLB_HPADDRBITS);
     localparam  TAG_SIZE = 128;
-    logic   [1:0]   tag_bank_id;
-    logic   [6:0]  predicted_index;
+    logic   [1:0]   tag_bank_id_s0;
+    logic   [6:0]  predicted_index_s0;
+    logic   [1:0]   tag_bank_id_s1;
+    logic   [6:0]  predicted_index_s1;
     // bank0
     // way0 to way15
     logic tag_req_valid_bank0_ways;
@@ -634,7 +688,8 @@ module l2cache_pipe(
         .req_data       (tag_req_data_bank0_ways),
 
         .ack_valid      (tag_ack_valid_bank0_ways),
-        .ack_retry      (tag_ack_retry_bank0_ways),
+        .ack_retry      (1'b0),
+        //.ack_retry      (tag_ack_retry_bank0_ways),
         .ack_data       (tag_ack_data_bank0_ways)
     );
 
@@ -649,7 +704,8 @@ module l2cache_pipe(
         .req_data       (tag_req_data_bank1_ways),
 
         .ack_valid      (tag_ack_valid_bank1_ways),
-        .ack_retry      (tag_ack_retry_bank1_ways),
+        .ack_retry      (1'b0),
+        //.ack_retry      (tag_ack_retry_bank1_ways),
         .ack_data       (tag_ack_data_bank1_ways)
     );
 
@@ -664,7 +720,8 @@ module l2cache_pipe(
         .req_data       (tag_req_data_bank2_ways),
 
         .ack_valid      (tag_ack_valid_bank2_ways),
-        .ack_retry      (tag_ack_retry_bank2_ways),
+        .ack_retry      (1'b0),
+        //.ack_retry      (tag_ack_retry_bank2_ways),
         .ack_data       (tag_ack_data_bank2_ways)
     );
 
@@ -679,9 +736,52 @@ module l2cache_pipe(
         .req_data       (tag_req_data_bank3_ways),
 
         .ack_valid      (tag_ack_valid_bank3_ways),
-        .ack_retry      (tag_ack_retry_bank3_ways),
+        .ack_retry      (1'b0),
+        //.ack_retry      (tag_ack_retry_bank3_ways),
         .ack_data       (tag_ack_data_bank3_ways)
     );
+
+    // Tag bank busy indicator
+    // Bank0
+    logic   [0:0]  tag_bank0_busy_next;
+    logic   [0:0]  tag_bank0_busy;
+    flop #(.Bits($bits(tag_bank0_busy))) f_reg_tag_bank0_busy (
+    .clk      (clk),
+    .reset    (reset),
+    .d        (tag_bank0_busy_next),
+    .q        (tag_bank0_busy)
+    );
+
+    // Bank1
+    logic   [0:0]  tag_bank1_busy_next;
+    logic   [0:0]  tag_bank1_busy;
+    flop #(.Bits($bits(tag_bank1_busy))) f_reg_tag_bank1_busy (
+    .clk      (clk),
+    .reset    (reset),
+    .d        (tag_bank1_busy_next),
+    .q        (tag_bank1_busy)
+    );
+
+    // Bank2
+    logic   [0:0]  tag_bank2_busy_next;
+    logic   [0:0]  tag_bank2_busy;
+    flop #(.Bits($bits(tag_bank2_busy))) f_reg_tag_bank2_busy (
+    .clk      (clk),
+    .reset    (reset),
+    .d        (tag_bank2_busy_next),
+    .q        (tag_bank2_busy)
+    );
+
+    // Bank3
+    logic   [0:0]  tag_bank3_busy_next;
+    logic   [0:0]  tag_bank3_busy;
+    flop #(.Bits($bits(tag_bank3_busy))) f_reg_tag_bank3_busy (
+    .clk      (clk),
+    .reset    (reset),
+    .d        (tag_bank3_busy_next),
+    .q        (tag_bank3_busy)
+    );
+
 
     // Instantiate Dank RAM
     ram_1port_dense #(DATA_BANK_WIDTH, DATA_BANK_SIZE, 0) data_bank0_way (
@@ -695,7 +795,8 @@ module l2cache_pipe(
         .req_data       (data_req_data_bank0_way),
 
         .ack_valid      (data_ack_valid_bank0_way),
-        .ack_retry      (data_ack_retry_bank0_way),
+        .ack_retry      (1'b0),
+        //.ack_retry      (data_ack_retry_bank0_way),
         .ack_data       (data_ack_data_bank0_way)
     );
 
@@ -710,7 +811,8 @@ module l2cache_pipe(
         .req_data       (data_req_data_bank1_way),
 
         .ack_valid      (data_ack_valid_bank1_way),
-        .ack_retry      (data_ack_retry_bank1_way),
+        .ack_retry      (1'b0),
+        //.ack_retry      (data_ack_retry_bank1_way),
         .ack_data       (data_ack_data_bank1_way)
     );
 
@@ -725,7 +827,8 @@ module l2cache_pipe(
         .req_data       (data_req_data_bank2_way),
 
         .ack_valid      (data_ack_valid_bank2_way),
-        .ack_retry      (data_ack_retry_bank2_way),
+        .ack_retry      (1'b0),
+        //.ack_retry      (data_ack_retry_bank2_way),
         .ack_data       (data_ack_data_bank2_way)
     );
 
@@ -740,7 +843,8 @@ module l2cache_pipe(
         .req_data       (data_req_data_bank3_way),
 
         .ack_valid      (data_ack_valid_bank3_way),
-        .ack_retry      (data_ack_retry_bank3_way),
+        .ack_retry      (1'b0),
+        //.ack_retry      (data_ack_retry_bank3_way),
         .ack_data       (data_ack_data_bank3_way)
     );
 
@@ -776,7 +880,8 @@ module l2cache_pipe(
         .req_rd_addr    (req_rd_q_l1tol2_req_addr),
 
         .ack_rd_valid   (ack_rd_q_l1tol2_req_valid),
-        .ack_rd_retry   (ack_rd_q_l1tol2_req_retry),
+        .ack_rd_retry   (1'b0),
+        //.ack_rd_retry   (ack_rd_q_l1tol2_req_retry),
         .ack_rd_data    (ack_rd_q_l1tol2_req_data)
     );
 
@@ -790,10 +895,13 @@ module l2cache_pipe(
     logic   [1:0]   q_l1tol2_req_rd_vs_wr;
 
     // Increment pointers and Adjust counter
-    assign  q_l1tol2_req_rd_pointer_next = (req_rd_q_l1tol2_req_valid && req_rd_q_l1tol2_req_retry) ? (q_l1tol2_req_rd_pointer + 1) : q_l1tol2_req_rd_pointer;
-    assign  q_l1tol2_req_wr_pointer_next = (req_wr_q_l1tol2_req_valid && req_wr_q_l1tol2_req_retry) ? (q_l1tol2_req_wr_pointer + 1) : q_l1tol2_req_wr_pointer;
-    assign  q_l1tol2_req_rd_vs_wr = {(req_rd_q_l1tol2_req_valid && req_rd_q_l1tol2_req_retry),
-        (req_wr_q_l1tol2_req_valid && req_wr_q_l1tol2_req_retry) };
+    assign  q_l1tol2_req_rd_pointer_next = (req_rd_q_l1tol2_req_valid) ? (q_l1tol2_req_rd_pointer + 1) : q_l1tol2_req_rd_pointer;
+    //assign  q_l1tol2_req_rd_pointer_next = (req_rd_q_l1tol2_req_valid && req_rd_q_l1tol2_req_retry) ? (q_l1tol2_req_rd_pointer + 1) : q_l1tol2_req_rd_pointer;
+    assign  q_l1tol2_req_wr_pointer_next = (req_wr_q_l1tol2_req_valid) ? (q_l1tol2_req_wr_pointer + 1) : q_l1tol2_req_wr_pointer;
+    //assign  q_l1tol2_req_wr_pointer_next = (req_wr_q_l1tol2_req_valid && req_wr_q_l1tol2_req_retry) ? (q_l1tol2_req_wr_pointer + 1) : q_l1tol2_req_wr_pointer;
+    assign  q_l1tol2_req_rd_vs_wr = {req_rd_q_l1tol2_req_valid, req_wr_q_l1tol2_req_valid};
+    //assign  q_l1tol2_req_rd_vs_wr = {(req_rd_q_l1tol2_req_valid && req_rd_q_l1tol2_req_retry),
+    //    (req_wr_q_l1tol2_req_valid && req_wr_q_l1tol2_req_retry) };
     assign  q_l1tol2_req_counter_next = (q_l1tol2_req_rd_vs_wr==2'b01) ? (q_l1tol2_req_counter + 1) :
         ((q_l1tol2_req_rd_vs_wr==2'b10) ? (q_l1tol2_req_counter - 1) : q_l1tol2_req_counter);
     
@@ -846,48 +954,83 @@ module l2cache_pipe(
     */
     localparam NEW_L1TOL2_REQ = 5'b00001;
     logic [4:0] winner_for_tag;
+    // Initial stage
+    // Handle new l1tol2_req
     // Check if the new l1tol2_req has the highest priority
     // TODO
-    assign  winner_for_tag = NEW_L1TOL2_REQ;
+    assign  predicted_index_s0 =  l1tol2_req_valid ? ({l1tol2_req.ppaddr[2], l1tol2_req.poffset[11:6]}) : 0;
+    assign  tag_bank_id_s0 = l1tol2_req_valid?  predicted_index_s0[1:0] : 0;
+    assign  new_l1tol2_req_may_go = (~tag_bank0_busy && (tag_bank_id_s0==2'b00)) || (~tag_bank1_busy && (tag_bank_id_s0==2'b01)) 
+            || (~tag_bank2_busy && (tag_bank_id_s0==2'b10)) || (~tag_bank3_busy && (tag_bank_id_s0==2'b11));
+    assign  winner_for_tag = new_l1tol2_req_may_go ? NEW_L1TOL2_REQ : 0;
     // TODO
     // // If the new l2tol2_req is not the winner for tag,
         // it enters l1tol2_req_q, set reg_enqueue_l1tol2_req_1
-    assign  predicted_index = {l1tol2_req.ppaddr[2], l1tol2_req.poffset[11:6]}; // For 128
-    assign  tag_bank_id = predicted_index[1:0];
-    // If it has the highest priority then directly access tag
-    assign  read_tag_for_sure = l1tol2_req_valid && (winner_for_tag == NEW_L1TOL2_REQ);
-    // Access bank0
-    assign  tag_req_valid_bank0_ways = read_tag_for_sure && (tag_bank_id == 2'b00);
-    assign  tag_req_we_bank0_ways = tag_req_valid_bank0_ways ? 0 : 0;// Read tag
-    assign  tag_req_pos_bank0_ways = read_tag_for_sure ? predicted_index : 'b0;
-
-    // Access Bank1
-    assign  tag_req_valid_bank1_ways = read_tag_for_sure && (tag_bank_id == 2'b00);
-    assign  tag_req_we_bank1_ways = tag_req_valid_bank1_ways ? 0 : 0;// Read tag
-    assign  tag_req_pos_bank1_ways = read_tag_for_sure ? predicted_index : 'b0;
-
-    // Access Bank2
-    assign  tag_req_valid_bank2_ways = read_tag_for_sure && (tag_bank_id == 2'b00);
-    assign  tag_req_we_bank2_ways = tag_req_valid_bank2_ways ? 0 : 0;// Read tag
-    assign  tag_req_pos_bank2_ways = read_tag_for_sure ? predicted_index : 'b0;
-
-    // Access Bank3
-    assign  tag_req_valid_bank3_ways = read_tag_for_sure && (tag_bank_id == 2'b00);
-    assign  tag_req_we_bank3_ways = tag_req_valid_bank3_ways ? 0 : 0;// Read tag
-    assign  tag_req_pos_bank3_ways = read_tag_for_sure ? predicted_index : 'b0;
-
+    
+    // If it has the highest priority then will access tag in next stage
     // set reg_new_l1tol2_req_tag_access_0
     assign  reg_new_l1tol2_req_tag_access_0_next = read_tag_for_sure;
-    assign  l1tol2_req_retry =  (tag_req_valid_bank0_ways && tag_req_retry_bank0_ways) ||
+    assign  reg_new_l1tol2_req_tag_access_0_next_valid = read_tag_for_sure;
+    assign  read_tag_for_sure = l1tol2_req_valid && (winner_for_tag == NEW_L1TOL2_REQ);
+
+    // Access tag
+    // @ state1: reg_new_l1tol2_req_tag_access_0
+    assign  predicted_index_s1 = reg_new_l1tol2_req_tag_access_0 ? ({l1tol2_req_reg1.ppaddr[2], l1tol2_req_reg1.poffset[11:6]})
+    : 0; // For 128
+    assign  tag_bank_id_s1 = reg_new_l1tol2_req_tag_access_0 ?  predicted_index_s1[1:0] : 0;
+    // Access bank0
+    assign  tag_req_valid_bank0_ways = reg_new_l1tol2_req_tag_access_0 && (tag_bank_id_s1 == 2'b00);
+    assign  tag_req_we_bank0_ways = tag_req_valid_bank0_ways ? 0 : 0;// Read tag
+    assign  tag_req_pos_bank0_ways = reg_new_l1tol2_req_tag_access_0 ? predicted_index_s1 : 'b0;
+    // Set busy when access tag
+    // Reset busy in next state (state2)
+    assign  tag_bank0_busy_next = tag_req_valid_bank0_ways ? 1'b1 : ( (reg_new_l1tol2_req_tag_access_1 ? 1'b0 : tag_bank0_busy ));
+
+
+    // Access Bank1
+    assign  tag_req_valid_bank1_ways = reg_new_l1tol2_req_tag_access_0 && (tag_bank_id_s1 == 2'b01);
+    assign  tag_req_we_bank1_ways = tag_req_valid_bank1_ways ? 0 : 0;// Read tag
+    assign  tag_req_pos_bank1_ways = reg_new_l1tol2_req_tag_access_0 ? predicted_index_s1 : 'b0;
+    // Set busy when access tag
+    // Reset busy in next state (state2)
+    assign  tag_bank1_busy_next = tag_req_valid_bank1_ways ? 1'b1 : ( (reg_new_l1tol2_req_tag_access_1 ? 1'b0 : tag_bank1_busy ));
+
+
+
+    // Access Bank2
+    assign  tag_req_valid_bank2_ways = reg_new_l1tol2_req_tag_access_0 && (tag_bank_id_s1 == 2'b10);
+    assign  tag_req_we_bank2_ways = tag_req_valid_bank2_ways ? 0 : 0;// Read tag
+    assign  tag_req_pos_bank2_ways = reg_new_l1tol2_req_tag_access_0 ? predicted_index_s1 : 'b0;
+    // Set busy when access tag
+    // Reset busy in next state (state2)
+    assign  tag_bank2_busy_next = tag_req_valid_bank2_ways ? 1'b1 : ( (reg_new_l1tol2_req_tag_access_1 ? 1'b0 : tag_bank2_busy ));
+
+
+
+    // Access Bank3
+    assign  tag_req_valid_bank3_ways = reg_new_l1tol2_req_tag_access_0 && (tag_bank_id_s1 == 2'b11);
+    assign  tag_req_we_bank3_ways = tag_req_valid_bank3_ways ? 0 : 0;// Read tag
+    assign  tag_req_pos_bank3_ways = reg_new_l1tol2_req_tag_access_0 ? predicted_index_s1 : 'b0;
+    // Set busy when access tag
+    // Reset busy in next state (state2)
+    assign  tag_bank3_busy_next = tag_req_valid_bank3_ways ? 1'b1 : ( (reg_new_l1tol2_req_tag_access_1 ? 1'b0 : tag_bank3_busy ));
+
+
+    //&& (!l1tol2_req_retry);
+
+    /*
+    * assign  l1tol2_req_retry =  (tag_req_valid_bank0_ways && tag_req_retry_bank0_ways) ||
 
                                 (tag_req_valid_bank1_ways && tag_req_retry_bank1_ways) ||
 
                                 (tag_req_valid_bank2_ways && tag_req_retry_bank2_ways) ||
 
                                 (tag_req_valid_bank3_ways && tag_req_retry_bank3_ways);
+    */
 
 
     // Handle input from l2tlb
+    // state2: @ reg_new_l1tol2_req_tag_access_1
     always_comb begin
         l1_match_l2tlb_l1id_next = 0;
         l1_match_l2tlb_ppaddr_next = 0;
@@ -930,25 +1073,8 @@ module l2cache_pipe(
             hpaddr_from_tag[12], hpaddr_from_tag[13], hpaddr_from_tag[14], hpaddr_from_tag[15]
             } = tag_ack_data_bank0_ways;    // TODO extract hpaddr
 
-    /*
-    assign hpaddr_from_tag[2] = tag_ack_data_bank0_way[2]; // TODO extract hpaddr
-    assign hpaddr_from_tag[3] = tag_ack_data_bank0_way[3]; // TODO extract hpaddr
-    assign hpaddr_from_tag[4] = tag_ack_data_bank0_way[4]; // TODO extract hpaddr
-    assign hpaddr_from_tag[5] = tag_ack_data_bank0_way[5]; // TODO extract hpaddr
-    assign hpaddr_from_tag[6] = tag_ack_data_bank0_way[6]; // TODO extract hpaddr
-    assign hpaddr_from_tag[7] = tag_ack_data_bank0_way[7]; // TODO extract hpaddr
-    assign hpaddr_from_tag[8] = tag_ack_data_bank0_way[8]; // TODO extract hpaddr
-    assign hpaddr_from_tag[9] = tag_ack_data_bank0_way[9]; // TODO extract hpaddr
-    assign hpaddr_from_tag[10] = tag_ack_data_bank0_way[10]; // TODO extract hpaddr
-    assign hpaddr_from_tag[11] = tag_ack_data_bank0_way[11]; // TODO extract hpaddr
-    assign hpaddr_from_tag[12] = tag_ack_data_bank0_way[12]; // TODO extract hpaddr
-    assign hpaddr_from_tag[13] = tag_ack_data_bank0_way[13]; // TODO extract hpaddr
-    assign hpaddr_from_tag[14] = tag_ack_data_bank0_way[14]; // TODO extract hpaddr
-    assign hpaddr_from_tag[15] = tag_ack_data_bank0_way[15]; // TODO extract hpaddr
-    */
-
     // Handle tag result
-    // reg_new_l1tol2_req_tag_access_2
+    // state3: @ reg_new_l1tol2_req_tag_access_2
     always_comb begin
         tag_hit_next = 0;
         if (reg_new_l1tol2_req_tag_access_2) begin
@@ -1057,28 +1183,44 @@ module l2cache_pipe(
         end
     end
 
+    // Enter next pipe stage: reg_new_l1tol2_req_data_access_0 when tag hit
+    assign  reg_new_l1tol2_req_data_access_0_next = tag_hit_next && reg_new_l1tol2_req_tag_access_2;
+
     // Access data bank under tag hit
-    // @ reg_new_l1tol2_req_tag_access_2
-    // TODO Verify: Pass retry to previous stages: should be l2tlbtol2_fwd_retry and l1tol2_req_reg2_retry
-    assign  l2tlbtol2_fwd_retry = (l2tlbtol2_fwd_retry_direct || data_req_back_press);
-    assign  l1tol2_req_reg2_retry = (l1tol2_req_reg2_retry_direct || data_req_back_press);
-    assign  data_req_back_press = data_req_retry_bank0_way || data_req_retry_bank1_way || data_req_retry_bank2_way || data_req_retry_bank3_way;
-    assign  data_req_valid_bank0_way = (l1tol2_req_reg3.poffset[7:6]==2'b00) && reg_new_l1tol2_req_tag_access_2 && tag_hit_next;
-    assign  data_req_we_bank0_way = (l1tol2_req_reg3.poffset[7:6]==2'b00) && reg_new_l1tol2_req_tag_access_2 ? 0 : 0; // read
-    assign  data_req_pos_bank0_way = {hit_way_next, l1tol2_req_reg3.ppaddr[2], l1tol2_req_reg3.poffset[11:6]};
+    // state4: @ reg_new_l1tol2_req_data_access_0
+    // TODO Verify: Pass retry to previous stages:
+    // should be from l2tlbtol2_fwd_reg1_retry to  l2tlbtol2_fwd_retry and
+    // from l1tol2_req_reg3_retry to l1tol2_req_reg2_retry
+    //assign  l2tlbtol2_fwd_reg1_retry = (data_req_back_press);
+    //assign  l1tol2_req_reg3_retry = (data_req_back_press);
+    //assign  data_req_back_press = data_req_retry_bank0_way || data_req_retry_bank1_way || data_req_retry_bank2_way || data_req_retry_bank3_way;
+    assign  data_req_valid = data_req_valid_bank0_way || data_req_valid_bank1_way || data_req_valid_bank2_way || data_req_valid_bank3_way;
+    assign  data_req_valid_bank0_way = (l1tol2_req_reg4.poffset[7:6]==2'b00) && reg_new_l1tol2_req_data_access_0 && tag_hit;
+    assign  data_req_we_bank0_way = (l1tol2_req_reg4.poffset[7:6]==2'b00) && reg_new_l1tol2_req_data_access_0 ? 0 : 0; // read
+    assign  data_req_pos_bank0_way = {hit_way, l1tol2_req_reg4.ppaddr[2], l1tol2_req_reg4.poffset[11:6]};
    
-    assign  data_req_valid_bank1_way = (l1tol2_req_reg3.poffset[7:6]==2'b00) && reg_new_l1tol2_req_tag_access_2 && tag_hit_next;
-    assign  data_req_we_bank1_way = (l1tol2_req_reg3.poffset[7:6]==2'b01) && reg_new_l1tol2_req_tag_access_2 ? 0 : 0; // read
-    assign  data_req_pos_bank1_way = {hit_way_next, l1tol2_req_reg3.ppaddr[2], l1tol2_req_reg3.poffset[11:6]};
+    assign  data_req_valid_bank1_way = (l1tol2_req_reg4.poffset[7:6]==2'b00) && reg_new_l1tol2_req_data_access_0 && tag_hit;
+    assign  data_req_we_bank1_way = (l1tol2_req_reg4.poffset[7:6]==2'b01) && reg_new_l1tol2_req_data_access_0 ? 0 : 0; // read
+    assign  data_req_pos_bank1_way = {hit_way, l1tol2_req_reg4.ppaddr[2], l1tol2_req_reg4.poffset[11:6]};
    
-    assign  data_req_valid_bank2_way = (l1tol2_req_reg3.poffset[7:6]==2'b10) && reg_new_l1tol2_req_tag_access_2 && tag_hit_next;
-    assign  data_req_we_bank2_way = (l1tol2_req_reg3.poffset[7:6]==2'b10) && reg_new_l1tol2_req_tag_access_2 ? 0 : 0; // read
-    assign  data_req_pos_bank2_way = {hit_way_next, l1tol2_req_reg3.ppaddr[2], l1tol2_req_reg3.poffset[11:6]};
+    assign  data_req_valid_bank2_way = (l1tol2_req_reg4.poffset[7:6]==2'b10) && reg_new_l1tol2_req_data_access_0 && tag_hit;
+    assign  data_req_we_bank2_way = (l1tol2_req_reg4.poffset[7:6]==2'b10) && reg_new_l1tol2_req_data_access_0 ? 0 : 0; // read
+    assign  data_req_pos_bank2_way = {hit_way, l1tol2_req_reg4.ppaddr[2], l1tol2_req_reg4.poffset[11:6]};
    
-    assign  data_req_valid_bank3_way = (l1tol2_req_reg3.poffset[7:6]==2'b00) && reg_new_l1tol2_req_tag_access_2 && tag_hit_next;
-    assign  data_req_we_bank3_way = (l1tol2_req_reg3.poffset[7:6]==2'b11) && reg_new_l1tol2_req_tag_access_2 ? 0 : 0; // read
-    assign  data_req_pos_bank3_way = {hit_way_next, l1tol2_req_reg3.ppaddr[2], l1tol2_req_reg3.poffset[11:6]};
-   
+    assign  data_req_valid_bank3_way = (l1tol2_req_reg4.poffset[7:6]==2'b00) && reg_new_l1tol2_req_data_access_0 && tag_hit;
+    assign  data_req_we_bank3_way = (l1tol2_req_reg4.poffset[7:6]==2'b11) && reg_new_l1tol2_req_data_access_0 ? 0 : 0; // read
+    assign  data_req_pos_bank3_way = {hit_way, l1tol2_req_reg4.ppaddr[2], l1tol2_req_reg4.poffset[11:6]};
+  
+    // Enter next pipe stage: reg_new_l1tol2_req_data_access_1
+    assign  reg_new_l1tol2_req_data_access_1_next = reg_new_l1tol2_req_data_access_0 && data_req_valid;
+
+    // Enter next pipe stage: reg_new_l1tol2_req_data_access_2
+    assign  reg_new_l1tol2_req_data_access_2_next = reg_new_l1tol2_req_data_access_1;
+
+    // @ state5: reg_new_l1tol2_req_data_access_2
+    // Verify full tag was correct:
+    //      yes:    Send l2tol1_snack
+    //      no:     reflow
 `endif
 endmodule
 

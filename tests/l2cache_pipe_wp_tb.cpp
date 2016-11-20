@@ -225,6 +225,7 @@ struct L1toL2ReqPacket { // input
     uint8_t cmd;
     uint16_t pcsign;
     uint8_t ppaddr;
+    uint16_t poffset;
 };
 
 struct L2toDrReqPacket { // output
@@ -377,12 +378,15 @@ void error_found(Vl2cache_pipe_wp *top) {
 
 void try_send_l1_to_l2_req_packet (Vl2cache_pipe_wp *top) {
     //Try to add some noise when there is not drive
+#ifndef NO_RETRY
     top->l2todr_req_retry = (rand()&0xF)==0; // randomly,
+#endif
     if ( !top-> l1tol2_req_retry ) {
         top->l1tol2_req_l1id = rand();
         top->l1tol2_req_cmd = rand();
         top->l1tol2_req_pcsign = rand();
         top->l1tol2_req_ppaddr = rand();
+        top->l1tol2_req_poffset = rand();
         if (l1tol2_req_list.empty() || (rand() & 0x3==0)) { // Once every 4
           top->l1tol2_req_valid = 0;
         }else{
@@ -401,9 +405,10 @@ void try_send_l1_to_l2_req_packet (Vl2cache_pipe_wp *top) {
         top->l1tol2_req_cmd = l1tol2_reqp.cmd;
         top->l1tol2_req_pcsign = l1tol2_reqp.pcsign;
         top->l1tol2_req_ppaddr = l1tol2_reqp.ppaddr;
+        top->l1tol2_req_poffset = l1tol2_reqp.poffset;
 #ifdef DEBUG_TRACE
-        printf("@%ld l1tol2_req l1id:%x cmd:%x pcsign:%d ppaddr:%x\n",global_time, l1tol2_reqp.l1id, 
-            l1tol2_reqp.cmd, l1tol2_reqp.pcsign, l1tol2_reqp.ppaddr);
+        printf("@%ld l1tol2_req l1id:%x cmd:%x pcsign:%d ppaddr:%x\n poffset:%x\n",global_time, l1tol2_reqp.l1id, 
+            l1tol2_reqp.cmd, l1tol2_reqp.pcsign, l1tol2_reqp.ppaddr, l1tol2_reqp.poffset);
 #endif
         if (0) { // If it's write
                     // TODO
@@ -1071,6 +1076,7 @@ int main(int argc, char **argv, char **env) {
       l1tol2_reqp.cmd = rand() & 0x7;
       l1tol2_reqp.pcsign = rand() & 0x1FFF;
       l1tol2_reqp.ppaddr = rand() & 0x7;
+      l1tol2_reqp.poffset = rand() & 0xFFF;
       l1tol2_req_list.push_front(l1tol2_reqp);
     }
 
@@ -1136,6 +1142,12 @@ int main(int argc, char **argv, char **env) {
   printf("Test Statistics:\n l1tol2_req count: %d\n l2todr_req count: %d\n l2tol1_snoop_only count: %d\n l2tol1_ack_only count: %d\n drtol2_snoop_only count: %d\n drtol2_ack_only count: %d\n l1tol2_snoop_ack count: %d\n l2todr_snoop_ack count %d\n l1tol2_disp count: %d\n l2todr_disp count: %d\n l2tol1_dack count: %d\n drtol2_dack count: %d\n l2tlbtol2_fwd count: %d\n l2todr_pfreq count: %d\n",
           count_l1tol2_req, count_l2todr_req, count_l2tol1_snoop_only, count_l2tol1_ack_only, count_drtol2_snoop_only, count_drtol2_ack_only,
           count_l1tol2_snoop_ack, count_l2todr_snoop_ack, count_l1tol2_disp, count_l2todr_disp, count_l2tol1_dack, count_drtol2_dack, count_l2tlbtol2_fwd, count_l2todr_pfreq);
+#ifdef  L2_PASSTHROUGH
+  printf ("L2_PASSTHROUGH is defined.\n");
+#endif
+#ifdef NO_RETRY
+  printf ("NO_RETRY is defined.\n");
+#endif
   sim_finish(true);
 
 }

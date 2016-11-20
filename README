@@ -18,4 +18,5 @@ Hierarchy:
 
  l2cache_pipe -> network -> DR 
 
-
+Tools:
+gtkwave to view waveform
