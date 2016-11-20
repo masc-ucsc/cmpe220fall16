@@ -1071,7 +1071,11 @@ module l2cache_pipe(
             hpaddr_from_tag[4], hpaddr_from_tag[5], hpaddr_from_tag[6], hpaddr_from_tag[7],
             hpaddr_from_tag[8], hpaddr_from_tag[9], hpaddr_from_tag[10], hpaddr_from_tag[11],
             hpaddr_from_tag[12], hpaddr_from_tag[13], hpaddr_from_tag[14], hpaddr_from_tag[15]
-            } = tag_ack_data_bank0_ways;    // TODO extract hpaddr
+            } = tag_ack_valid_bank0_ways ? tag_ack_data_bank0_ways : ( 
+                (tag_ack_valid_bank1_ways ? tag_ack_data_bank1_ways : 
+                (tag_ack_valid_bank2_ways ? tag_ack_data_bank2_ways :
+                (tag_ack_valid_bank3_ways ? tag_ack_data_bank3_ways : 'b0))));    // TODO extract hpaddr
+    assign  tag_ack_valid_banks_ways = tag_ack_valid_bank0_ways | tag_ack_valid_bank1_ways | tag_ack_valid_bank2_ways | tag_ack_valid_bank3_ways;
 
     // Handle tag result
     // state3: @ reg_new_l1tol2_req_tag_access_2
@@ -1079,7 +1083,7 @@ module l2cache_pipe(
         tag_hit_next = 0;
         if (reg_new_l1tol2_req_tag_access_2) begin
             // Tag access result is ready
-            if (l2tlbtol2_fwd_reg1_valid && l1_match_l2tlb_l1id && l1_match_l2tlb_ppaddr && tag_ack_valid_bank0_ways) begin
+            if (l2tlbtol2_fwd_reg1_valid && l1_match_l2tlb_l1id && l1_match_l2tlb_ppaddr && tag_ack_valid_banks_ways) begin
                 // l1id matched and ppaddr is correct
                 case (1'b1)
                     // Check way0
@@ -1182,6 +1186,11 @@ module l2cache_pipe(
             end
         end
     end
+
+    // Handle tag miss
+    assign  tag_miss = (~tag_hit_next) && tag_ack_valid_banks_ways;
+    // Enqueue linked list
+    // qzhang33
 
     // Enter next pipe stage: reg_new_l1tol2_req_data_access_0 when tag hit
     assign  reg_new_l1tol2_req_data_access_0_next = tag_hit_next && reg_new_l1tol2_req_tag_access_2;
