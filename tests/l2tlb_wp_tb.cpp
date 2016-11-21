@@ -193,7 +193,7 @@ void try_send_packet(Vl2tlb_wp *top) {
 	  	top->l1tol2tlb_req_l1id 	= (uint8_t)rand() & 0x1F;
 		top->l1tol2tlb_req_prefetch	= (uint8_t)rand() & 0x01;
 		top->l1tol2tlb_req_hpaddr 	= (uint16_t)rand() & 0x07FF;
-		printf("\nSendingRand: %X\n", top->l1tol2tlb_req_hpaddr);	
+		//printf("\nSendingRand: %X\n", top->l1tol2tlb_req_hpaddr);	
     }
   	else {
 		top->l1tol2tlb_req_valid = 1;
@@ -202,11 +202,11 @@ void try_send_packet(Vl2tlb_wp *top) {
 		top->l1tol2tlb_req_l1id 	= inp.l1id;
 		top->l1tol2tlb_req_prefetch = inp.prefetch;
 		top->l1tol2tlb_req_hpaddr 	= inp.hpaddr;
-		printf("\nSendingList: %X\n", top->l1tol2tlb_req_hpaddr);
+		//printf("\nSendingList: %X\n", top->l1tol2tlb_req_hpaddr);
 #ifdef DEBUG_TRACE
     printf("@%lld in l1id=%X\n",global_time, inp.l1id);
     printf("@%lld in prefetch=%X\n",global_time, inp.prefetch);
-    printf("@%lld in hpaddr=%X\n",global_time, inp.hpaddr);
+    printf("@%lld in hpaddr=%X\n\n",global_time, inp.hpaddr);
 #endif
     	l1_l2tlb_req_list.pop_back();
     }
@@ -302,14 +302,14 @@ void try_recv_packet(Vl2tlb_wp *top) {
   if (l2tlb_l2_fwd_list.empty())
     return;
 
-  printf("\Recieving: %X\n", top->l2tlbtol2_fwd_hpaddr);
+  //printf("\Recieving: %X\n", top->l2tlbtol2_fwd_hpaddr);
 
 #ifdef DEBUG_TRACE
     printf("@%lld out l1id=%X\n",global_time, top->l2tlbtol2_fwd_l1id);
 	printf("@%lld out prefetch=%X\n",global_time, top->l2tlbtol2_fwd_prefetch);
 	printf("@%lld out fault=%X\n",global_time, top->l2tlbtol2_fwd_fault);
 	printf("@%lld out hpaddr=%X\n",global_time, top->l2tlbtol2_fwd_hpaddr);
-	printf("@%lld out paddr=%X\n",global_time, top->l2tlbtol2_fwd_paddr);
+	printf("@%lld out paddr=%X\n\n",global_time, top->l2tlbtol2_fwd_paddr);
 #endif
   Out_l2tlbtol2_fwd o = l2tlb_l2_fwd_list.back();
   if (top->l2tlbtol2_fwd_paddr != o.paddr) {
