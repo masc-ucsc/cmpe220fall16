@@ -10,10 +10,10 @@
 #define DEBUG_TRACE 1
 
 //Set which sets you want to run
-#define TEST_PFREQ 1
+//#define TEST_PFREQ 1
 #define TEST_REQ 1
 #define TEST_ACK 1
-#define TEST_DISP 1
+//#define TEST_DISP 1
 
 vluint64_t global_time = 0;
 VerilatedVcdC* tfp = 0;
@@ -871,10 +871,20 @@ int main(int argc, char **argv, char **env) {
 #ifdef TEST_DISP  
     if (((rand() & 0x3)==0) && inp_list_req.size() < 3 ) {
       InputPacket_l2todr_disp i;
-
+      int pick_cmd = rand()%4;
+      
       i.nid = rand() & 0x1F;
       i.l2id = rand() & 0x3F;
-      i.dcmd = rand() & 0x7; //this is kind of wrong, but should still work.
+      
+      if(pick_cmd == 0)
+        i.dcmd = 0x0; //wb invalidated
+      else if(pick_cmd == 1)
+        i.dcmd = 0x1; //wb shared
+      else if(pick_cmd == 2)
+        i.dcmd = 0x2; //no wb
+      else
+        i.dcmd = 0x4; //wb NC
+      
       i.drid = 0;
       i.mask = 0;
       i.line_7 = rand() & 0xFFFFFFFFFFFFFFFF;

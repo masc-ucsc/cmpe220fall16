@@ -1,0 +1,119 @@
+Structure
+=====================
+instruction.cpp:
+basic instruction class for each individual instructions.
+
+dumper.cpp:
+File write and read operator to save 'instruction' objects into compact binary file and read them out later.
+
+sync.cpp:
+Simple MEMSET() and MEMCPY() instruction set generator.
+
+Usage
+=====================
+1.New Instruction
+-------------------
+Instruction ins = {...};
+
+OR
+
+Instruction ins;
+ins.setOpType(...);
+ins.setPid(...);
+...
+
+2.Convert instruction object to binary data
+---------------------------------------------
+Instruction ins;
+binary = ins.getBinary();
+
+3.Convert from binary data to instruction object
+--------------------------------------------------
+Instruction ins;
+ins.setFromBinary(binary);
+
+4.New File Dumper for write
+----------------------------
+string filename = "foo.DAT";
+dumper dmp;
+dmp.openToWrite(filename);
+
+while(...) {
+  ...
+  dmp.add(ins.getBinary());
+  ...
+}
+
+dmp.close();
+
+5.New File Dumper for read
+----------------------------
+string filename = "foo.DAT";
+dumper dmp;
+dmp.openToRead(filename);
+
+while(dmp.hasNext()) {
+  ...
+  ins.getFromBinary(dmp.get());
+  ...
+}
+
+dmp.close();
+
+6.MEMSET
+----------
+memsync syncer;
+dumper dmp;
+
+dmp...
+syncer.setMemset(address, value, numIns);
+
+while(syncer.hasNext()) {
+  ...
+  dmper.add(syncer.getNext().getBinary());
+  ...
+}
+
+dmp.close();
+
+7.MEMCPY
+----------
+memsync syncer;
+dumper dmp;
+
+dmp...
+syncer.setMemcpy(src_address, dest_address, numIns);
+
+while(syncer.hasNext()) {
+  ...
+  dmper.add(syncer.getNext().getBinary());
+  ...
+}
+
+dmp.close();
+
+8.MEMSET & MEMCPY
+--------------------
+NOTE: By this way, the PC will be continous.
+
+memsync syncer;
+dumper dmp;
+
+dmp...
+syncer.setMemcpy(src_address, dest_address, numIns);
+
+while(syncer.hasNext()) {
+  ...
+  dmper.add(syncer.getNext().getBinary());
+  ...
+}
+
+syncer.setMemset(address, value, numIns);
+
+while(syncer.hasNext()) {
+  ...
+  dmper.add(syncer.getNext().getBinary());
+  ...
+}
+
+dmp.close()

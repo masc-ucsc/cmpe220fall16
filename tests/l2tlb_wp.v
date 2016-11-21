@@ -14,6 +14,7 @@
 //
 
 `include "scmem.vh"
+`define L2TLB_PASSTHROUGH
 
 module l2tlb_wp(
   /* verilator lint_off UNUSED */
@@ -80,6 +81,8 @@ module l2tlb_wp(
 	,input  DR_ndirs_type      	drtol2_snack_directory_id		// 2 bits
 	,input	SC_snack_type		drtol2_snack_snack			// 5 bits
 	,input	SC_line_type		drtol2_snack_line			// 512 bits
+	,input  DR_hpaddr_base_type drtol2_snack_hpaddr_base	// 17 bits
+	,input  DR_hpaddr_hash_type drtol2_snack_hpaddr_hash	// 8 bits
 	,input	SC_paddr_type		drtol2_snack_paddr			// 50 bits
 
 	,output	logic			l2todr_snoop_ack_valid
@@ -152,6 +155,8 @@ module l2tlb_wp(
 	assign drtol2_snack.directory_id = drtol2_snack_directory_id;
 	assign drtol2_snack.snack = drtol2_snack_snack;
 	assign drtol2_snack.line = drtol2_snack_line;
+	assign drtol2_snack.hpaddr_base	= drtol2_snack_hpaddr_base;
+	assign drtol2_snack.hpaddr_hash	= drtol2_snack_hpaddr_hash;
 	assign drtol2_snack.paddr = drtol2_snack_paddr;
 
 	I_l2snoop_ack_type l2todr_snoop_ack;
