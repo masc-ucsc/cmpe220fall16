@@ -351,46 +351,193 @@ int main(int argc, char **argv, char **env) {
 #endif
     //-------------------------------------------------------
     top->reset = 0;
-    top->c0_l2itodr_req_nid = rand() & 0x1F;
-    top->c0_l2itodr_req_l2id = rand() & 0x3;
-    top->c0_l2itodr_req_cmd = 0;
-    top->c0_l2itodr_req_paddr = 0;
+    top->c0_l2itodr_req_nid = rand() & 0x1f;
+    top->c0_l2itodr_req_l2id = rand() & 0x3f;
+    top->c0_l2itodr_req_cmd = rand() & 0xFF;
+    top->c0_l2itodr_req_paddr = rand() & 0x0002ffffffffffff;
     top->l2todr1_req_retry = 1;
     top->l2todr0_req_retry = 1;
     advance_clock(top,1);
-    top->c0_l2itodr_req_nid = rand() & 0x1F;
-    top->c0_l2itodr_req_l2id = rand() & 0x3;
-    top->c0_l2itodr_req_cmd = 0;
-    top->c0_l2itodr_req_paddr = 1;
+    top->c0_l2itodr_req_nid = rand() & 0x1f;
+    top->c0_l2itodr_req_l2id = rand() & 0x3f;
+    top->c0_l2itodr_req_cmd = rand() & 0xFF;
+    top->c0_l2itodr_req_paddr = rand() & 0x0002ffffffffffff;
     top->l2todr1_req_retry = 1;
     top->l2todr0_req_retry = 1;
     advance_clock(top,1);
+
+// REQS
+    top->c0_l2itodr_req_nid = rand() & 0x1f;
+    top->c0_l2itodr_req_l2id = rand() & 0x3f;
+    top->c0_l2itodr_req_cmd = rand() & 0xFF;
+    top->c0_l2itodr_req_paddr = rand() & 0x0002ffffffffffff;
+    advance_clock(top,1);
+    top->c0_l2ittodr_req_nid = rand() & 0x1f;
+    top->c0_l2ittodr_req_l2id = rand() & 0x3f;
+    top->c0_l2ittodr_req_cmd = rand() & 0xFF;
+    top->c0_l2ittodr_req_paddr = rand() & 0x0002ffffffffffff;
+    advance_clock(top,1);
+    top->c0_l2d_0todr_req_nid = rand() & 0x1f;
+    top->c0_l2d_0todr_req_l2id = rand() & 0x3f;
+    top->c0_l2d_0todr_req_cmd = rand() & 0xFF;
+    top->c0_l2d_0todr_req_paddr = rand() & 0x0002ffffffffffff;
+    advance_clock(top,1);
+    top->c0_l2dt_0todr_req_nid = rand() & 0x1f;
+    top->c0_l2dt_0todr_req_l2id = rand() & 0x3f;
+    top->c0_l2dt_0todr_req_cmd = rand() & 0xFF;
+    top->c0_l2dt_0todr_req_paddr = rand() & 0x0002ffffffffffff;
+    advance_clock(top,1);
+    top->c1_l2itodr_req_nid = rand() & 0x1f;
+    top->c1_l2itodr_req_l2id = rand() & 0x3f;
+    top->c1_l2itodr_req_cmd = rand() & 0xFF;
+    top->c1_l2itodr_req_paddr = rand() & 0x0002ffffffffffff;
+    advance_clock(top,1);
+    top->c1_l2ittodr_req_nid = rand() & 0x1f;
+    top->c1_l2ittodr_req_l2id = rand() & 0x3f;
+    top->c1_l2ittodr_req_cmd = rand() & 0xFF;
+    top->c1_l2ittodr_req_paddr = rand() & 0x0002ffffffffffff;
+    advance_clock(top,1);
+    top->c1_l2d_0todr_req_nid = rand() & 0x1f;
+    top->c1_l2d_0todr_req_l2id = rand() & 0x3f;
+    top->c1_l2d_0todr_req_cmd = rand() & 0xFF;
+    top->c1_l2d_0todr_req_paddr = rand() & 0x0002ffffffffffff;
+    advance_clock(top,1);
+    top->c1_l2dt_0todr_req_nid = rand() & 0x1f;
+    top->c1_l2dt_0todr_req_l2id = rand() & 0x3f;
+    top->c1_l2dt_0todr_req_cmd = rand() & 0xFF;
+    top->c1_l2dt_0todr_req_paddr = rand() & 0x0002ffffffffffff;
+    advance_clock(top,1);
+
+    //DISPS
+    top->c0_l2itodr_disp_nid = rand() & 0x1f;
+    top->c0_l2itodr_disp_l2id = rand() & 0x3f;
+    top->c0_l2itodr_disp_drid = rand() & 0;
+    top->c0_l2itodr_disp_mask = rand() & 0;
+    //top->c0_l2itodr_disp_line = rand() & 0xFFFF;
+    top->c0_l2itodr_disp_dcmd = rand() & 0x7;
+    top->c0_l2itodr_disp_paddr = rand() & 0x0002ffffffffffff;
+    advance_clock(top,1);
+    top->c0_l2ittodr_disp_nid = rand() & 0x1f;
+    top->c0_l2ittodr_disp_l2id = rand() & 0x3f;
+    top->c0_l2ittodr_disp_drid = rand() & 0;
+    top->c0_l2ittodr_disp_mask = rand() & 0;
+    //top->c0_l2ittodr_disp_line = rand() & 0xFFFF;
+    top->c0_l2ittodr_disp_dcmd = rand() & 0x7;
+    top->c0_l2ittodr_disp_paddr = rand() & 0x0002ffffffffffff;
+    advance_clock(top,1);
+    top->c0_l2d_0todr_disp_nid = rand() & 0x1f;
+    top->c0_l2d_0todr_disp_l2id = rand() & 0x3f;
+    top->c0_l2d_0todr_disp_drid = rand() & 0;
+    top->c0_l2d_0todr_disp_mask = rand() & 0;
+    //top->c0_l2d_0todr_disp_line = rand() & 0xFFFF;
+    top->c0_l2d_0todr_disp_dcmd = rand() & 0x7;
+    top->c0_l2d_0todr_disp_paddr = rand() & 0x0002ffffffffffff;
+    advance_clock(top,1);
+    top->c0_l2dt_0todr_disp_nid = rand() & 0x1f;
+    top->c0_l2dt_0todr_disp_l2id = rand() & 0x3f;
+    top->c0_l2dt_0todr_disp_drid = rand() & 0;
+    top->c0_l2dt_0todr_disp_mask = rand() & 0;
+    //top->c0_l2dt_0todr_disp_line = rand() & 0xFFFF;
+    top->c0_l2dt_0todr_disp_dcmd = rand() & 0x7;
+    top->c0_l2dt_0todr_disp_paddr = rand() & 0x0002ffffffffffff;
+    advance_clock(top,1);
+    top->c1_l2itodr_disp_nid = rand() & 0x1f;
+    top->c1_l2itodr_disp_l2id = rand() & 0x3f;
+    top->c1_l2itodr_disp_drid = rand() & 0;
+    top->c1_l2itodr_disp_mask = rand() & 0;
+    //top->c1_l2itodr_disp_line = rand() & 0xFFFF;
+    top->c1_l2itodr_disp_dcmd = rand() & 0x7;
+    top->c1_l2itodr_disp_paddr = rand() & 0x0002ffffffffffff;
+    advance_clock(top,1);
+    top->c1_l2ittodr_disp_nid = rand() & 0x1f;
+    top->c1_l2ittodr_disp_l2id = rand() & 0x3f;
+    top->c1_l2ittodr_disp_drid = rand() & 0;
+    top->c1_l2ittodr_disp_mask = rand() & 0;
+    //top->c1_l2ittodr_disp_line = rand() & 0xFFFF;
+    top->c1_l2ittodr_disp_dcmd = rand() & 0x7;
+    top->c1_l2ittodr_disp_paddr = rand() & 0x0002ffffffffffff;
+    advance_clock(top,1);
+    top->c1_l2d_0todr_disp_nid = rand() & 0x1f;
+    top->c1_l2d_0todr_disp_l2id = rand() & 0x3f;
+    top->c1_l2d_0todr_disp_drid = rand() & 0;
+    top->c1_l2d_0todr_disp_mask = rand() & 0;
+    //top->c1_l2d_0todr_disp_line = rand() & 0xFFFF;
+    top->c1_l2d_0todr_disp_dcmd = rand() & 0x7;
+    top->c1_l2d_0todr_disp_paddr = rand() & 0x0002ffffffffffff;
+    advance_clock(top,1);
+    top->c1_l2dt_0todr_disp_nid = rand() & 0x1f;
+    top->c1_l2dt_0todr_disp_l2id = rand() & 0x3f;
+    top->c1_l2dt_0todr_disp_drid = rand() & 0;
+    top->c1_l2dt_0todr_disp_mask = rand() & 0;
+    //top->c1_l2dt_0todr_disp_line = rand() & 0xFFFF;
+    top->c1_l2dt_0todr_disp_dcmd = rand() & 0x7;
+    top->c1_l2dt_0todr_disp_paddr = rand() & 0x0002ffffffffffff;
+    advance_clock(top,1);
+
+    //PFREQ
 
 #if 0
     for(int i =0;i<1024;i++) {
       //try_send_packet(top);
-      advance_half_clock(top);
+      //advance_half_clock(top);
      // try_recv_packet(top);
-      advance_half_clock(top);
-      
+      //advance_half_clock(top);
       /*
-      if (((rand() & 0x3)==0) && inpa_list.size() < 3 && inpb_list.size() < 3 ) {
-        InputPacketA ia;
-        InputPacketB ib;
-        ia.inp_a = rand() & 0xFF;
-        ib.inp_b = rand() & 0xFF;
-        inpa_list.push_front(ia);
-        inpb_list.push_front(ib);
+        InputPacket_c0_l2ittodr_req c0l2it2dr_req;
+        InputPacket_c0_l2d_0todr_req c0l2d2dr_req;
+        InputPacket_c0_l2dt_0todr_req c0l2dt2dr_req;
+        InputPacket_c1_l2itodr_req c1l2i2dr_req;
+        InputPacket_c1_l2ittodr_req c1l2it2dr_req;
+        InputPacket_c1_l2d_0todr_req c1l2d2dr_req;
+        InputPacket_c1_l2dt_0todr_req c1l2dt2dr_req;
+        c0l2it2dr_req.nid = rand() & 0x1f;
+        c0l2it2dr_req.l2id = rand() & 0x3f;
+        c0l2it2dr_req.cmd = rand() & 0xFF;
+        c0l2it2dr_req.paddr = rand() & 0x0002ffffffffffff;
+        c0l2d2dr_req.nid = rand() & 0x1f;
+        c0l2d2dr_req.l2id = rand() & 0x3f;
+        c0l2d2dr_req.cmd = rand() & 0xff;
+        c0l2d2dr_req.paddr = rand() & 0x0002ffffffffffff;
+        c0l2dt2dr_req.nid = rand() & 0x1f;
+        c0l2dt2dr_req.l2id = rand() & 0x3f;
+        c0l2dt2dr_req.cmd = rand() & 0xff;
+        c0l2dt2dr_req.paddr = rand() & 0x0002ffffffffffff;
+         inp_list_c0_l2it_req.push_front();
+        inp_list_c0_l2d_req.push_front();
+        inp_list_c0_l2dt_req.push_front();
+        inp_list_c1_l2i_req.push_front();
+        inp_list_c1_l2it_req.push_front();
+        inp_list_c1_l2d_req.push_front();
+        inp_list_c1_l2dt_req.push_front();
 
-        OutputPacket o;
-        o.sum = (ia.inp_a + ib.inp_b) & 0xFF;
-        o.inp_a = ia.inp_a;
-        o.inp_b = ib.inp_b;
+      if (((rand() & 0x3)==0) && inp_list_c0_l2i_req.size() < 3) {
+        InputPacket_c0_l2itodr_req c0l2i2dr_req;
 
-        out_list.push_front(o);
+        c0l2i2dr_req.nid = rand() & 0x1f;
+        c0l2i2dr_req.l2id = rand() & 0x3f;
+        c0l2i2dr_req.cmd = rand() & 0xff;
+        c0l2i2dr_req.paddr = rand() & 0x0002ffffffffffff;
+
+
+        inp_list_c0_l2i_req.push_front();
+
+        OutputPacket_l2todr0_req l2dr0_req;
+        OutputPacket_l2todr1_req l2dr1_req;
+
+        l2dr0_req.nid = c0l2i2dr_req.nid;
+        l2dr0_req.l2id = c0l2i2dr_req.l2id;
+        l2dr0_req.cmd = c0l2i2dr_req.cmd;
+        l2dr0_req.paddr = c0l2i2dr_req.paddr;
+        l2dr1_req.nid = c0l2i2dr_req.nid;
+        l2dr1_req.l2id = c0l2i2dr_req.l2id;
+        l2dr1_req.cmd = c0l2i2dr_req.cmd;
+        l2dr1_req.paddr = c0l2i2dr_req.paddr;
+
+        out_list_d0_req.push_front(l2dr0_req);
+        out_list_d1_req.push_front(l2dr1_req);
       }
+      advance_clock(top,1);
       */
-      //advance_clock(top,1);
     }
 #endif
   }

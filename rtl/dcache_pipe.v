@@ -1,7 +1,191 @@
 
 `include "scmem.vh"
+`define     PASSTHROUGH       
+//`define     LOAD              
 
-//
+`ifdef LOAD
+///////////////////////////////////////////////////////////
+// DATA CACHE TAG BANK
+///////////////////////////////////////////////////////////
+`define TAGBANK_ENTRIES 32
+`define INDEX_SIZE      5
+`define TAG_SIZE        11
+
+typedef struct packed {
+  logic [TAG_SIZE-1:0]    tag;
+  logic [2:0]             state;
+  logic [1:0]             count; // for replacement policy
+} tagbank_data_type;
+
+module dcache_tagbank(
+  input                        clk,
+  input                        reset,
+  input                        enable,
+
+  input                        write, //write = 0 ==> read
+  input                        data_valid,
+  output                       data_retry,
+  input   tagbank_data_type    data,
+ 
+  input   [INDEX_SIZE-1:0]     index,
+
+  output  [3:0]                hit
+);
+
+
+logic data_retry_1;
+logic data_retry_2;
+logic data_retry_3;
+logic data_retry_4;
+logic ack_valid_1;
+logic ack_valid_2;
+logic ack_valid_3;
+logic ack_valid_4;
+tagbank_data_type way1_data;
+tagbank_data_type way2_data;
+tagbank_data_type way3_data;
+tagbank_data_type way4_data;
+
+// WAY 1
+ram_1port_fast 
+#(.Width($bits(tagbank_data_type)), .Size(TAGBANK_ENTRIES)) 
+way1 (
+  .clk                (clk&enable),
+  .reset              (reset),
+
+  .req_valid          (data_valid),
+  .req_retry          (data_retry_1),
+  .req_we             (write),
+  .req_pos            (index),
+  .req_data           (data),
+
+  .ack_valid          (ack_valid_1),
+  .ack_retry          (0),
+  .ack_data           (way1_data)
+);
+
+
+// WAY 2
+ram_1port_fast 
+#(.Width($bits(tagbank_data_type)), .Size(TAGBANK_ENTRIES)) 
+way2 (
+  .clk                (clk&enable),
+  .reset              (reset),
+
+  .req_valid          (data_valid),
+  .req_retry          (data_retry_2),
+  .req_we             (write),
+  .req_pos            (index),
+  .req_data           (data),
+
+  .ack_valid          (ack_valid_2),
+  .ack_retry          (0),
+  .ack_data           (way2_data)
+);
+
+// WAY 3
+ram_1port_fast 
+#(.Width($bits(tagbank_data_type)), .Size(TAGBANK_ENTRIES)) 
+way3 (
+  .clk                (clk&enable),
+  .reset              (reset),
+
+  .req_valid          (data_valid),
+  .req_retry          (data_retry_3),
+  .req_we             (write),
+  .req_pos            (index),
+  .req_data           (data),
+
+  .ack_valid          (ack_valid_3),
+  .ack_retry          (0),
+  .ack_data           (way3_data)
+);
+
+// WAY 4
+ram_1port_fast 
+#(.Width($bits(tagbank_data_type)), .Size(TAGBANK_ENTRIES)) 
+way4 (
+  .clk                (clk&enable),
+  .reset              (reset),
+
+  .req_valid          (data_valid),
+  .req_retry          (data_retry_4),
+  .req_we             (write),
+  .req_pos            (index),
+  .req_data           (data),
+
+  .ack_valid          (ack_valid_4),
+  .ack_retry          (0),
+  .ack_data           (way4_data)
+);
+
+assign data_retry=data_retry_1&data_retry_2&data_retry_3&data_retry_4;
+logic hit1;
+logic hit2;
+logic hit3;
+logic hit4;
+
+assign hit1 = (way1_data.tag == tag);
+assign hit2 = (way2_data.tag == tag);
+assign hit3 = (way3_data.tag == tag);
+assign hit4 = (way4_data.tag == tag);
+
+assign hit = {hit1, hit2, hit3, hit4};
+
+endmodule
+`endif
+
+`ifdef LOAD
+
+module dcache_databank(
+  input                        clk,
+  input                        reset,
+  input                        enable,
+
+  input                        write, //write = 0 ==> read
+  input                        data_valid,
+  output                       data_retry,
+  input   [63:0]               data,
+ 
+  input   [INDEX_SIZE-1:0]     index,
+
+  output  [3:0]                hit
+);
+
+
+logic data_retry_1;
+logic data_retry_2;
+logic data_retry_3;
+logic data_retry_4;
+logic ack_valid_1;
+logic ack_valid_2;
+logic ack_valid_3;
+logic ack_valid_4;
+tagbank_data_type way1_data;
+tagbank_data_type way2_data;
+tagbank_data_type way3_data;
+tagbank_data_type way4_data;
+
+// WAY 1
+ram_1port_fast 
+#(.Width($bits(tagbank_data_type)), .Size(TAGBANK_ENTRIES)) 
+way1 (
+  .clk                (clk&enable),
+  .reset              (reset),
+
+  .req_valid          (data_valid),
+  .req_retry          (data_retry_1),
+  .req_we             (write),
+  .req_pos            (index),
+  .req_data           (data),
+
+  .ack_valid          (ack_valid_1),
+  .ack_retry          (0),
+  .ack_data           (way1_data)
+);
+`endif
+// L1 CACHE
+// L1 detailed description:
 // 16KB, 8 way, 8 banks
 //
 // Each bank 64bit data wide. Stores and Loads to 
@@ -714,7 +898,7 @@ fflop #(.Size($bits(I_l2tol1_dack_type))) ff_l2tol1_dack (
   .qRetry   (ff_l2tol1_dack_retry_in) 
 );
 
-
+`ifdef PASSTHROUGH
 // PASSTHROUGH #1
 //                  ----------
 //                  |        |
@@ -855,7 +1039,120 @@ always_comb begin
     ff_l1tlbtol1_fwd1_retry_in = 0;
   end
 end
+`endif
 
 
+`ifdef LOAD
+assign ff_coretodc_std_retry_in = 1;
+// get the index
+logic [12:0] index = coretodc_ld.poffset+coretodc_ld.imm;
+
+//STAGE #1 (FIRST CLOCK CYCLE)
+tagbank_data_type tagbank1_write_data;
+logic [3:0] tagbank1_hits;
+logic tagbank1_retry_out;
+dcache_tagbank tagbank1 (
+  .clk        (clk),
+  .reset      (reset),
+  .enable     (index[10]) 
+  .write      (0),
+  .data_valid (ff_coretodc_ld_valid_out),
+  .data_retry (tagbank1_retry_out),
+  .data       (tagbank1_write_data),
+
+  .index      (index[10:6]),
+
+  .hit        (tagbank1_hits)
+);
+
+tagbank_data_type tagbank2_write_data;
+logic [3:0] tagbank2_hits;
+logic tagbank2_retry_out;
+
+dcache_tagbank tagbank2 (
+  .clk        (clk),
+  .reset      (reset),
+  .enable     (~index[10]),
+
+  .write      (0),
+  .data_valid (ff_coretodc_ld_valid_out),
+  .data_retry (tagbank2_retry_out),
+  .data       (tagbank2_write_data),
+
+  .index      (index[10:6]),
+
+  .hit        (tagbank2_hits)
+);
+
+// data bank activation logic
+// calculated data will be used during the next cycle
+logic [7:0] databank_en;
+always_comb begin
+  if (coretodc_ld.lop == CORE_LOP_L64U) begin
+    case (index[7:5]) begin
+      3'b000: databank_en = 8'b00000001;
+      3'b001: databank_en = 8'b00000010;
+      3'b010: databank_en = 8'b00000100;
+      3'b011: databank_en = 8'b00001000;
+      3'b100: databank_en = 8'b00010000;
+      3'b101: databank_en = 8'b00100000;
+      3'b110: databank_en = 8'b01000000;
+      3'b111: databank_en = 8'b10000000;
+    end
+  end  
+end
+
+ff_coretodc_ld_retry_in = tagbank1_retry_out&tagbank2_retry_out;
+logic [3:0] hits;
+logic       hit;
+always_comb begin
+  if (index[10]) begin
+    hits = tagbank1_hits;
+  end else begin
+    hits = tagbank2_hits;
+  end
+end
+
+assign hit = hits[3]|hit[2]|hit[1]|hit[0];
+
+// flop the control logic needed for the second stage
+logic [3:0]        hits_stage_2;
+logic              hit_stage_2;
+logic [12:0]       index_stage_2;
+I_coretodc_ld_type coretodc_ld_stage_2;
+
+flop #(.Bits($bits(hits))) hits_flop (
+  .clk      (clk),
+  .reset    (reset),
+  .d        (hits),
+  .q        (hits_stage_2)
+);
+
+flop #(.Bits($bits(index))) hits_flop (
+  .clk      (clk),
+  .reset    (reset),
+  .d        (index),
+  .q        (index_stage_2)
+);
+
+flop #(.Bits($bits(hit))) hits_flop (
+  .clk      (clk),
+  .reset    (reset),
+  .d        (hit),
+  .q        (hit_stage_2)
+);
+
+flop #(.Bits($bits(coretodc_ld))) hits_flop (
+  .clk      (clk),
+  .reset    (reset),
+  .d        (coretodc_ld),
+  .q        (coretodc_ld_stage_2)
+);
+
+
+// STAGE 2 (SECOND CLOCK CYCLE) ACCESS DATABANK
+
+`endif
 endmodule
+
 
