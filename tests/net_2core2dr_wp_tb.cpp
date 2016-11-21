@@ -475,7 +475,45 @@ int main(int argc, char **argv, char **env) {
     advance_clock(top,1);
 
     //PFREQ
+    top->c0_l2itodr_pfreq_nid = rand() & 0x1f;
+    top->c0_l2itodr_pfreq_paddr = rand() & 0x0002ffffffffffff;
+    advance_clock(top,1);
+    top->c0_l2d_0todr_pfreq_nid = rand() & 0x1f;
+    top->c0_l2d_0todr_pfreq_paddr = rand() & 0x0002ffffffffffff;
+    advance_clock(top,1);
+    top->c1_l2itodr_pfreq_nid = rand() & 0x1f;
+    top->c1_l2itodr_pfreq_paddr = rand() & 0x0002ffffffffffff;
+    advance_clock(top,1);
+    top->c1_l2d_0todr_pfreq_nid = rand() & 0x1f;
+    top->c1_l2d_0todr_pfreq_paddr = rand() & 0x0002ffffffffffff;
+    advance_clock(top,1);
 
+    //SNOOP_ACKS
+    
+    top->c0_l2itodr_snoop_ack_l2id = rand() & 0x3f;
+    top->c0_l2itodr_snoop_ack_directory_id = rand() & 0x3;
+    advance_clock(top,1);
+    top->c0_l2ittodr_snoop_ack_l2id = rand() & 0x3f;
+    top->c0_l2ittodr_snoop_ack_directory_id = rand() & 0x3;
+    advance_clock(top,1);
+    top->c0_l2d_0todr_snoop_ack_l2id = rand() & 0x3f;
+    top->c0_l2d_0todr_snoop_ack_directory_id = rand() & 0x3;
+    advance_clock(top,1);
+    top->c0_l2dt_0todr_snoop_ack_l2id = rand() & 0x3f;
+    top->c0_l2dt_0todr_snoop_ack_directory_id = rand() & 0x3;
+    advance_clock(top,1);
+    top->c1_l2itodr_snoop_ack_l2id = rand() & 0x3f;
+    top->c1_l2itodr_snoop_ack_directory_id = rand() & 0x3;
+    advance_clock(top,1);
+    top->c1_l2ittodr_snoop_ack_l2id = rand() & 0x3f;
+    top->c1_l2ittodr_snoop_ack_directory_id = rand() & 0x3;
+    advance_clock(top,1);
+    top->c1_l2d_0todr_snoop_ack_l2id = rand() & 0x3f;
+    top->c1_l2d_0todr_snoop_ack_directory_id = rand() & 0x3;
+    advance_clock(top,1);
+    top->c1_l2dt_0todr_snoop_ack_l2id = rand() & 0x3f;
+    top->c1_l2dt_0todr_snoop_ack_directory_id = rand() & 0x3;
+    advance_clock(top,1);
 #if 0
     for(int i =0;i<1024;i++) {
       //try_send_packet(top);

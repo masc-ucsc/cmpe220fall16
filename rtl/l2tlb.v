@@ -6,6 +6,7 @@
 // invalidate all the associated TLB entries (and notify the L1 accordingly)
 //
 `include "scmem.vh"
+`define L2TLB_PASSTHROUGH
 
 module l2tlb(
   /* verilator lint_off UNUSED */
@@ -67,9 +68,30 @@ module l2tlb(
 
 //`ifdef THIS_DOES_NOT_LINT
 
+`ifdef L2TLB_PASSTHROUGH
+  assign l2tlbtol1tlb_snoop_valid = 1'b0;
+  assign l2todr_req_valid = 1'b0;
+  assign l2todr_disp_valid = 1'b0;
+
+
   // l2tlb -> l2 fwd
   I_l2tlbtol2_fwd_type l2tlbtol2_fwd_next;
   logic l2tlbtol2_fwd_valid_next, l2tlbtol2_fwd_retry_next;
+  
+  always_comb begin
+	if(l1tol2tlb_req_valid) begin
+		l2tlbtol2_fwd_next.l1id = l1tol2tlb_req.l1id;
+		l2tlbtol2_fwd_next.prefetch = l1tol2tlb_req.prefetch;
+		l2tlbtol2_fwd_next.fault = 3'b000;
+		l2tlbtol2_fwd_next.hpaddr = l1tol2tlb_req.hpaddr;
+		l2tlbtol2_fwd_next.paddr = {27'b0, l1tol2tlb_req.hpaddr, 12'b0};
+
+		l2tlbtol2_fwd_valid_next = l1tol2tlb_req_valid;
+		l1tol2tlb_req_retry = l2tlbtol2_fwd_retry_next;
+	end else begin
+		l2tlbtol2_fwd_valid_next = 1'b0;
+	end
+  end
 
   fflop #(.Size($bits(I_l2tlbtol2_fwd_type))) ff_l2tlbtol2_fwd_pt(
     .clk(clk)
@@ -83,23 +105,24 @@ module l2tlb(
    ,.qRetry(l2tlbtol2_fwd_retry)
    ,.q(l2tlbtol2_fwd)
    );
-  
-  always_comb begin
-	if(l1tol2tlb_req_valid) begin
-		l2tlbtol2_fwd_next.l1id = l1tol2tlb_req.l1id;
-		l2tlbtol2_fwd_next.prefetch = l1tol2tlb_req.prefetch;
-		l2tlbtol2_fwd_next.fault = 3'b000;
-		l2tlbtol2_fwd_next.hpaddr = l1tol2tlb_req.hpaddr;
-		l2tlbtol2_fwd_next.paddr = {27'b0, l1tol2tlb_req.hpaddr, 12'b0};
-
-		l2tlbtol2_fwd_valid_next = l1tol2tlb_req_valid;
-		l1tol2tlb_req_retry = l2tlbtol2_fwd_retry_next;
-	end
-  end
 
   // l2tlb -> l1tlb ack
   I_l2tlbtol1tlb_ack_type l2tlbtol1tlb_ack_next;
   logic l2tlbtol1tlb_ack_valid_next, l2tlbtol1tlb_ack_retry_next;
+
+  always_comb begin
+	if(l1tlbtol2tlb_req_valid) begin
+		l2tlbtol1tlb_ack_next.rid = l1tlbtol2tlb_req.rid;
+		l2tlbtol1tlb_ack_next.hpaddr = l1tlbtol2tlb_req.laddr[22:12];
+		l2tlbtol1tlb_ack_next.ppaddr = l1tlbtol2tlb_req.laddr[14:12];
+		l2tlbtol1tlb_ack_next.dctlbe = 13'b0_0000_0000_0000;
+
+		l2tlbtol1tlb_ack_valid_next = l1tlbtol2tlb_req_valid;
+		l1tlbtol2tlb_req_retry = l2tlbtol1tlb_ack_retry_next;
+	end else begin
+		l2tlbtol1tlb_ack_valid_next = 1'b0;
+	end
+  end
 
   fflop #(.Size($bits(I_l2tlbtol1tlb_ack_type))) ff_l2tlbtol1tlb_ack_pt(
     .clk(clk)
@@ -114,21 +137,21 @@ module l2tlb(
    ,.q(l2tlbtol1tlb_ack)
    );
 
-  always_comb begin
-	if(l1tlbtol2tlb_req_valid) begin
-		l2tlbtol1tlb_ack_next.rid = l1tlbtol2tlb_req.rid;
-		l2tlbtol1tlb_ack_next.hpaddr = l1tlbtol2tlb_req.laddr[22:12];
-		l2tlbtol1tlb_ack_next.ppaddr = l1tlbtol2tlb_req.laddr[14:12];
-		l2tlbtol1tlb_ack_next.dctlbe = 13'b0_0000_0000_0000;
-
-		l2tlbtol1tlb_ack_valid_next = l1tlbtol2tlb_req_valid;
-		l1tlbtol2tlb_req_retry = l2tlbtol1tlb_ack_retry_next;
-	end
-  end
-
   // l2 -> dr snoop_ack
   I_l2snoop_ack_type l2todr_snoop_ack_next;
   logic l2todr_snoop_ack_valid_next, l2todr_snoop_ack_retry_next;
+
+  always_comb begin
+	if(drtol2_snack_valid) begin
+		l2todr_snoop_ack_next.l2id = drtol2_snack.l2id;
+		l2todr_snoop_ack_next.directory_id = drtol2_snack.directory_id;
+
+		l2todr_snoop_ack_valid_next = drtol2_snack_valid;
+		drtol2_snack_retry = l2todr_snoop_ack_retry_next;
+	end else begin
+		l2todr_snoop_ack_valid_next = 1'b0;
+	end
+  end
 
   fflop #(.Size($bits(I_l2snoop_ack_type))) ff_l2snoop_ack_pt(
     .clk(clk)
@@ -143,17 +166,7 @@ module l2tlb(
    ,.q(l2todr_snoop_ack)
    );
 
-  always_comb begin
-	if(drtol2_snack_valid) begin
-		l2todr_snoop_ack_next.l2id = drtol2_snack.l2id;
-		l2todr_snoop_ack_next.directory_id = drtol2_snack.directory_id;
 
-		l2todr_snoop_ack_valid_next = drtol2_snack_valid;
-		drtol2_snack_retry = l2todr_snoop_ack_retry_next;
-	end
-  end
-
-
-//`endif
+`endif
 
 endmodule
