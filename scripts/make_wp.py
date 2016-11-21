@@ -61,7 +61,11 @@ dict = {'I_drtol2_snack_type': [
             ('SC_nodeid_type\t', 'nid'),
             ('L2_reqid_type\t', 'l2id')],
         'I_l2snoop_ack_type':[
-            ('L2_reqid_type\t', 'l2id')],
+            ('L2_reqid_type\t', 'l2id'),
+	    ('DR_ndirs_type\t', 'directory_id')],
+	'I_l2todr_pfreq_type':[
+	    ('SC_nodeid_type\t', 'nid'),
+            ('SC_paddr_type\t', 'paddr')],
         'I_drsnoop_ack_type':[
             ('DR_reqid_type\t', 'drid')],
         'I_l2todr_req_type':[
