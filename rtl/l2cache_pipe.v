@@ -356,14 +356,14 @@ module l2cache_pipe(
 
     // qzhang33
     typedef struct packed {
-        I_l1tol2_req_type   l1tol2_req;
-        logic               hpaddr;
-        logic               next;
+        SC_paddr_type              paddr;
+        I_l1tol2_req_type          l1tol2_req;
+        logic                      next;
     } I_q_l1tol2_req_hpaddr_miss_type;
 
     typedef struct packed {
-        logic               head;
-        logic               tail;
+        logic    [3:0]           head;
+        logic    [3:0]           tail;
     } I_q_l1tol2_req_linked_list_type;
     // qzhang33
 
@@ -882,15 +882,15 @@ module l2cache_pipe(
     // qzhang33
     // Instantiate q_l1tol2_req_hpaddr_miss
     localparam  Q_L1TOL2_REQ_HPADDR_WIDTH = ($bits(I_q_l1tol2_req_hpaddr_miss_type) ); // The extra 1 bit is for next
-    localparam  Q_L1TOL2_REQ_HPADDR_SIZE = 8;
+    localparam  Q_L1TOL2_REQ_HPADDR_SIZE = 16;
     logic                   req_wr_q_l1tol2_req_hpaddr_miss_valid;
     logic                   req_wr_q_l1tol2_req_hpaddr_miss_retry;
-    logic           [`log2(Q_L1TOL2_REQ_SIZE)-1 : 0] req_wr_q_l1tol2_req_hpaddr_miss_addr;
+    logic           [`log2(Q_L1TOL2_REQ_HPADDR_SIZE)-1 : 0] req_wr_q_l1tol2_req_hpaddr_miss_addr;
     I_q_l1tol2_req_hpaddr_miss_type     req_wr_q_l1tol2_req_hpaddr_miss_data;
 
     logic                   req_rd_q_l1tol2_req_hpaddr_miss_valid;
     logic                   req_rd_q_l1tol2_req_hpaddr_miss_retry;
-    logic           [`log2(Q_L1TOL2_REQ_SIZE)-1 : 0] req_rd_q_l1tol2_req_hpaddr_miss_addr;
+    logic           [`log2(Q_L1TOL2_REQ_HPADDR_SIZE)-1 : 0] req_rd_q_l1tol2_req_hpaddr_miss_addr;
 
     logic                   ack_rd_q_l1tol2_req_hpaddr_miss_valid;
     logic                   ack_rd_q_l1tol2_req_hpaddr_miss_retry;
@@ -898,15 +898,15 @@ module l2cache_pipe(
 
     // Instantiate q_l1tol2_req_linked_list
     localparam  Q_LINKED_LIST_WIDTH = ($bits(I_q_l1tol2_req_linked_list_type) ); 
-    localparam  Q_LINKED_LIST_SIZE = 4;
+    localparam  Q_LINKED_LIST_SIZE = 16;
     logic                   req_wr_q_l1tol2_req_linked_list_valid;
     logic                   req_wr_q_l1tol2_req_linked_list_retry;
-    logic           [`log2(Q_L1TOL2_REQ_SIZE)-1 : 0]        req_wr_q_l1tol2_req_linked_list_addr;
+    logic           [`log2(Q_LINKED_LIST_SIZE)-1 : 0]        req_wr_q_l1tol2_req_linked_list_addr;
     I_q_l1tol2_req_linked_list_type     req_wr_q_l1tol2_req_linked_list_data;
 
     logic                   req_rd_q_l1tol2_req_linked_list_valid;
     logic                   req_rd_q_l1tol2_req_linked_list_retry;
-    logic           [`log2(Q_L1TOL2_REQ_SIZE)-1 : 0]        req_rd_q_l1tol2_req_linked_list_addr;
+    logic           [`log2(Q_LINKED_LIST_SIZE)-1 : 0]        req_rd_q_l1tol2_req_linked_list_addr;
 
     logic                   ack_rd_q_l1tol2_req_linked_list_valid;
     logic                   ack_rd_q_l1tol2_req_linked_list_retry;
@@ -932,45 +932,45 @@ module l2cache_pipe(
         .ack_rd_data    (ack_rd_q_l1tol2_req_data)
     );
 
-    /* qzhang33
+    // qzhang33
     ram_2port_fast #(.Width(Q_L1TOL2_REQ_HPADDR_WIDTH), .Size(Q_L1TOL2_REQ_HPADDR_SIZE), .Forward(0))  q_l1tol2_req_hpaddr_miss (
         .clk            (clk),
         .reset          (reset),
         
-        .req_hpaddr_miss_wr_valid   (req_wr_q_l1tol2_req_hpaddr_miss_valid),
-        .req_hpaddr_miss_wr_retry   (req_wr_q_l1tol2_req_hpaddr_miss_retry),
-        .req_hpaddr_miss_wr_addr    (req_wr_q_l1tol2_req_hpaddr_miss_addr),
-        .req_hpaddr_miss_wr_data    (req_wr_q_l1tol2_req_hpaddr_miss_data),
+        .req_wr_valid   (req_wr_q_l1tol2_req_hpaddr_miss_valid),
+        .req_wr_retry   (req_wr_q_l1tol2_req_hpaddr_miss_retry),
+        .req_wr_addr    (req_wr_q_l1tol2_req_hpaddr_miss_addr),
+        .req_wr_data    (req_wr_q_l1tol2_req_hpaddr_miss_data),
 
-        .req_hpaddr_miss_rd_valid   (req_rd_q_l1tol2_req_hpaddr_miss_valid),
-        .req_hpaddr_miss_rd_retry   (req_rd_q_l1tol2_req_hpaddr_miss_retry),
-        .req_hpaddr_miss_rd_addr    (req_rd_q_l1tol2_req_hpaddr_miss_addr),
+        .req_rd_valid   (req_rd_q_l1tol2_req_hpaddr_miss_valid),
+        .req_rd_retry   (req_rd_q_l1tol2_req_hpaddr_miss_retry),
+        .req_rd_addr    (req_rd_q_l1tol2_req_hpaddr_miss_addr),
 
-        .ack_hpaddr_miss_rd_valid   (ack_rd_q_l1tol2_req_hpaddr_miss_valid),
-        .ack_hpaddr_miss_rd_retry   (1'b0),
-        //.ack_hpaddr_miss_rd_retry   (ack_rd_q_l1tol2_req_hpaddr_miss_retry),
-        .ack_hpaddr_miss_rd_data    (ack_rd_q_l1tol2_req_hpaddr_miss_data)
+        .ack_rd_valid   (ack_rd_q_l1tol2_req_hpaddr_miss_valid),
+        .ack_rd_retry   (1'b0),
+        //.ack_rd_retry   (ack_rd_q_l1tol2_req_hpaddr_miss_retry),
+        .ack_rd_data    (ack_rd_q_l1tol2_req_hpaddr_miss_data)
     );
 
     ram_2port_fast #(.Width(Q_LINKED_LIST_WIDTH), .Size(Q_LINKED_LIST_SIZE), .Forward(0))  q_l1tol2_req_linked_list (
         .clk            (clk),
         .reset          (reset),
         
-        .req_linked_list_wr_valid   (req_wr_q_l1tol2_req_linked_list_valid),
-        .req_linked_list_wr_retry   (req_wr_q_l1tol2_req_linked_list_retry),
-        .req_linked_list_wr_addr    (req_wr_q_l1tol2_req_linked_list_addr),
-        .req_linked_list_wr_data    (req_wr_q_l1tol2_req_linked_list_data),
+        .req_wr_valid   (req_wr_q_l1tol2_req_linked_list_valid),
+        .req_wr_retry   (req_wr_q_l1tol2_req_linked_list_retry),
+        .req_wr_addr    (req_wr_q_l1tol2_req_linked_list_addr),
+        .req_wr_data    (req_wr_q_l1tol2_req_linked_list_data),
 
-        .req_linked_list_rd_valid   (req_rd_q_l1tol2_req_linked_list_valid),
-        .req_linked_list_rd_retry   (req_rd_q_l1tol2_req_linked_list_retry),
-        .req_linked_list_rd_addr    (req_rd_q_l1tol2_req_linked_list_addr),
+        .req_rd_valid   (req_rd_q_l1tol2_req_linked_list_valid),
+        .req_rd_retry   (req_rd_q_l1tol2_req_linked_list_retry),
+        .req_rd_addr    (req_rd_q_l1tol2_req_linked_list_addr),
 
-        .ack_linked_list_rd_valid   (ack_rd_q_l1tol2_req_linked_list_valid),
-        .ack_linked_list_rd_retry   (1'b0),
-        //.ack_linked_list_rd_retry   (ack_rd_q_l1tol2_req_linked_list_retry),
-        .ack_linked_list_rd_data    (ack_rd_q_l1tol2_req_linked_list_data)
+        .ack_rd_valid   (ack_rd_q_l1tol2_req_linked_list_valid),
+        .ack_rd_retry   (1'b0),
+        //.ack_rd_retry   (ack_rd_q_l1tol2_req_linked_list_retry),
+        .ack_rd_data    (ack_rd_q_l1tol2_req_linked_list_data)
     );
-    qzhang33 */
+    // qzhang33 
 
     // read & write pointer and counter for the q_l1tol2_req
     logic   [`log2(Q_L1TOL2_REQ_SIZE)-1 : 0] q_l1tol2_req_rd_pointer;
