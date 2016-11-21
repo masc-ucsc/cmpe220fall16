@@ -318,6 +318,7 @@ void try_recv_packet(Vl2tlb_wp *top) {
   }
 
   l2tlb_l2_fwd_list.pop_back();
+  ntests++;
 }
 
 
