@@ -108,7 +108,7 @@ directory_bank_wp:
 run_directory_bank_wp: directory_bank_wp
 	./obj_dir/Vdirectory_bank_wp
 
-#REGLIST+=directory_bank_wp
+REGLIST+=directory_bank_wp
 ###########################
 ictlb_wp:
 	verilator --assert --debug-check -I./rtl --Wall --cc --trace --top-module ictlb_wp ./tests/ictlb_wp.v ./rtl/ictlb.v ./rtl/fflop.v --exe tests/ictlb_wp_tb.cpp -CFLAGS -DTRACE=1
