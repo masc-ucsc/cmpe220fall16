@@ -298,11 +298,11 @@ void try_recv_packet(Vdctlb_wp *top) {
       is_in_pf = false;
       while(!out_pf_list.empty() && !out_ld_coreid && out_ld_prefetch){
         out_pf = out_pf_list.back();
-        out_pf_list.pop_back();
         if(out_ld_hpaddr == out_pf.hpaddr && out_ld_ppaddr == out_pf.ppaddr){
           is_in_pf = true;
           break;
         }
+        out_pf_list.pop_back();
       }
       if(!is_in_pf){
         printf("ERROR: got %X but expected out_ld.hpaddr = %X\n", out_ld_hpaddr, out_ld.hpaddr);
@@ -324,11 +324,11 @@ void try_recv_packet(Vdctlb_wp *top) {
       is_in_pf = false;
       while(!out_pf_list.empty() && !out_st_coreid && out_st_prefetch){
         out_pf = out_pf_list.back();
-        out_pf_list.pop_back();
         if(out_st_hpaddr == out_pf.hpaddr && out_st_ppaddr == out_pf.ppaddr){
           is_in_pf = true;
           break;
         }
+        out_pf_list.pop_back();
       }
       if(!is_in_pf){
         printf("ERROR: got %X but expected out_st.hpaddr = %X\n", out_st_hpaddr, out_st.hpaddr);
@@ -353,7 +353,8 @@ int main(int argc, char **argv, char **env) {
 
   int t = (int)time(0);
 #if 0
-  srand(1477809920);
+  //srand(1477809920);
+  srand(1479800681);
 #else
   srand(t);
 #endif

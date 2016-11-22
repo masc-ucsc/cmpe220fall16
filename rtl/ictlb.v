@@ -73,7 +73,7 @@ module ictlb(
       coretoictlb_pc_retry = l1tlbtol1_fwd_retry_next;
       pfetol1tlb_req_retry = 1'b0; //drop the prefetch
 
-    end else if(~pfetol1tlb_req.l2) begin
+    end else if(pfetol1tlb_req_valid & ~pfetol1tlb_req.l2) begin
       l1tlbtol1_fwd_next.coreid = 'b0;
       l1tlbtol1_fwd_next.prefetch = 1'b1;
       l1tlbtol1_fwd_next.l2_prefetch = 1'b1;
