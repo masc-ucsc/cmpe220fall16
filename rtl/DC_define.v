@@ -17,3 +17,11 @@
 `define  LOCK  	3'b110
 `define  MARK  	3'b111
 
+`define DC 2'b00
+`define L2 2'b01
+`define DCTLB 2'b10
+`define MAINTLB 2'b11
+
+//module load_yes( 
+
+
