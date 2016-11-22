@@ -357,6 +357,7 @@ module l2cache_pipe(
     // qzhang33
     typedef struct packed {
         SC_paddr_type              paddr;
+        //TLB_hpaddr_type            hpaddr;
         I_l1tol2_req_type          l1tol2_req;
         logic                      next;
     } I_q_l1tol2_req_hpaddr_miss_type;
@@ -1281,24 +1282,15 @@ module l2cache_pipe(
     // Handle tag miss
     assign  tag_miss = (~tag_hit_next) && tag_ack_valid_banks_ways;
     // Enqueue linked list
-    /* qzhang33
+    // qzhang33
     always_comb begin
-      if (reg_new_l1tol2_req_tag_access_2) begin
-        req_wr_q_l1tol2_req_hpaddr_miss_data.hpaddr = 0;
+      if (reg_new_l1tol2_req_tag_access_2) begin 
         if (tag_miss) begin
-          if ( !req_wr_q_l1tol2_req_hpaddr_miss_data.hpaddr ) begin
-            req_wr_q_l1tol2_req_hpaddr_miss_data.hpaddr = l2tlbtol2_fwd_reg1.hpaddr;
-            req_wr_q_l1tol2_req_hpaddr_miss_data.next   = 0;
-            req_wr_q_l1tol2_req_linked_list_data.head   = 
-          end else if (req_wr_q_l1tol2_req_hpaddr_miss_data.hpaddr == l2tlbtol2_fwd.hpaddr) begin
-            req_wr_q_l1tol2_req_hpaddr_miss_data.next   = req_wr_q_l1tol2_req_hpaddr_miss_data.next + 1;
-
-        
-          end
-        end
+          
+    
       end
     end
-    qzhang33 */
+    // qzhang33
 
     // Enter next pipe stage: reg_new_l1tol2_req_data_access_0 when tag hit
     assign  reg_new_l1tol2_req_data_access_0_next = tag_hit_next && reg_new_l1tol2_req_tag_access_2;
