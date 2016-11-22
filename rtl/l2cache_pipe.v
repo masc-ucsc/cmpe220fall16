@@ -899,7 +899,7 @@ module l2cache_pipe(
 
     // Instantiate q_l1tol2_req_linked_list
     localparam  Q_LINKED_LIST_WIDTH = ($bits(I_q_l1tol2_req_linked_list_type) ); 
-    localparam  Q_LINKED_LIST_SIZE = 16;
+    localparam  Q_LINKED_LIST_SIZE = 64;
     logic                   req_wr_q_l1tol2_req_linked_list_valid;
     logic                   req_wr_q_l1tol2_req_linked_list_retry;
     logic           [`log2(Q_LINKED_LIST_SIZE)-1 : 0]        req_wr_q_l1tol2_req_linked_list_addr;
