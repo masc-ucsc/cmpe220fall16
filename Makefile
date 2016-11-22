@@ -48,6 +48,13 @@ l2_pass_through:
 
 # +define+L2_PASSTHROUGH=1 
 
+fflop_understand:
+	verilator --assert --debug-check -I./rtl --Wall --cc --trace --top-module fflop_understand ./rtl/fflop_understand.v --exe ./tests/fflop_understand_tb.cpp -CFLAGS "-DTRACE"
+	make -C obj_dir/ -f Vfflop_understand.mk Vfflop_understand
+
+run_fflop_understand:	fflop_understand
+	./obj_dir/Vfflop_understand
+
 run_l2: l2
 	./obj_dir/Vl2cache_pipe_wp
 
