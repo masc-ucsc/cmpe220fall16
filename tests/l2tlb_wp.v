@@ -81,8 +81,8 @@ module l2tlb_wp(
 	,input  DR_ndirs_type      	drtol2_snack_directory_id		// 2 bits
 	,input	SC_snack_type		drtol2_snack_snack			// 5 bits
 	,input	SC_line_type		drtol2_snack_line			// 512 bits
-	,input  DR_hpaddr_base_type drtol2_snack_hpaddr_base	// 17 bits
-	,input  DR_hpaddr_hash_type drtol2_snack_hpaddr_hash	// 8 bits
+	,input  DR_hpaddr_base_type	drtol2_snack_hpaddr_base	// 17 bits
+	,input  DR_hpaddr_hash_type	drtol2_snack_hpaddr_hash	// 8 bits
 	,input	SC_paddr_type		drtol2_snack_paddr			// 50 bits
 
 	,output	logic			l2todr_snoop_ack_valid
