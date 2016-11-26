@@ -3,6 +3,9 @@
 `define     PASSTHROUGH       
 //`define     LOAD              
 `ifdef LOAD
+///////////////////////////////////////////////////////////
+// FIFO BUFFER
+///////////////////////////////////////////////////////////
 module fifo_buffer (
   clk,
   reset,
@@ -15,7 +18,10 @@ module fifo_buffer (
   read_en,
   data_out,
   data_out_valid,
-  data_out_retry
+  data_out_retry,
+  
+  empty,
+  full
 );
 
 // Parameterize the module
@@ -36,6 +42,8 @@ output [DATA_WIDTH-1:0] data_out;
 output                  data_out_valid;
 input                   data_out_retry;
 
+output                  empty;
+output                  full;
 // Internal signals
 logic [DATA_WIDTH-1:0]    req_data;
 logic                     req_valid;
@@ -102,6 +110,12 @@ always_comb begin
   end
 end
 
+// empty and full signal handle
+always_comb begin
+  full = (status_count == ENTRIES);
+  empty = (status_count == 0);
+end
+
 // instantiate the ram block
 ram_1port_fast 
   #(.Width(DATA_WIDTH), .Size(ENTRIES)) 
@@ -150,7 +164,9 @@ module dcache_tagbank(
  
   input   [INDEX_SIZE-1:0]     index,
 
-  output  [3:0]                hit
+  output                       hit_valid,
+  input                        hit_retry,
+  output                       hit
 );
 
 
@@ -158,14 +174,26 @@ logic data_retry_1;
 logic data_retry_2;
 logic data_retry_3;
 logic data_retry_4;
+logic data_retry_5;
+logic data_retry_6;
+logic data_retry_7;
+logic data_retry_8;
 logic ack_valid_1;
 logic ack_valid_2;
 logic ack_valid_3;
 logic ack_valid_4;
+logic ack_valid_5;
+logic ack_valid_6;
+logic ack_valid_7;
+logic ack_valid_8;
 tagbank_data_type way1_data;
 tagbank_data_type way2_data;
 tagbank_data_type way3_data;
 tagbank_data_type way4_data;
+tagbank_data_type way5_data;
+tagbank_data_type way6_data;
+tagbank_data_type way7_data;
+tagbank_data_type way8_data;
 
 // WAY 1
 ram_1port_fast 
@@ -181,7 +209,7 @@ way1 (
   .req_data           (data),
 
   .ack_valid          (ack_valid_1),
-  .ack_retry          (0),
+  .ack_retry          (hit_retry),
   .ack_data           (way1_data)
 );
 
@@ -200,7 +228,7 @@ way2 (
   .req_data           (data),
 
   .ack_valid          (ack_valid_2),
-  .ack_retry          (0),
+  .ack_retry          (hit_retry),
   .ack_data           (way2_data)
 );
 
@@ -218,7 +246,7 @@ way3 (
   .req_data           (data),
 
   .ack_valid          (ack_valid_3),
-  .ack_retry          (0),
+  .ack_retry          (hit_retry),
   .ack_data           (way3_data)
 );
 
@@ -236,22 +264,94 @@ way4 (
   .req_data           (data),
 
   .ack_valid          (ack_valid_4),
-  .ack_retry          (0),
+  .ack_retry          (hit_retry),
   .ack_data           (way4_data)
 );
 
-assign data_retry=data_retry_1&data_retry_2&data_retry_3&data_retry_4;
-logic hit1;
-logic hit2;
-logic hit3;
-logic hit4;
+// WAY 5
+ram_1port_fast 
+#(.Width($bits(tagbank_data_type)), .Size(TAGBANK_ENTRIES)) 
+way4 (
+  .clk                (clk&enable),
+  .reset              (reset),
 
-assign hit1 = (way1_data.tag == tag);
-assign hit2 = (way2_data.tag == tag);
-assign hit3 = (way3_data.tag == tag);
-assign hit4 = (way4_data.tag == tag);
+  .req_valid          (data_valid),
+  .req_retry          (data_retry_5),
+  .req_we             (write),
+  .req_pos            (index),
+  .req_data           (data),
 
-assign hit = {hit1, hit2, hit3, hit4};
+  .ack_valid          (ack_valid_5),
+  .ack_retry          (hit_retry),
+  .ack_data           (way5_data)
+);
+
+// WAY 6
+ram_1port_fast 
+#(.Width($bits(tagbank_data_type)), .Size(TAGBANK_ENTRIES)) 
+way4 (
+  .clk                (clk&enable),
+  .reset              (reset),
+
+  .req_valid          (data_valid),
+  .req_retry          (data_retry_6),
+  .req_we             (write),
+  .req_pos            (index),
+  .req_data           (data),
+
+  .ack_valid          (ack_valid_6),
+  .ack_retry          (hit_retry),
+  .ack_data           (way6_data)
+);
+
+// WAY 7
+ram_1port_fast 
+#(.Width($bits(tagbank_data_type)), .Size(TAGBANK_ENTRIES)) 
+way4 (
+  .clk                (clk&enable),
+  .reset              (reset),
+
+  .req_valid          (data_valid),
+  .req_retry          (data_retry_7),
+  .req_we             (write),
+  .req_pos            (index),
+  .req_data           (data),
+
+  .ack_valid          (ack_valid_7),
+  .ack_retry          (hit_retry),
+  .ack_data           (way7_data)
+);
+
+// WAY 8
+ram_1port_fast 
+#(.Width($bits(tagbank_data_type)), .Size(TAGBANK_ENTRIES)) 
+way4 (
+  .clk                (clk&enable),
+  .reset              (reset),
+
+  .req_valid          (data_valid),
+  .req_retry          (data_retry_8),
+  .req_we             (write),
+  .req_pos            (index),
+  .req_data           (data),
+
+  .ack_valid          (ack_valid_8),
+  .ack_retry          (hit_retry),
+  .ack_data           (way8_data)
+);
+
+always_comb begin
+  data_retry = data_retry_1&data_retry_2&data_retry_3&data_retry_4&data_retry_5&data_retry_6&data_retry_7&data_retry_8;
+  hit_valid = ack_valid_1&ack_valid_2&ack_valid_3&ack_valid_4&ack_valid_5&ack_valid_6&ack_valid_7&ack_valid_8;
+  hit = (way1_data.tag == tag)&
+        (way2_data.tag == tag)&
+        (way3_data.tag == tag)&
+        (way4_data.tag == tag)&
+        (way5_data.tag == tag)&
+        (way6_data.tag == tag)&
+        (way7_data.tag == tag)&
+        (way8_data.tag == tag);
+end
 
 endmodule
 `endif
@@ -1164,52 +1264,57 @@ end
 
 
 `ifdef LOAD
-assign ff_coretodc_std_retry_in = 1;
-// get the index
-logic [12:0] index = coretodc_ld.poffset+coretodc_ld.imm;
+///////////////////////////////////////////////////////////
+// Values for control logic are assigned by the FSM
+// FSM is implemented at the end of dcache_pipe.v file
+///////////////////////////////////////////////////////////
 
 //STAGE #1 (FIRST CLOCK CYCLE)
-tagbank_data_type tagbank1_write_data;
-logic [3:0] tagbank1_hits;
-logic tagbank1_retry_out;
+// Check for coreid match from l1 tlb and core
+always_comb begin
+  if (current_state == LOAD_PROC) begin
+    if (ff_coretodc_ld_valid_out && ff_l1tlbtol1_fwd0_valid_out) begin
+      if (coretodc_ld_current.coreid == l1tlbtol1_fwd0_current.coreid) begin
+        ld_coreid_fault = 0;
+      end else begin
+        ld_coreid_fault = 1;
+      end
+    end
+  end
+end
+
+// Access the tagbank
+logic [12:0]      index = coretodc_ld.poffset+coretodc_ld.imm;
+tagbank_data_type tagbank_write_data;
+logic             tagbank_en;
+logic             tagbank_write;
+logic             tagbank_hit;
+logic             tagbank_retry_out;
+logic             tagbank_valid_in;
+
 dcache_tagbank tagbank1 (
   .clk        (clk),
   .reset      (reset),
-  .enable     (index[10]) 
-  .write      (0),
-  .data_valid (ff_coretodc_ld_valid_out),
-  .data_retry (tagbank1_retry_out),
+  .enable     (tagbank_en) 
+  .write      (tagbank_write),
+  .data_valid (tagbank_valid_in),
+  .data_retry (tagbank_retry_out),
   .data       (tagbank1_write_data),
 
   .index      (index[10:6]),
 
-  .hit        (tagbank1_hits)
-);
-
-tagbank_data_type tagbank2_write_data;
-logic [3:0] tagbank2_hits;
-logic tagbank2_retry_out;
-
-dcache_tagbank tagbank2 (
-  .clk        (clk),
-  .reset      (reset),
-  .enable     (~index[10]),
-
-  .write      (0),
-  .data_valid (ff_coretodc_ld_valid_out),
-  .data_retry (tagbank2_retry_out),
-  .data       (tagbank2_write_data),
-
-  .index      (index[10:6]),
-
-  .hit        (tagbank2_hits)
+  .hit_retry  (hit_retry),
+  .hit_valid  (hit_valid),
+  .hit        (tagbank_hit)
 );
 
 // data bank activation logic
 // calculated data will be used during the next cycle
 logic [7:0] databank_en;
+logic       databank_en_retry;
+logic       databank_en_valid;
 always_comb begin
-  if (coretodc_ld.lop == CORE_LOP_L64U) begin
+  if (coretodc_ld.lop == CORE_LOP_L64U && !databank_en_retry) begin
     case (index[7:5]) begin
       3'b000: databank_en = 8'b00000001;
       3'b001: databank_en = 8'b00000010;
@@ -1220,56 +1325,8 @@ always_comb begin
       3'b110: databank_en = 8'b01000000;
       3'b111: databank_en = 8'b10000000;
     end
-  end  
-end
-
-ff_coretodc_ld_retry_in = tagbank1_retry_out&tagbank2_retry_out;
-logic [3:0] hits;
-logic       hit;
-always_comb begin
-  if (index[10]) begin
-    hits = tagbank1_hits;
-  end else begin
-    hits = tagbank2_hits;
   end
 end
-
-assign hit = hits[3]|hit[2]|hit[1]|hit[0];
-
-// flop the control logic needed for the second stage
-logic [3:0]        hits_stage_2;
-logic              hit_stage_2;
-logic [12:0]       index_stage_2;
-I_coretodc_ld_type coretodc_ld_stage_2;
-
-flop #(.Bits($bits(hits))) hits_flop (
-  .clk      (clk),
-  .reset    (reset),
-  .d        (hits),
-  .q        (hits_stage_2)
-);
-
-flop #(.Bits($bits(index))) hits_flop (
-  .clk      (clk),
-  .reset    (reset),
-  .d        (index),
-  .q        (index_stage_2)
-);
-
-flop #(.Bits($bits(hit))) hits_flop (
-  .clk      (clk),
-  .reset    (reset),
-  .d        (hit),
-  .q        (hit_stage_2)
-);
-
-flop #(.Bits($bits(coretodc_ld))) hits_flop (
-  .clk      (clk),
-  .reset    (reset),
-  .d        (coretodc_ld),
-  .q        (coretodc_ld_stage_2)
-);
-
 
 // STAGE 2 (SECOND CLOCK CYCLE) ACCESS DATABANK
 
@@ -1307,6 +1364,152 @@ dctocore_ld_buffer (
 );
 
 
+`endif
+
+`ifdef LOAD
+///////////////////////////////////////////////////////////
+// GRANT STATE MACHIE
+// Description:
+//  This state machine determines the control logic
+//  for L1 cache
+///////////////////////////////////////////////////////////
+// define states
+`define       IDLE                   0
+
+`define       LOAD_PROC              1
+`define       LOAD_COREID_FAULT      2
+`define       LOAD_MISS              3
+`define       LOAD_HIT               4
+
+`define       SNOOP_PROC             5
+`define       STORE_PROC             6
+typedef logic [7:0] state_type;
+
+state_type  stage1_current_state;
+state_type  stage1_next_state;
+state_type  stage2_current_state;
+state_type  stage2_next_state;
+state_type  stage3_current_state;
+state_type  stage3_next_state;
+// end define states
+
+///////////////////////////////////////////////////////////
+// Synchronization block
+//
+// DESCRIPTION
+// This is the syncronization process. In this process 
+// the next state is assigned to the current state.
+///////////////////////////////////////////////////////////
+always @(posedge clk) begin
+  if (reset) begin
+    stage1_current_state <= IDLE;
+    stage2_current_state <= IDLE;
+    stage3_current_state <= IDLE;
+  end else begin
+    stage1_current_state <= stage1_next_state;
+    stage2_current_state <= stage2_next_state;
+    stage3_current_state <= stage3_next_state;
+  end
+end
+
+///////////////////////////////////////////////////////////
+// Next state decoder block
+//
+// DESCRIPTION
+// Depending on the input signals, and actrions to be 
+// performed this process decodes the next state.
+///////////////////////////////////////////////////////////
+// first stage FSM decoder
+always_comb begin
+  case (stage1_current_state) 
+    IDLE: begin
+      stage1_next_state = LOAD_PROC;
+    end
+    LOAD_PROC: begin
+      // TODO
+    end
+  endcase
+end
+
+// second stage FSM next state decoder
+always_comb begin
+  case (stage1_current_state)
+    IDLE: begin
+      if (hit_valid) begin
+        if (ld_coreid_fault) begin
+          stage2_next_state = LOAD_COREID_FAULT;
+        end else if (tagbank_hit) begin
+          stage2_next_state = LOAD_HIT;
+        end else begin
+          stage2_next_state = LOAD_MISS;
+        end
+      end else begin
+        stage2_next_state = IDLE; 
+      end
+    end
+    LOAD_PROC: begin
+      if (hit_valid) begin
+        if (ld_coreid_fault) begin
+          stage2_next_state = LOAD_COREID_FAULT;
+        end else if (tagbank_hit) begin
+          stage2_next_state = LOAD_HIT;
+        end else begin
+          stage2_next_state = LOAD_MISS;
+        end
+      end else begin
+        stage2_next_state = IDLE; 
+      end
+    end
+    SNOOP_PROC: begin
+      //TODO
+    end
+    STORE_PROC: begin
+      //TODO
+    end
+  endcase
+end
+///////////////////////////////////////////////////////////
+// Assigner block
+//
+// DESCRIPTION
+// Depending on the current state, this block will 
+// assign required value to control signals
+///////////////////////////////////////////////////////////
+
+// first stage assigner block
+always_comb begin
+  case (current_state) 
+    IDLE: begin
+      
+    end
+    LOAD_PROC: begin
+      ff_coretodc_ld_retry_in = 0;
+      ff_l1tlbtol1_fwd0_retry_in = 0;
+      tagbank_valid_in = ff_coretodc_ld_valid_out&ff_l1tlbtol1_fwd0_valid_out;
+      tagbank_en = 1;
+      tagbank_write = 0;
+      hit_retry = 0;
+      // state of the FSM in second stage is the output of the first FSM
+      if (hit_valid) begin
+        if (ld_coreid_fault) begin
+          stage2_next_state = LOAD_COREID_FAULT;
+        end else if (tagbank_hit) begin
+          stage2_next_state = LOAD_HIT;
+        end else begin
+          stage2_next_state = LOAD_MISS;
+        end
+      end else begin
+        stage2_next_state = IDLE;
+      end
+    end
+    SNOOP_PROC: begin
+      //TODO
+    end
+    STORE_PROC: begin
+      //TODO
+    end
+  endcase
+end
 `endif
 endmodule
 
