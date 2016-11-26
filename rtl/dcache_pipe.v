@@ -1,7 +1,128 @@
-
 `include "scmem.vh"
+`include "logfunc.h"
 `define     PASSTHROUGH       
 //`define     LOAD              
+`ifdef LOAD
+module fifo_buffer (
+  clk,
+  reset,
+
+  write_en,
+  data_in,
+  data_in_valid,
+  data_in_retry,
+
+  read_en,
+  data_out,
+  data_out_valid,
+  data_out_retry
+);
+
+// Parameterize the module
+parameter DATA_WIDTH = 8;
+parameter ENTRIES = 8;
+parameter ADDR_WIDTH = log2(ENTRIES);
+// Port declaration
+input                   clk;
+input                   reset;
+
+input                   write_en;
+input [DATA_WIDTH-1:0]  data_in;
+input                   data_in_valid;
+output                  data_in_retry;
+
+input                   read_en;
+output [DATA_WIDTH-1:0] data_out;
+output                  data_out_valid;
+input                   data_out_retry;
+
+// Internal signals
+logic [DATA_WIDTH-1:0]    req_data;
+logic                     req_valid;
+logic                     req_retry;
+logic                     req_we;
+logic [ADDR_WIDTH-1:0]    req_pos;
+logic [DATA_WIDTH-1:0]    ack_data;
+logic                     ack_valid;
+logic                     ack_retry;
+
+//clear on reset
+//reset state machie
+logic [ADDR_WIDTH-1:0] reset_count;
+always @(posedge reset or posedge clk) begin
+  if (posedge reset) begin
+    reset_count <= 0;
+  end
+
+  if (reset) begin
+    reset_count <= reset_count + 1; 
+  end
+end
+
+//status counter
+logic [ADDR_WIDTH  :0] status_counter;
+logic [ADDR_WIDTH-1:0] read_pointer;
+logic [ADDR_WIDTH-1:0] write_pointer;
+always @(posedge clk or posedge reset) begin
+  if (reset) begin
+    status_counter <= 0;
+    read_pointer <= 0;
+    write_pointer <= 0;
+  end else begin 
+    if (write_en && !read_en && status_count<ENTRIES) begin
+      status_count <= status_count + 1;
+      write_pointer <= write_pointer + 1;
+    end else if (read_en && !write_en && status_count!=0) begin
+      status_count <= status_count - 1;
+      read_pointer <= read_pointer + 1;
+    end
+  end
+end
+
+// write/read handle
+always_comb begin
+  if (reset) begin
+    req_data = 0;
+    req_we = 1;
+    req_pos = reset_count;
+  end else begin
+    if (write_en && !read_en) begin
+      req_we = 1;
+      req_pos = write_pointer;
+    end else begin
+      req_we = 0;
+      req_pos = read_pointer;
+    end
+    req_valid = data_in_valid;
+    req_data = data_in;
+    data_out_retry = req_retry;
+    ack_retry = 0;
+    data_out_valid = ack_valid && (status_count != 0);
+    data_in_retry = (status_count == ENTRIES);
+  end
+end
+
+// instantiate the ram block
+ram_1port_fast 
+  #(.Width(DATA_WIDTH), .Size(ENTRIES)) 
+storage (
+  .clk                (clk),
+  .reset              (reset),
+
+  .req_valid          (req_valid),
+  .req_retry          (req_retry),
+  .req_we             (req_we),
+  .req_pos            (req_pos),
+  .req_data           (req_data),
+
+  .ack_valid          (ack_valid),
+  .ack_retry          (ack_retry),
+  .ack_data           (ack_data)
+);
+
+
+endmodule
+`endif
 
 `ifdef LOAD
 ///////////////////////////////////////////////////////////
@@ -22,7 +143,7 @@ module dcache_tagbank(
   input                        reset,
   input                        enable,
 
-  input                        write, //write = 0 ==> read
+  input                        write, //write==0 implies read
   input                        data_valid,
   output                       data_retry,
   input   tagbank_data_type    data,
@@ -1151,6 +1272,40 @@ flop #(.Bits($bits(coretodc_ld))) hits_flop (
 
 
 // STAGE 2 (SECOND CLOCK CYCLE) ACCESS DATABANK
+
+`endif
+
+///////////////////////////////////////////////////////////
+// DCTOCORE INTERFACE
+///////////////////////////////////////////////////////////
+`ifdef LOAD
+logic                     dctocore_ld_buffer_write_en;
+dctocore_ld_type          dctocore_ld_buffer_data_in;
+logic                     dctocore_ld_buffer_data_in_valid;
+logic                     dctocore_ld_buffer_data_in_retry
+
+logic                     dctocore_ld_buffer_read_en;
+dctocore_ld_type          dctocore_ld_buffer_data_out;
+logic                     dctocore_ld_buffer_data_out_valid;
+logic                     dctocore_ld_buffer_data_out_retry;
+
+fifo_buffer 
+  #(.DATA_WIDTH($bits(dctocore_ld_type)), .ENTRIES(4))
+dctocore_ld_buffer (
+  .clk              (clk),
+  .reset            (reset),
+
+  .write_en         (dctocore_ld_buffer_write_en),
+  .data_in          (dctocore_ld_buffer_data_in),
+  .data_in_valid    (dctocore_ld_buffer_data_in_valid),
+  .data_in_retry    (dctocore_ld_buffer_data_in_retry),
+
+  .read_en          (dctocore_ld_buffer_read_en),
+  .data_out         (dctocore_ld_buffer_data_out),
+  .data_out_valid   (dctocore_ld_buffer_data_out_valid),
+  .data_out_retry   (dctocore_ld_buffer_data_out_retry) 
+);
+
 
 `endif
 endmodule
