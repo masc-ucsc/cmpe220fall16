@@ -1,7 +1,27 @@
 `include "scmem.vh"
 `include "logfunc.h"
 `define     PASSTHROUGH       
-//`define     LOAD              
+//`define     LOAD             
+ 
+// define states for the state machine
+`define       IDLE                   0
+
+`define       LOAD_PROC              1
+`define       LOAD_COREID_FAULT      2
+`define       LOAD_MISS              3
+`define       LOAD_HIT               4
+
+`define       SNOOP_PROC             5
+`define       STORE_PROC             6
+typedef logic [7:0] state_type;
+
+state_type  stage1_current_state;
+state_type  stage1_next_state;
+state_type  stage2_current_state;
+state_type  stage2_next_state;
+state_type  stage3_current_state;
+state_type  stage3_next_state;
+// end define states
 `ifdef LOAD
 ///////////////////////////////////////////////////////////
 // FIFO BUFFER
@@ -1270,10 +1290,13 @@ end
 ///////////////////////////////////////////////////////////
 
 //STAGE #1 (FIRST CLOCK CYCLE)
+// This logic is governed by the state machine
+logic stage1_input_valid;
+logic stage1_common_retry;
 // Check for coreid match from l1 tlb and core
 always_comb begin
   if (current_state == LOAD_PROC) begin
-    if (ff_coretodc_ld_valid_out && ff_l1tlbtol1_fwd0_valid_out) begin
+    if (stage1_input_valid) begin
       if (coretodc_ld_current.coreid == l1tlbtol1_fwd0_current.coreid) begin
         ld_coreid_fault = 0;
       end else begin
@@ -1289,6 +1312,8 @@ tagbank_data_type tagbank_write_data;
 logic             tagbank_en;
 logic             tagbank_write;
 logic             tagbank_hit;
+logic             hit_retry;
+logic             hit_valid;
 logic             tagbank_retry_out;
 logic             tagbank_valid_in;
 
@@ -1308,7 +1333,24 @@ dcache_tagbank tagbank1 (
   .hit        (tagbank_hit)
 );
 
-// data bank activation logic
+// Fluid-flop the output of the tag bank for the next stage
+logic     tagbank_hit_stage2;
+logic     hit_retry_stage2;
+logic     hit_valid_stage2;
+fflop #(.Size(1)) ff_tagbank_hit (
+  .clk      (clk),
+  .reset    (reset),
+
+  .din      (tagbank_hit),
+  .dinValid (stage1_input_valid),
+  .dinRetry (hit_retry),
+
+  .q        (tagbank_hit_stage2),
+  .qValid   (hit_valid_stage2),
+  .qRetry   (hit_retry_stage2)
+);
+
+// data bank activation logic (Way predictor)
 // calculated data will be used during the next cycle
 logic [7:0] databank_en;
 logic       databank_en_retry;
@@ -1328,7 +1370,64 @@ always_comb begin
   end
 end
 
+
+// Fluid-flop the output of databank activator for the next stage
+logic [7:0] databank_en_stage2;
+logic       databank_en_valid_stage2;
+logic       databank_en_retry_stage2;
+fflop #(.Size(8)) ff_databank_en (
+  .clk      (clk),
+  .reset    (reset),
+
+  .din      (databank_en),
+  .dinValid (stage1_input_valid),
+  .dinRetry (databank_en_retry),
+
+  .q        (databank_en_stage2),
+  .qValid   (databank_en_valid_stage2),
+  .qRetry   (databank_en_retry_stage2)
+);
+
+// Fluid-flop the coretodc_ld for the next cycle
+coretodc_ld_type      coretodc_ld_stage2;
+logic                 coretodc_ld_valid_stage2;
+logic                 coretodc_ld_retry_stage2;
+logic                 coretodc_ld_retry_stage1;
+fflop #($bits(coretodc_ld_type)) ff_coretodc_ld_stage2 (
+  .clk      (clk),
+  .reset    (reset),
+
+  .din      (coretodc_ld_current),
+  .dinValid (stage1_input_valid),
+  .dinRetry (coretodc_ld_retry_stage1) ,
+
+  .q        (coretodc_ld_stage2),
+  .qValid   (coretodc_ld_valid_stage2),
+  .qRetry   (coretodc_ld_retry_stage2)
+);
+
+// Fluid-flop the l1tlbtol1_fwd0 for the next cycle
+l1tlbtol1_fwd_type      l1tlbtol1_fwd0_stage2;
+logic                   l1tlbtol1_fwd0_valid_stage2;
+logic                   l1tlbtol1_fwd0_retry_stage2;
+logic                   l1tlbtol1_fwd0_retry_stage1;
+ 
 // STAGE 2 (SECOND CLOCK CYCLE) ACCESS DATABANK
+// miss scenario:
+//  1) generate l1tol2_req and l1tol2tlb_req
+//  2) place the request into the queues
+//  3) save the l1id of the request for future processing
+l1tol2_req_type     l1tol2_req_next;
+l1tlbtol2_req_type  l1tlbtol2_req_next;
+logic               stage2_input_valid;
+logic               stage2_common_retry;
+always_comb begin
+  if (stage2_input_valid) begin
+    if (!tagbank_hit_stage2) begin
+      l1tol2_req_next.
+    end
+  end
+end
 
 `endif
 
@@ -1373,25 +1472,6 @@ dctocore_ld_buffer (
 //  This state machine determines the control logic
 //  for L1 cache
 ///////////////////////////////////////////////////////////
-// define states
-`define       IDLE                   0
-
-`define       LOAD_PROC              1
-`define       LOAD_COREID_FAULT      2
-`define       LOAD_MISS              3
-`define       LOAD_HIT               4
-
-`define       SNOOP_PROC             5
-`define       STORE_PROC             6
-typedef logic [7:0] state_type;
-
-state_type  stage1_current_state;
-state_type  stage1_next_state;
-state_type  stage2_current_state;
-state_type  stage2_next_state;
-state_type  stage3_current_state;
-state_type  stage3_next_state;
-// end define states
 
 ///////////////////////////////////////////////////////////
 // Synchronization block
@@ -1473,16 +1553,42 @@ end
 //
 // DESCRIPTION
 // Depending on the current state, this block will 
-// assign required value to control signals
+// assign required value for all of the
+// required control signals at this state
 ///////////////////////////////////////////////////////////
 
-// first stage assigner block
+// first stage assigner blocks
+// this block assign retry signals for previous stages
 always_comb begin
   case (current_state) 
     IDLE: begin
-      
+      //TODO
     end
     LOAD_PROC: begin
+      ff_coretodc_ld_retry_in = (!stage1_input_valid) || (stage1_common_retry);
+      ff_l1tlbtol1_fwd0_retry_in = (!stage1_input_valid) || (stage1_common_retry);
+    end
+    SNOOP_PROC: begin
+      //TODO
+    end
+    STORE_PROC: begin
+      //TODO
+    end
+  endcase
+end
+
+always_comb begin
+  case (current_state) 
+    IDLE: begin
+      //TODO
+    end
+    LOAD_PROC: begin
+      // First stage Valid and Retry signal handling:
+      // The inputs should go when all sources are ready.
+      stage1_input_valid = ff_coretodc_ld_valid_out&&ff_l1tlbtol1_fwd0_valid_out;
+      stage1_common_retry = (hit_retry) || databank_en_retry;
+
+      //
       ff_coretodc_ld_retry_in = 0;
       ff_l1tlbtol1_fwd0_retry_in = 0;
       tagbank_valid_in = ff_coretodc_ld_valid_out&ff_l1tlbtol1_fwd0_valid_out;
@@ -1507,6 +1613,45 @@ always_comb begin
     end
     STORE_PROC: begin
       //TODO
+    end
+  endcase
+end
+
+// second stage assigner block
+// this block assign retry signals for previous stages
+always_comb begin
+  case (stage2_current_state)
+    IDLE: begin
+      //TODO
+    end
+    LOAD_MISS: begin
+      hit_retry_stage2 = (!stage2_input_valid) || (stage2_common_retry);
+      databank_en_retry_stage2 = (!stage2_input_valid) || (stage2_common_retry);
+      coretodc_ld_retry_stage2 = (!stage2_input_valid) || (stage2_common_retry);
+    end
+    LOAD_HIT: begin
+
+    end
+    LOAD_COREID_FAULT: begin
+
+    end
+  endcase
+end
+
+always_comb begin
+  case (stage2_current_state)
+    IDLE: begin
+      //TODO
+    end
+    LOAD_MISS: begin
+      stage2_input_valid = (hit_valid_stage2)&&(databank_en_valid_stage2);
+      stage2_common_retry = (missq_retry);
+    end
+    LOAD_HIT: begin
+
+    end
+    LOAD_COREID_FAULT: begin
+
     end
   endcase
 end
