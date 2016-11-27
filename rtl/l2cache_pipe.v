@@ -1330,6 +1330,148 @@ module l2cache_pipe(
     // Verify full tag was correct:
     //      yes:    Send l2tol1_snack
     //      no:     reflow
+    
+
+    //========================================Directory to L2 snack=======================================
+    // qzhang33
+    logic   [7:0] data[63:0]; // drtol2_snack_line, l2tol1_snack_line
+    logic  [15:0] entry[];
+    logic  [35:0] tag;
+    logic         we;
+    logic   [3:0] hit_way;
+
+    assign drtol2_snack.nid  = l2todr_req.nid;
+    assign drtol2_snack.l2id = l2todr_req.l2id;
+    assign tag = l2todr_req.paddr[49:14];
+
+    always_comb begin
+      we = 0;
+      if (drtol2_snack.drid == 0 && drtol2_snack.l2id != 0 && drtol2_snack.snack == 5'b0xxxx) begin // make sure it is an ack not snoop
+        if (tag == 0) begin
+          case (1'b1) 
+            // check way0 
+            ((entry[0] == drtol2_snack.paddr[13:6])) : begin
+              we = 1;
+              data = 
+                {drtol2_snack.line7, drtol2_snack.line6, drtol2_snack.line5, drtol2_snack.line4, drtol2_snack.line3, drtol2_snack.l2, drtol2_snack.l1, drtol2_snack.line0};
+              hit_way = 4'b0000;
+            end
+            // check way1 
+            ((entry[1] == drtol2_snack.paddr[13:6])) : begin
+              we = 1;
+              data = 
+                {drtol2_snack.line7, drtol2_snack.line6, drtol2_snack.line5, drtol2_snack.line4, drtol2_snack.line3, drtol2_snack.l2, drtol2_snack.l1, drtol2_snack.line0};
+              hit_way = 4'b0001;
+            end
+            // check way3
+            ((entry[2] == drtol2_snack.paddr[13:6])) : begin
+              we = 1;
+              data = 
+                {drtol2_snack.line7, drtol2_snack.line6, drtol2_snack.line5, drtol2_snack.line4, drtol2_snack.line3, drtol2_snack.l2, drtol2_snack.l1, drtol2_snack.line0};
+              hit_way = 4'b0010;
+            end
+            // check way4 
+            ((entry[3] == drtol2_snack.paddr[13:6])) : begin
+              we = 1;
+              data = 
+                {drtol2_snack.line7, drtol2_snack.line6, drtol2_snack.line5, drtol2_snack.line4, drtol2_snack.line3, drtol2_snack.l2, drtol2_snack.l1, drtol2_snack.line0};
+              hit_way = 4'b0011;
+            end
+            // check way5 
+            ((entry[4] == drtol2_snack.paddr[13:6])) : begin
+              we = 1;
+              data = 
+                {drtol2_snack.line7, drtol2_snack.line6, drtol2_snack.line5, drtol2_snack.line4, drtol2_snack.line3, drtol2_snack.l2, drtol2_snack.l1, drtol2_snack.line0};
+              hit_way = 4'b0100;
+            end
+            // check way6 
+            ((entry[5] == drtol2_snack.paddr[13:6])) : begin
+              we = 1;
+              data = 
+                {drtol2_snack.line7, drtol2_snack.line6, drtol2_snack.line5, drtol2_snack.line4, drtol2_snack.line3, drtol2_snack.l2, drtol2_snack.l1, drtol2_snack.line0};
+              hit_way = 4'b0101;
+            end
+            // check way7 
+            ((entry[6] == drtol2_snack.paddr[13:6])) : begin
+              we = 1;
+              data = 
+                {drtol2_snack.line7, drtol2_snack.line6, drtol2_snack.line5, drtol2_snack.line4, drtol2_snack.line3, drtol2_snack.l2, drtol2_snack.l1, drtol2_snack.line0};
+              hit_way = 4'b0110;
+            end
+            // check way8 
+            ((entry[7] == drtol2_snack.paddr[13:6])) : begin
+              we = 1;
+              data = 
+                {drtol2_snack.line7, drtol2_snack.line6, drtol2_snack.line5, drtol2_snack.line4, drtol2_snack.line3, drtol2_snack.l2, drtol2_snack.l1, drtol2_snack.line0};
+              hit_way = 4'b0111;
+            end
+            // check way9 
+            ((entry[8] == drtol2_snack.paddr[13:6])) : begin
+              we = 1;
+              data = 
+                {drtol2_snack.line7, drtol2_snack.line6, drtol2_snack.line5, drtol2_snack.line4, drtol2_snack.line3, drtol2_snack.l2, drtol2_snack.l1, drtol2_snack.line0};
+              hit_way = 4'b1000;
+            end
+            // check way10 
+            ((entry[9] == drtol2_snack.paddr[13:6])) : begin
+              we = 1;
+              data = 
+                {drtol2_snack.line7, drtol2_snack.line6, drtol2_snack.line5, drtol2_snack.line4, drtol2_snack.line3, drtol2_snack.l2, drtol2_snack.l1, drtol2_snack.line0};
+              hit_way = 4'b1001;
+            end
+            // check way11 
+            ((entry[10] == drtol2_snack.paddr[13:6])) : begin
+              we = 1;
+              data = 
+                {drtol2_snack.line7, drtol2_snack.line6, drtol2_snack.line5, drtol2_snack.line4, drtol2_snack.line3, drtol2_snack.l2, drtol2_snack.l1, drtol2_snack.line0};
+              hit_way = 4'b1010;
+            end
+            // check way12 
+            ((entry[11] == drtol2_snack.paddr[13:6])) : begin
+              we = 1;
+              data = 
+                {drtol2_snack.line7, drtol2_snack.line6, drtol2_snack.line5, drtol2_snack.line4, drtol2_snack.line3, drtol2_snack.l2, drtol2_snack.l1, drtol2_snack.line0};
+              hit_way = 4'b1011;
+            end
+            // check way13
+            ((entry[12] == drtol2_snack.paddr[13:6])) : begin
+              we = 1;
+              data = 
+                {drtol2_snack.line7, drtol2_snack.line6, drtol2_snack.line5, drtol2_snack.line4, drtol2_snack.line3, drtol2_snack.l2, drtol2_snack.l1, drtol2_snack.line0};
+              hit_way = 4'b1100;
+            end
+            // check way14
+            ((entry[13] == drtol2_snack.paddr[13:6])) : begin
+              we = 1;
+              data = 
+                {drtol2_snack.line7, drtol2_snack.line6, drtol2_snack.line5, drtol2_snack.line4, drtol2_snack.line3, drtol2_snack.l2, drtol2_snack.l1, drtol2_snack.line0};
+              hit_way = 4'b1101;
+            end
+            // check way15 
+            ((entry[14] == drtol2_snack.paddr[13:6])) : begin
+              we = 1;
+              data = 
+                {drtol2_snack.line7, drtol2_snack.line6, drtol2_snack.line5, drtol2_snack.line4, drtol2_snack.line3, drtol2_snack.l2, drtol2_snack.l1, drtol2_snack.line0};
+              hit_way = 4'b1110;
+            end
+            // check way016
+            ((entry[15] == drtol2_snack.paddr[13:6])) : begin
+              we = 1;
+              data = 
+                {drtol2_snack.line7, drtol2_snack.line6, drtol2_snack.line5, drtol2_snack.line4, drtol2_snack.line3, drtol2_snack.l2, drtol2_snack.l1, drtol2_snack.line0};
+              hit_way = 4'b1111;
+            end
+            default: 
+          endcase
+        end else begin // tag != 0 -> no empty cacheline 
+          hit_way = rand()%16;
+          entry[hit_way] = drtol2_snack.paddr[13:6];
+          data = 
+            {drtol2_snack.line7, drtol2_snack.line6, drtol2_snack.line5, drtol2_snack.line4, drtol2_snack.line3, drtol2_snack.l2, drtol2_snack.l1, drtol2_snack.line0};
+        end
+      end else //TODO
+    end
+    //qzhang33
 `endif
 endmodule
 
