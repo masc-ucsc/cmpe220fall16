@@ -3,6 +3,7 @@
 `define     PASSTHROUGH       
 //`define     LOAD             
  
+`ifdef LOAD
 // define states for the state machine
 `define       IDLE                   0
 
@@ -22,7 +23,6 @@ state_type  stage2_next_state;
 state_type  stage3_current_state;
 state_type  stage3_next_state;
 // end define states
-`ifdef LOAD
 ///////////////////////////////////////////////////////////
 // FIFO BUFFER
 ///////////////////////////////////////////////////////////
