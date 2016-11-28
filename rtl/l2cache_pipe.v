@@ -1286,8 +1286,9 @@ module l2cache_pipe(
     always_comb begin
       if (reg_new_l1tol2_req_tag_access_2) begin 
         if (tag_miss) begin
+
           
-    
+        end
       end
     end
     // qzhang33
@@ -1334,144 +1335,164 @@ module l2cache_pipe(
 
     //========================================Directory to L2 snack=======================================
     // qzhang33
-    logic   [7:0] data[63:0]; // drtol2_snack_line, l2tol1_snack_line
-    logic  [15:0] entry[];
-    logic  [35:0] tag;
+    
+    typedef logic [35:0] SC_tag_type;
+
+    SC_line_type  [7:0]  data; // drtol2_snack_line, l2tol1_snack_line
+    logic         [15:0] index;
+    SC_tag_type   tag_from_index[16];
     logic         we;
-    logic   [3:0] hit_way;
+    logic         [3:0]  hit_way;
 
     assign drtol2_snack.nid  = l2todr_req.nid;
     assign drtol2_snack.l2id = l2todr_req.l2id;
-    assign tag = l2todr_req.paddr[49:14];
+    assign index = l2todr_req.paddr[13:6];
 
     always_comb begin
       we = 0;
       if (drtol2_snack.drid == 0 && drtol2_snack.l2id != 0 && drtol2_snack.snack == 5'b0xxxx) begin // make sure it is an ack not snoop
-        if (tag == 0) begin
+        if (data == 0) begin
           case (1'b1) 
             // check way0 
-            ((entry[0] == drtol2_snack.paddr[13:6])) : begin
+            ((tag_from_index[0] == drtol2_snack.paddr[49:14])) : begin
               we = 1;
-              data = 
+              data[hit_way] = 
                 {drtol2_snack.line7, drtol2_snack.line6, drtol2_snack.line5, drtol2_snack.line4, drtol2_snack.line3, drtol2_snack.l2, drtol2_snack.l1, drtol2_snack.line0};
               hit_way = 4'b0000;
+              // erase request from linked list
             end
             // check way1 
-            ((entry[1] == drtol2_snack.paddr[13:6])) : begin
+            ((tag_from_index[1] == drtol2_snack.paddr[49:14])) : begin
               we = 1;
-              data = 
+              data[hit_way] = 
                 {drtol2_snack.line7, drtol2_snack.line6, drtol2_snack.line5, drtol2_snack.line4, drtol2_snack.line3, drtol2_snack.l2, drtol2_snack.l1, drtol2_snack.line0};
               hit_way = 4'b0001;
+              // erase request from linked list
             end
             // check way3
-            ((entry[2] == drtol2_snack.paddr[13:6])) : begin
+            ((tag_from_index[2] == drtol2_snack.paddr[49:14])) : begin
               we = 1;
-              data = 
+              data[hit_way] = 
                 {drtol2_snack.line7, drtol2_snack.line6, drtol2_snack.line5, drtol2_snack.line4, drtol2_snack.line3, drtol2_snack.l2, drtol2_snack.l1, drtol2_snack.line0};
               hit_way = 4'b0010;
+              // erase request from linked list
             end
             // check way4 
-            ((entry[3] == drtol2_snack.paddr[13:6])) : begin
+            ((tag_from_index[3] == drtol2_snack.paddr[49:14])) : begin
               we = 1;
-              data = 
+              data[hit_way] = 
                 {drtol2_snack.line7, drtol2_snack.line6, drtol2_snack.line5, drtol2_snack.line4, drtol2_snack.line3, drtol2_snack.l2, drtol2_snack.l1, drtol2_snack.line0};
               hit_way = 4'b0011;
+              // erase request from linked list
             end
             // check way5 
-            ((entry[4] == drtol2_snack.paddr[13:6])) : begin
+            ((tag_from_index[4] == drtol2_snack.paddr[49:14])) : begin
               we = 1;
-              data = 
+              data[hit_way] = 
                 {drtol2_snack.line7, drtol2_snack.line6, drtol2_snack.line5, drtol2_snack.line4, drtol2_snack.line3, drtol2_snack.l2, drtol2_snack.l1, drtol2_snack.line0};
               hit_way = 4'b0100;
+              // erase request from linked list
             end
             // check way6 
-            ((entry[5] == drtol2_snack.paddr[13:6])) : begin
+            ((tag_from_index[5] == drtol2_snack.paddr[49:14])) : begin
               we = 1;
-              data = 
+              data[hit_way] = 
                 {drtol2_snack.line7, drtol2_snack.line6, drtol2_snack.line5, drtol2_snack.line4, drtol2_snack.line3, drtol2_snack.l2, drtol2_snack.l1, drtol2_snack.line0};
               hit_way = 4'b0101;
+              // erase request from linked list
             end
             // check way7 
-            ((entry[6] == drtol2_snack.paddr[13:6])) : begin
+            ((tag_from_index[6] == drtol2_snack.paddr[49:14])) : begin
               we = 1;
-              data = 
+              data[hit_way] = 
                 {drtol2_snack.line7, drtol2_snack.line6, drtol2_snack.line5, drtol2_snack.line4, drtol2_snack.line3, drtol2_snack.l2, drtol2_snack.l1, drtol2_snack.line0};
               hit_way = 4'b0110;
+              // erase request from linked list
             end
             // check way8 
-            ((entry[7] == drtol2_snack.paddr[13:6])) : begin
+            ((tag_from_index[7] == drtol2_snack.paddr[49:14])) : begin
               we = 1;
-              data = 
+              data[hit_way] = 
                 {drtol2_snack.line7, drtol2_snack.line6, drtol2_snack.line5, drtol2_snack.line4, drtol2_snack.line3, drtol2_snack.l2, drtol2_snack.l1, drtol2_snack.line0};
               hit_way = 4'b0111;
+              // erase request from linked list
             end
             // check way9 
-            ((entry[8] == drtol2_snack.paddr[13:6])) : begin
+            ((tag_from_index[8] == drtol2_snack.paddr[49:14])) : begin
               we = 1;
-              data = 
+              data[hit_way] = 
                 {drtol2_snack.line7, drtol2_snack.line6, drtol2_snack.line5, drtol2_snack.line4, drtol2_snack.line3, drtol2_snack.l2, drtol2_snack.l1, drtol2_snack.line0};
               hit_way = 4'b1000;
+              // erase request from linked list
             end
             // check way10 
-            ((entry[9] == drtol2_snack.paddr[13:6])) : begin
+            ((tag_from_index[9] == drtol2_snack.paddr[49:14])) : begin
               we = 1;
-              data = 
+              data[hit_way] = 
                 {drtol2_snack.line7, drtol2_snack.line6, drtol2_snack.line5, drtol2_snack.line4, drtol2_snack.line3, drtol2_snack.l2, drtol2_snack.l1, drtol2_snack.line0};
               hit_way = 4'b1001;
+              // erase request from linked list
             end
             // check way11 
-            ((entry[10] == drtol2_snack.paddr[13:6])) : begin
+            ((tag_from_index[10] == drtol2_snack.paddr[49:14])) : begin
               we = 1;
-              data = 
+              data[hit_way] = 
                 {drtol2_snack.line7, drtol2_snack.line6, drtol2_snack.line5, drtol2_snack.line4, drtol2_snack.line3, drtol2_snack.l2, drtol2_snack.l1, drtol2_snack.line0};
               hit_way = 4'b1010;
+              // erase request from linked list
             end
             // check way12 
-            ((entry[11] == drtol2_snack.paddr[13:6])) : begin
+            ((tag_from_index[11] == drtol2_snack.paddr[49:14])) : begin
               we = 1;
-              data = 
+              data[hit_way] = 
                 {drtol2_snack.line7, drtol2_snack.line6, drtol2_snack.line5, drtol2_snack.line4, drtol2_snack.line3, drtol2_snack.l2, drtol2_snack.l1, drtol2_snack.line0};
               hit_way = 4'b1011;
+              // erase request from linked list
             end
             // check way13
-            ((entry[12] == drtol2_snack.paddr[13:6])) : begin
+            ((tag_from_index[12] == drtol2_snack.paddr[49:14])) : begin
               we = 1;
-              data = 
+              data[hit_way] = 
                 {drtol2_snack.line7, drtol2_snack.line6, drtol2_snack.line5, drtol2_snack.line4, drtol2_snack.line3, drtol2_snack.l2, drtol2_snack.l1, drtol2_snack.line0};
               hit_way = 4'b1100;
+              // erase request from linked list
             end
             // check way14
-            ((entry[13] == drtol2_snack.paddr[13:6])) : begin
+            ((tag_from_index[13] == drtol2_snack.paddr[49:14])) : begin
               we = 1;
-              data = 
+              data[hit_way] = 
                 {drtol2_snack.line7, drtol2_snack.line6, drtol2_snack.line5, drtol2_snack.line4, drtol2_snack.line3, drtol2_snack.l2, drtol2_snack.l1, drtol2_snack.line0};
               hit_way = 4'b1101;
+              // erase request from linked list
             end
             // check way15 
-            ((entry[14] == drtol2_snack.paddr[13:6])) : begin
+            ((tag_from_index[14] == drtol2_snack.paddr[49:14])) : begin
               we = 1;
-              data = 
+              data[hit_way] = 
                 {drtol2_snack.line7, drtol2_snack.line6, drtol2_snack.line5, drtol2_snack.line4, drtol2_snack.line3, drtol2_snack.l2, drtol2_snack.l1, drtol2_snack.line0};
               hit_way = 4'b1110;
+              // erase request from linked list
             end
             // check way016
-            ((entry[15] == drtol2_snack.paddr[13:6])) : begin
+            ((tag_from_index[15] == drtol2_snack.paddr[49:14])) : begin
               we = 1;
-              data = 
+              data[hit_way] = 
                 {drtol2_snack.line7, drtol2_snack.line6, drtol2_snack.line5, drtol2_snack.line4, drtol2_snack.line3, drtol2_snack.l2, drtol2_snack.l1, drtol2_snack.line0};
               hit_way = 4'b1111;
+              // erase request from linked list
             end
             default: 
           endcase
-        end else begin // tag != 0 -> no empty cacheline 
+        end else begin // data != 0 -> no empty cacheline, need evict old one
           hit_way = rand()%16;
-          entry[hit_way] = drtol2_snack.paddr[13:6];
-          data = 
+          tag_from_index[hit_way] = drtol2_snack.paddr[49:14];
+          data[hit_way] = 
             {drtol2_snack.line7, drtol2_snack.line6, drtol2_snack.line5, drtol2_snack.line4, drtol2_snack.line3, drtol2_snack.l2, drtol2_snack.l1, drtol2_snack.line0};
         end
-      end else //TODO
+      end else //TODO // it is snoop
     end
     //qzhang33
+ 
 `endif
 endmodule
 
