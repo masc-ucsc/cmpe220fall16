@@ -15,7 +15,7 @@
 #define TEST_ACK 1
 //#define TEST_DISP 1
 
-#define DR_PASSTHROUGH 1
+//#define DR_PASSTHROUGH 1
 
 vluint64_t global_time = 0;
 VerilatedVcdC* tfp = 0;
@@ -921,7 +921,7 @@ int main(int argc, char **argv, char **env) {
       InputPacket_l2todr_req i;
       int pick_cmd = rand()%4;
 
-      i.nid = rand() & 0x1F;
+      i.nid = (rand()%31) + 1; //in the range 1-31
       i.l2id = (rand()%63) + 1; //in the range 1-63
       
       if(pick_cmd == 0)
@@ -935,6 +935,8 @@ int main(int argc, char **argv, char **env) {
         i.paddr = rand() & 0x0001FFFFFFFFFFFF;
       else if (!inp_list_req.empty())
         i.paddr = inp_list_req.front().paddr;
+        //duplicate addresses disabled temporarily
+        //i.paddr = rand() & 0x00000000FFFFFFFF;
       else
         i.paddr = rand() & 0x00000000FFFFFFFF;
 
