@@ -171,7 +171,11 @@ module l2cache_pipe_wp(
 
 );
 
+`ifdef YZHU29
+    yzhu29l2
+`else
     l2cache_pipe
+`endif
     l2(
       .clk(clk),
       .reset(reset),
