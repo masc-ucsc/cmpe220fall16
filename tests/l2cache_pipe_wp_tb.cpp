@@ -79,7 +79,9 @@ public:
     }
     void insert_new (uint16_t set_addr) {
         if (set_addr > MEM_SIZE_OF_SETS) {
+#ifdef debug_print
             fprintf(stderr,"ERROR: set_addr (%x) > MEM_SIZE_OF_SETS (%x) \n", set_addr, MEM_SIZE_OF_SETS);
+#endif
             return;
         }
         set_addrs[fifo_pointer] = set_addr;
@@ -113,16 +115,22 @@ public:
 
     // This is invoked when there is a drtol2_snack with data
     MemElement write_req (uint64_t paddr, MemElement mem_element) {
+#ifdef debug_print
         printf("write_req invoked\n");
         printf("paddr is %lx\n", paddr);
+#endif
 
         MemElement return_mem_element;
         uint16_t set_addr = (paddr >> 6) & 0x7F;
         mem_sets[set_addr].way_access_count++;
+#ifdef debug_print
         printf("way_access_count is %d\n", mem_sets[set_addr].way_access_count);
         printf("set_addr is %x\n", set_addr);
+#endif
         if (set_addr > MEM_SIZE_OF_SETS) {
-            fprintf(stderr,"ERROR: set_addr (%x) > MEM_SIZE_OF_SETS (%x) \n", set_addr, MEM_SIZE_OF_SETS);            
+#ifdef debug_print
+            fprintf(stderr,"ERROR: set_addr (%x) > MEM_SIZE_OF_SETS (%x) \n", set_addr, MEM_SIZE_OF_SETS);    
+#endif        
         }
         else {
             /*
@@ -141,7 +149,9 @@ public:
 #ifdef DEBUG_L2
             if (mem_sets[set_addr].way_access_count >= 16) {
                  for (int i=0; i<NUM_WAYS; i++) {
+#ifdef debug_print
                     printf("mem_sets[%x].way_bitmap[%d] = %d\n", set_addr, i, mem_sets[set_addr].way_bitmap[i]);
+#endif
                  }
             }
 #endif
@@ -160,7 +170,9 @@ public:
                 uint32_t fifo_evict_pointer = mem_sets[set_addr].fifo_evict_pointer;
                 mem_sets[set_addr].way_bitmap[fifo_evict_pointer] = 0x1;
                 // Evict First
+#ifdef debug_print
                 printf("Eviction Happens!\n");
+#endif
                 return_mem_element = mem_sets[set_addr].mem_elements[fifo_evict_pointer];
                 return_mem_element.if_eviction = 1;
                 if (mem_sets[set_addr].fifo_evict_pointer+1 <= 15) {
@@ -211,10 +223,15 @@ void sim_finish(bool pass) {
   tfp->close();
 #endif
 
+#ifdef debug_print
   if (pass)
+//#ifdef debug_print
     printf("\nTB:PASS\n");
+//#endif
   else
+//#ifdef debug_print
     printf("\nTB:FAILED\n");
+#endif
 
   exit(0);
 }
@@ -397,7 +414,9 @@ void try_send_l1_to_l2_req_packet (Vl2cache_pipe_wp *top) {
     // Drive signals
     if (top->l1tol2_req_valid && !top->l1tol2_req_retry){
         if (l1tol2_req_list.empty()) {
+#ifdef debug_print
             fprintf(stderr,"ERROR: Internal error, could not be empty l1tol2_req_list\n");
+#endif
         }
         L1toL2ReqPacket l1tol2_reqp = l1tol2_req_list.back();
         count_l1tol2_req++;
@@ -406,9 +425,11 @@ void try_send_l1_to_l2_req_packet (Vl2cache_pipe_wp *top) {
         top->l1tol2_req_pcsign = l1tol2_reqp.pcsign;
         top->l1tol2_req_ppaddr = l1tol2_reqp.ppaddr;
         top->l1tol2_req_poffset = l1tol2_reqp.poffset;
+#ifdef debug_print
 #ifdef DEBUG_TRACE
         printf("@%ld l1tol2_req l1id:%x cmd:%x pcsign:%d ppaddr:%x\n poffset:%x\n",global_time, l1tol2_reqp.l1id, 
             l1tol2_reqp.cmd, l1tol2_reqp.pcsign, l1tol2_reqp.ppaddr, l1tol2_reqp.poffset);
+#endif
 #endif
         if (0) { // If it's write
                     // TODO
@@ -438,8 +459,10 @@ void try_send_l1_to_l2_req_packet (Vl2cache_pipe_wp *top) {
         drtol2_snackp.line0 = rand() & 0xFFFFFFFFFFFFFFFF;
         drtol2_snackp.paddr = rand() & 0x3FFFFFFFFFFFF;
         drtol2_ack_only_list.push_front(drtol2_snackp);
+#ifdef debug_print
 #ifdef DEBUG_TRACE
         printf("@%ld drtol2_snack nid:%x l2id:%x drid:%x snack:%x line7:%lx line6:%lx line5:%lx line4:%lx line3:%lx line2:%lx line1:%lx line0:%lx paddr:%lx\n",global_time, drtol2_snackp.nid, drtol2_snackp.l2id, drtol2_snackp.drid, drtol2_snackp.snack, drtol2_snackp.line7, drtol2_snackp.line6, drtol2_snackp.line5, drtol2_snackp.line4, drtol2_snackp.line3, drtol2_snackp.line2, drtol2_snackp.line1, drtol2_snackp.line0, drtol2_snackp.paddr);
+#endif
 #endif
         }
         l1tol2_req_list.pop_back();
@@ -502,7 +525,9 @@ void try_send_dr_to_l2_snack_packet (Vl2cache_pipe_wp *top) {
 #endif
         }
         else if (drtol2_snoop_only_list.empty()) {
+#ifdef debug_print
             fprintf(stderr,"ERROR: Internal error, could not be empty drtol2_snack_list\n");
+#endif
         }
         // Then Send packet from drtol2_snoop_only_list
         else{
@@ -526,8 +551,10 @@ void try_send_dr_to_l2_snack_packet (Vl2cache_pipe_wp *top) {
         top->drtol2_snack_hpaddr_base = drtol2_snackp.hpaddr_base;
         top->drtol2_snack_hpaddr_hash = drtol2_snackp.hpaddr_hash;
         top->drtol2_snack_paddr = drtol2_snackp.paddr;
+#ifdef debug_print
 #ifdef DEBUG_TRACE
         printf("@%ld drtol2_snack snoop_or_ack:%d nid:%x l2id:%x drid:%x snack:%x line7:%lx line6:%lx line5:%lx line4:%lx line3:%lx line2:%lx line1:%lx line0:%lx paddr:%lx\n",global_time,snoop_or_ack, drtol2_snackp.nid, drtol2_snackp.l2id, drtol2_snackp.drid, drtol2_snackp.snack, drtol2_snackp.line7, drtol2_snackp.line6, drtol2_snackp.line5, drtol2_snackp.line4, drtol2_snackp.line3, drtol2_snackp.line2, drtol2_snackp.line1, drtol2_snackp.line0, drtol2_snackp.paddr);
+#endif
 #endif
 
         if (0) { // If it's write
@@ -577,14 +604,18 @@ void try_send_l1_to_l2_snoop_ack_packet (Vl2cache_pipe_wp *top) {
     
     if (top->l1tol2_snoop_ack_valid && !top->l1tol2_snoop_ack_retry){
         if (l1tol2_snoop_ack_list.empty()) {
+#ifdef debug_print
             fprintf(stderr,"ERROR: Internal error, could not be empty l1tol2_snoop_ack_list\n");
+#endif
         }
         L1toL2SnoopAckPacket l1tol2_snoop_ackp = l1tol2_snoop_ack_list.back();
         count_l1tol2_snoop_ack++;
         top->l1tol2_snoop_ack_l2id = l1tol2_snoop_ackp.l2id;
         top->l1tol2_snoop_ack_directory_id = l1tol2_snoop_ackp.directory_id;
+#ifdef debug_print
 #ifdef DEBUG_TRACE
         printf("@%ld l1tol2_snoop_ack l2id:%x\n",global_time, l1tol2_snoop_ackp.l2id);
+#endif
 #endif
         if (0) { // If it's write
                     // TODO
@@ -629,7 +660,9 @@ void try_send_l1_to_l2_disp_packet (Vl2cache_pipe_wp *top) {
     
     if (top->l1tol2_disp_valid && !top->l1tol2_disp_retry){
         if (l1tol2_disp_list.empty()) {
+#ifdef debug_print
             fprintf(stderr,"ERROR: Internal error, could not be empty l1tol2_disp_list\n");
+#endif
         }
         L1toL2DispPacket l1tol2_dispp = l1tol2_disp_list.back();
         count_l1tol2_disp++;
@@ -646,8 +679,10 @@ void try_send_l1_to_l2_disp_packet (Vl2cache_pipe_wp *top) {
         top->l1tol2_disp_line1 = l1tol2_dispp.line1;
         top->l1tol2_disp_line0 = l1tol2_dispp.line0;
         top->l1tol2_disp_ppaddr = l1tol2_dispp.ppaddr;
+#ifdef debug_print
 #ifdef DEBUG_TRACE
         printf("@%ld l1tol2_disp l1id:%x l2id:%x mask:%lx dcmd:%x line7:%lx line6:%lx line5:%lx line4:%lx line3:%lx line2:%lx line1:%lx line0:%lx ppaddr:%x\n",global_time, l1tol2_dispp.l1id, l1tol2_dispp.l2id, l1tol2_dispp.mask, l1tol2_dispp.dcmd, l1tol2_dispp.line7, l1tol2_dispp.line6, l1tol2_dispp.line5, l1tol2_dispp.line4, l1tol2_dispp.line3, l1tol2_dispp.line2, l1tol2_dispp.line1, l1tol2_dispp.line0, l1tol2_dispp.ppaddr);
+#endif
 #endif
         if (0) { // If it's write
                     // TODO
@@ -694,14 +729,18 @@ void try_send_dr_to_l2_dack_packet (Vl2cache_pipe_wp *top) {
     
     if (top->drtol2_dack_valid && !top->drtol2_dack_retry){
         if (drtol2_dack_list.empty()) {
+#ifdef debug_print
             fprintf(stderr,"ERROR: Internal error, could not be empty drtol2_dack_list\n");
+#endif
         }
         DrtoL2DackPacket drtol2_dackp = drtol2_dack_list.back();
         count_drtol2_dack++;
         top->drtol2_dack_nid = drtol2_dackp.nid;
         top->drtol2_dack_l2id = drtol2_dackp.l2id;
+#ifdef debug_print
 #ifdef DEBUG_TRACE
         printf("@%ld drtol2_dack nid:%x l2id:%x\n",global_time, drtol2_dackp.nid, drtol2_dackp.l2id);
+#endif
 #endif
         if (0) { // If it's write
                     // TODO
@@ -729,7 +768,9 @@ void try_send_l2tlb_to_l2_fwd_packet (Vl2cache_pipe_wp *top) {
     
     if (top->l2tlbtol2_fwd_valid && !top->l2tlbtol2_fwd_retry){
         if (l2tlbtol2_fwd_list.empty()) {
+#ifdef debug_print
             fprintf(stderr,"ERROR: Internal error, could not be empty l2tlbtol2_fwd_list\n");
+#endif
         }
         L2tlbtoL2FwdPacket l2tlbtol2_fwdp = l2tlbtol2_fwd_list.back();
         count_l2tlbtol2_fwd++;
@@ -738,9 +779,11 @@ void try_send_l2tlb_to_l2_fwd_packet (Vl2cache_pipe_wp *top) {
         top->l2tlbtol2_fwd_fault = l2tlbtol2_fwdp.fault;
         top->l2tlbtol2_fwd_hpaddr = l2tlbtol2_fwdp.hpaddr;
         top->l2tlbtol2_fwd_paddr = l2tlbtol2_fwdp.paddr;
+#ifdef debug_print
 #ifdef DEBUG_TRACE
         printf("@%ld l2tlbtol2_fwd l1id:%x prefetch:%x fault:%x hpaddr:%d paddr:%lx\n",global_time, l2tlbtol2_fwdp.l1id, 
             l2tlbtol2_fwdp.prefetch, l2tlbtol2_fwdp.fault, l2tlbtol2_fwdp.hpaddr, l2tlbtol2_fwdp.paddr);
+#endif
 #endif
         if (0) { // If it's write
                     // TODO
@@ -759,8 +802,10 @@ void try_send_l2tlb_to_l2_fwd_packet (Vl2cache_pipe_wp *top) {
 
 void try_receive_l2_to_dr_req_packet (Vl2cache_pipe_wp *top) {
     if(top->l2todr_req_valid && l2todr_req_list.empty()){
+#ifdef debug_print
         printf("ERROR: unexpected l2todr_req nid:%x l2id:%x cmd:%x  paddr:%lx\n",top->l2todr_req_nid, 
                 top->l2todr_req_l2id, top->l2todr_req_cmd, top->l2todr_req_paddr);
+#endif
         error_found(top);
         return;
     }
@@ -776,16 +821,20 @@ void try_receive_l2_to_dr_req_packet (Vl2cache_pipe_wp *top) {
     if (l2todr_req_list.empty())
         return;
 
-    #ifdef DEBUG_TRACE
+#ifdef debug_print    
+#ifdef DEBUG_TRACE
     printf("@%ld l2todr_req nid:%x l2id:%x cmd:%x  paddr:%lx\n",global_time, top->l2todr_req_nid, top->l2todr_req_l2id, 
             top->l2todr_req_cmd, top->l2todr_req_paddr);
 
-    #endif
+#endif    
+#endif
     L2toDrReqPacket l2todr_reqp = l2todr_req_list.back();
     if (top->l2todr_req_cmd != l2todr_reqp.cmd) {
             //||  top->l2todr_req_paddr != l2todr_reqp.paddr) {
+#ifdef debug_print
         printf("ERROR: expected l2todr_req_cmd:%x but actual l2todr_req_cmd is %x\n", l2todr_reqp.cmd,top->l2todr_req_cmd);
         printf("ERROR: expected l2todr_req_paddr:%lx but actual l2todr_req_paddr is %lx\n", l2todr_reqp.paddr,top->l2todr_req_paddr);
+#endif
         error_found(top);
       }
     l2todr_req_list.pop_back();
@@ -794,7 +843,9 @@ void try_receive_l2_to_dr_req_packet (Vl2cache_pipe_wp *top) {
 
 void try_receive_l2_to_l1_snack_packet (Vl2cache_pipe_wp *top) {
     if(top->l2tol1_snack_valid && l2tol1_snoop_only_list.empty() && l2tol1_ack_only_list.empty()){
+#ifdef debug_print
         printf("ERROR: unexpected l2tol1_snack l1id:%x l2id:%x snack:%x line7:%lx line6:%lx line5:%lx line4:%lx line3:%lx line2:%lx line1:%lx line0:%lx poffset:%x hpaddr:%x\n",top->l2tol1_snack_l1id, top->l2tol1_snack_l2id, top->l2tol1_snack_snack, top->l2tol1_snack_line7, top->l2tol1_snack_line6, top->l2tol1_snack_line5, top->l2tol1_snack_line4, top->l2tol1_snack_line3, top->l2tol1_snack_line2, top->l2tol1_snack_line1, top->l2tol1_snack_line0, top->l2tol1_snack_poffset, top->l2tol1_snack_hpaddr);
+#endif
         error_found(top);
         return;
     }
@@ -810,10 +861,12 @@ void try_receive_l2_to_l1_snack_packet (Vl2cache_pipe_wp *top) {
     if (l2tol1_snoop_only_list.empty() && l2tol1_ack_only_list.empty())
         return;
 
-    #ifdef DEBUG_TRACE
+#ifdef debug_print    
+#ifdef DEBUG_TRACE
     printf("@%ld l2tol1_snack l1id:%x l2id:%x snack:%x line7:%lx line6:%lx line5:%lx line4:%lx line3:%lx line2:%lx line1:%lx line0:%lx poffset:%x hpaddr:%x\n",global_time, top->l2tol1_snack_l1id, top->l2tol1_snack_l2id, top->l2tol1_snack_snack, top->l2tol1_snack_line7, top->l2tol1_snack_line6, top->l2tol1_snack_line5, top->l2tol1_snack_line4, top->l2tol1_snack_line3, top->l2tol1_snack_line2, top->l2tol1_snack_line1, top->l2tol1_snack_line0, top->l2tol1_snack_poffset, top->l2tol1_snack_hpaddr);
 
-    #endif
+#endif    
+#endif
     L2toL1SnackPacket l2tol1_snackp;
     int snoop_or_ack;
     if (top->l2tol1_snack_snack >= 16) {
@@ -838,6 +891,7 @@ void try_receive_l2_to_l1_snack_packet (Vl2cache_pipe_wp *top) {
        ){
         //|| top->l2tol1_snack_poffset != l2tol1_snackp.poffset ||
         //top->l2tol1_snack_hpaddr != l2tol1_snackp.hpaddr) {
+#ifdef debug_print
         printf("ERROR: expected l2tol1_snack_snack:%x but actual l2tol1_snack_snack is %x\n", l2tol1_snackp.snack,top->l2tol1_snack_snack);
         printf("ERROR: expected l2tol1_snack_line7:%lx but actual l2tol1_snack_line7 is %lx\n", l2tol1_snackp.line7,top->l2tol1_snack_line7);
         printf("ERROR: expected l2tol1_snack_line6:%lx but actual l2tol1_snack_line6 is %lx\n", l2tol1_snackp.line6,top->l2tol1_snack_line6);
@@ -849,6 +903,7 @@ void try_receive_l2_to_l1_snack_packet (Vl2cache_pipe_wp *top) {
         printf("ERROR: expected l2tol1_snack_line0:%lx but actual l2tol1_snack_line0 is %lx\n", l2tol1_snackp.line0,top->l2tol1_snack_line0);
         printf("ERROR: expected l2tol1_snack_poffset:%x but actual l2tol1_snack_poffset is %x\n", l2tol1_snackp.poffset,top->l2tol1_snack_poffset);
         printf("ERROR: expected l2tol1_snack_hpaddr:%x but actual l2tol1_snack_hpaddr is %x\n", l2tol1_snackp.hpaddr,top->l2tol1_snack_hpaddr);
+#endif
         error_found(top);
       }
     if (snoop_or_ack == -1) {
@@ -868,7 +923,9 @@ void try_receive_l2_to_l1_snack_packet (Vl2cache_pipe_wp *top) {
 
 void try_receive_l2_to_dr_snoop_ack_packet (Vl2cache_pipe_wp *top) {
     if(top->l2todr_snoop_ack_valid && l2todr_snoop_ack_list.empty()){
+#ifdef debug_print
         printf("ERROR: unexpected l2todr_snoop_ack l2id:%x\n",top->l2todr_snoop_ack_l2id);
+#endif
         error_found(top);
         return;
     }
@@ -884,10 +941,12 @@ void try_receive_l2_to_dr_snoop_ack_packet (Vl2cache_pipe_wp *top) {
     if (l2todr_snoop_ack_list.empty())
         return;
 
-    #ifdef DEBUG_TRACE
+#ifdef debug_print    
+#ifdef DEBUG_TRACE
     printf("@%ld l2todr_snoop_ack l2id:%x\n",global_time, top->l2todr_snoop_ack_l2id);
 
-    #endif
+#endif    
+#endif
     L2toDrSnoopAckPacket l2todr_snoop_ackp = l2todr_snoop_ack_list.back();
 
     l2todr_snoop_ack_list.pop_back();
@@ -896,7 +955,9 @@ void try_receive_l2_to_dr_snoop_ack_packet (Vl2cache_pipe_wp *top) {
 
 void try_receive_l2_to_dr_disp_packet (Vl2cache_pipe_wp *top) {
     if(top->l2todr_disp_valid && l2todr_disp_list.empty()){
+#ifdef debug_print
         printf("ERROR: unexpected l2todr_disp nid:%x l2id:%x drid:%x mask:%lx dcmd:%x line7:%lx line6:%lx line5:%lx line4:%lx line3:%lx line2:%lx line1:%lx line0:%lx paddr:%lx\n",top->l2todr_disp_nid, top->l2todr_disp_l2id, top->l2todr_disp_drid, top->l2todr_disp_mask, top->l2todr_disp_dcmd, top->l2todr_disp_line7, top->l2todr_disp_line6, top->l2todr_disp_line5, top->l2todr_disp_line4, top->l2todr_disp_line3, top->l2todr_disp_line2, top->l2todr_disp_line1, top->l2todr_disp_line0, top->l2todr_disp_paddr);
+#endif
         error_found(top);
         return;
     }
@@ -912,10 +973,12 @@ void try_receive_l2_to_dr_disp_packet (Vl2cache_pipe_wp *top) {
     if (l2todr_disp_list.empty())
         return;
 
-    #ifdef DEBUG_TRACE
+#ifdef debug_print    
+#ifdef DEBUG_TRACE
     printf("@%ld l2todr_disp nid:%x l2id:%x drid:%x mask:%lx dcmd:%x line7:%lx line6:%lx line5:%lx line4:%lx line3:%lx line2:%lx line1:%lx line0:%lx paddr:%lx\n",global_time, top->l2todr_disp_nid, top->l2todr_disp_l2id, top->l2todr_disp_drid, top->l2todr_disp_mask, top->l2todr_disp_dcmd, top->l2todr_disp_line7, top->l2todr_disp_line6, top->l2todr_disp_line5, top->l2todr_disp_line4, top->l2todr_disp_line3, top->l2todr_disp_line2, top->l2todr_disp_line1, top->l2todr_disp_line0, top->l2todr_disp_paddr);
 
-    #endif
+#endif    
+#endif
     L2toDrDispPacket l2todr_dispp = l2todr_disp_list.back();
     if (top->l2todr_disp_l2id != l2todr_dispp.l2id   ||
         top->l2todr_disp_mask != l2todr_dispp.mask   ||
@@ -928,6 +991,7 @@ void try_receive_l2_to_dr_disp_packet (Vl2cache_pipe_wp *top) {
         top->l2todr_disp_line2 != l2todr_dispp.line2 ||
         top->l2todr_disp_line1 != l2todr_dispp.line1 ||
         top->l2todr_disp_line0 != l2todr_dispp.line0) {
+#ifdef debug_print
         printf("ERROR: expected l2todr_disp_l2id:%x but actual l2todr_disp_l2id is %x\n", l2todr_dispp.l2id,top->l2todr_disp_l2id);        
         printf("ERROR: expected l2todr_disp_mask:%lx but actual l2todr_disp_mask is %lx\n", l2todr_dispp.mask,top->l2todr_disp_mask);
         printf("ERROR: expected l2todr_disp_dcmd:%x but actual l2todr_disp_dcmd is %x\n", l2todr_dispp.dcmd,top->l2todr_disp_dcmd);
@@ -939,6 +1003,7 @@ void try_receive_l2_to_dr_disp_packet (Vl2cache_pipe_wp *top) {
         printf("ERROR: expected l2todr_disp_line2:%lx but actual l2todr_disp_line2 is %lx\n", l2todr_dispp.line2,top->l2todr_disp_line2);
         printf("ERROR: expected l2todr_disp_line1:%lx but actual l2todr_disp_line1 is %lx\n", l2todr_dispp.line1,top->l2todr_disp_line1);
         printf("ERROR: expected l2todr_disp_line0:%lx but actual l2todr_disp_line0 is %lx\n", l2todr_dispp.line0,top->l2todr_disp_line0);
+#endif
         error_found(top);
       }
     l2todr_disp_list.pop_back();
@@ -953,7 +1018,9 @@ void try_receive_l2_to_dr_disp_packet (Vl2cache_pipe_wp *top) {
 
 void try_receive_l2_to_l1_dack_packet (Vl2cache_pipe_wp *top) {
     if(top->l2tol1_dack_valid && l2tol1_dack_list.empty()){
+#ifdef debug_print
         printf("ERROR: unexpected l2tol1_dack l1id:%x\n",top->l2tol1_dack_l1id);
+#endif
         error_found(top);
         return;
     }
@@ -969,15 +1036,19 @@ void try_receive_l2_to_l1_dack_packet (Vl2cache_pipe_wp *top) {
     if (l2tol1_dack_list.empty())
         return;
 
-    #ifdef DEBUG_TRACE
+#ifdef debug_print    
+#ifdef DEBUG_TRACE
     printf("@%ld l2tol1_dack l1id:%x\n",global_time, top->l2tol1_dack_l1id);
 
-    #endif
+#endif    
+#endif
     L2toL1DackPacket l2tol1_dackp = l2tol1_dack_list.back();
 
     l2tol1_dack_list.pop_back();
     if (top->l2tol1_dack_l1id != l2tol1_dackp.l1id) {
+#ifdef debug_print
         printf("ERROR: expected l2tol1_dack_l1id:%x but actual l2tol1_dack_l1id is %x\n", l2tol1_dackp.l1id,top->l2tol1_dack_l1id);
+#endif
         error_found(top);
       }
     count_l2tol1_dack++;
@@ -985,8 +1056,10 @@ void try_receive_l2_to_l1_dack_packet (Vl2cache_pipe_wp *top) {
 
 void try_receive_l2_to_dr_pfreq_packet (Vl2cache_pipe_wp *top) {
     if(top->l2todr_pfreq_valid && l2todr_pfreq_list.empty()){
+#ifdef debug_print
         printf("ERROR: unexpected l2todr_pfreq nid:%x paddr:%lx\n",top->l2todr_pfreq_nid, 
                 top->l2todr_pfreq_paddr);
+#endif
         error_found(top);
         return;
     }
@@ -1002,14 +1075,18 @@ void try_receive_l2_to_dr_pfreq_packet (Vl2cache_pipe_wp *top) {
     if (l2todr_pfreq_list.empty())
         return;
 
-    #ifdef DEBUG_TRACE
+#ifdef debug_print    
+#ifdef DEBUG_TRACE
     printf("@%ld l2todr_pfreq nid:%x paddr:%lx\n",global_time, top->l2todr_pfreq_nid,
             top->l2todr_pfreq_paddr);
 
-    #endif
+#endif    
+#endif
     L2toDrPfreqPacket l2todr_pfreqp = l2todr_pfreq_list.back();
     if (top->l2todr_pfreq_paddr != l2todr_pfreqp.paddr) {
+#ifdef debug_print
         printf("ERROR: expected l2todr_pfreq_paddr:%lx but actual l2todr_pfreq_paddr is %lx\n", l2todr_pfreqp.paddr,top->l2todr_pfreq_paddr);
+#endif
         error_found(top);
       }
     l2todr_pfreq_list.pop_back();
@@ -1029,7 +1106,9 @@ int main(int argc, char **argv, char **env) {
 
   int t = (int)time(0);
   srand(t);
+#ifdef debug_print
   printf("My RAND Seed is %d\n",t);
+#endif
 
 #ifdef TRACE
   // init trace dump
@@ -1139,9 +1218,13 @@ int main(int argc, char **argv, char **env) {
     }
   }
 #endif
+
+#ifdef debug_print
   printf("Test Statistics:\n l1tol2_req count: %d\n l2todr_req count: %d\n l2tol1_snoop_only count: %d\n l2tol1_ack_only count: %d\n drtol2_snoop_only count: %d\n drtol2_ack_only count: %d\n l1tol2_snoop_ack count: %d\n l2todr_snoop_ack count %d\n l1tol2_disp count: %d\n l2todr_disp count: %d\n l2tol1_dack count: %d\n drtol2_dack count: %d\n l2tlbtol2_fwd count: %d\n l2todr_pfreq count: %d\n",
           count_l1tol2_req, count_l2todr_req, count_l2tol1_snoop_only, count_l2tol1_ack_only, count_drtol2_snoop_only, count_drtol2_ack_only,
           count_l1tol2_snoop_ack, count_l2todr_snoop_ack, count_l1tol2_disp, count_l2todr_disp, count_l2tol1_dack, count_drtol2_dack, count_l2tlbtol2_fwd, count_l2todr_pfreq);
+#endif
+
 #ifdef  L2_PASSTHROUGH
   printf ("L2_PASSTHROUGH is defined.\n");
 #endif
