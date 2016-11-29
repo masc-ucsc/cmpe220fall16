@@ -504,7 +504,7 @@ void try_send_packet(Vintegration_2core2dr *top) {
   // SEND DCACHE REQUEST
   // When sending a Dcache request, we also need to send a TLB request
   //
-  if (!c0s0_ld_req_queue.empty() && !(rand() & 0x3)) { 
+  if (!c0s0_ld_req_queue.empty()) { 
 
     DCacheLDReq c0s0_req = c0s0_ld_req_queue.back();
     if (c0s0_req.coreid == 0 && !top->core0_slice0_coretodc_ld_retry) {
@@ -517,7 +517,7 @@ void try_send_packet(Vintegration_2core2dr *top) {
       top->core0_slice0_coretodc_ld_poffset = c0s0_req.poffset;
       top->core0_slice0_coretodc_ld_imm     = c0s0_req.imm;
 
-      top->core0_slice0_dctocore_ld_valid   = 1;
+      top->core0_slice0_coretodc_ld_valid   = 1;
 
       //dctlb req
       top->c0_s0_coretodctlb_ld_ckpid     = c0s0_req.ckpid;
@@ -529,12 +529,12 @@ void try_send_packet(Vintegration_2core2dr *top) {
       top->c0_s0_coretodctlb_ld_sptbr     = 0;
       top->c0_s0_coretodctlb_ld_user      = 1;
 
-      top->c0_s0_coretodctlb_st_valid     = 1;
+      top->c0_s0_coretodctlb_ld_valid     = 1;
 
 
       c0s0_ld_req_queue.pop_back();
 #ifdef DEBUG_TRACE
-      printf("@%lld c0s0 ld coreid=%d, ckpid=%d, offset=%d, imm=%d, lop=%d, pnr=%d, pcsign=%d\n",c0s0_req.coreid, c0s0_req.ckpid, c0s0_req.poffset, c0s0_req.imm, c0s0_req.lop, c0s0_req.pnr, c0s0_req.pcsign);
+      printf("@%lld c0s0 ld coreid=%d, ckpid=%d, offset=%d, imm=%d, lop=%d, pnr=%d, pcsign=%d\n",42,c0s0_req.coreid, c0s0_req.ckpid, c0s0_req.poffset, c0s0_req.imm, c0s0_req.lop, c0s0_req.pnr, c0s0_req.pcsign);
 #endif
     }
   }
@@ -566,11 +566,12 @@ void run_single_core(int coreid) {
   top->clk = 1;
   top->reset = 1;
 
-  advance_clock(top,1024);  // Long reset to give time to the state machine;
+  advance_clock(top,100);  // Long reset to give time to the state machine;
   //-------------------------------------------------------;
   top->reset = 0;
 
-  for(int niters=0 ; niters < 50; niters++) {
+  //for(int niters=0 ; niters < 50; niters++) {
+  for(int niters=0 ; niters < 2; niters++) {
     //-------------------------------------------------------;
 
 #ifdef DEBUG_TRACE
@@ -602,7 +603,8 @@ void run_single_core(int coreid) {
     top->reset = 0;
     advance_clock(top,1);
 
-    for(int i =0;i<1024;i++) {
+    //for(int i =0;i<1024;i++) {
+    for(int i =0;i<10;i++) {
       try_send_packet(top);
       advance_half_clock(top);
       try_recv_packet(top);

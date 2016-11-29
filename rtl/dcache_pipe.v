@@ -1,6 +1,6 @@
 `include "scmem.vh"
 `include "logfunc.h"
-`define     PASSTHROUGH      
+`define     DC_PASSTHROUGH      
 `define     FFLOP_HANDLE
  
 //`define    COMPLETE
@@ -1140,7 +1140,7 @@ fflop #(.Size($bits(I_l2tol1_dack_type))) ff_l2tol1_dack (
 );
 `endif //FFLOP_HANDLE
 
-`ifdef PASSTHROUGH
+`ifdef DC_PASSTHROUGH
 // PASSTHROUGH #1
 //                  ----------
 //                  |        |
