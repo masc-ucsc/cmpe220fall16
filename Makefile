@@ -149,7 +149,7 @@ integration_2core2dr:
 run_integration_2core2dr: integration_2core2dr
 	./obj_dir/Vintegration_2core2dr
 
-REGLIST+=integration_2core2dr
+#REGLIST+=integration_2core2dr
 ###########################
 regression: $(REGLIST)
 	ruby scripts/regcheck.rb $(REGLIST)
