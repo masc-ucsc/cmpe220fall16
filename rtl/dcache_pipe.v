@@ -1,6 +1,6 @@
 `include "scmem.vh"
 `include "logfunc.h"
-`define     DC_PASSTHROUGH      
+`define     DC_PASSTHROUGH
 `define     FFLOP_HANDLE
  
 //`define    COMPLETE
