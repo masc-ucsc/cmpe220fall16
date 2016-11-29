@@ -20,21 +20,27 @@ struct DCacheLDReq {
   int ckpid;
   int coreid;
   int lop;
-  int pnr; 
+  int pnr;
 
   int pcsign; // hash of pc (random is fine)
   int poffset;
   int imm;
-}
+
+  int laddr; 
+};
 
 struct MemReq {
   int drid;
   int cmd;
   int paddr;
-}
+};
 
-std::list<DCacheLDReq> dcache_req;
-std::list<MemReq> mem_req;
+std::list<DCacheLDReq> c0s0_ld_req_queue;
+std::list<DCacheLDReq> c0s1_ld_req_queue;
+std::list<DCacheLDReq> c0s2_ld_req_queue;
+std::list<DCacheLDReq> c0s3_ld_req_queue;
+std::list<MemReq> dr0_reqs;
+std::list<MemReq> dr1_reqs;
 
 void advance_half_clock(Vintegration_2core2dr *top) {
 #ifdef TRACE
@@ -46,7 +52,7 @@ void advance_half_clock(Vintegration_2core2dr *top) {
   top->eval();
 
   global_time++;
-  if (Verilated::gotFinish())  
+  if (Verilated::gotFinish())
     exit(0);
 }
 
@@ -72,407 +78,466 @@ void sim_finish(bool pass) {
   exit(0);
 }
 
-void error_found(Vjoin_fadd *top) {
+void error_found(Vintegration_2core2dr *top) {
   advance_clock(top,4);
   sim_finish(false);
 }
 
-void try_send_packet(Vintegration_2core2dr *top) {
+void set_handshake(Vintegration_2core2dr* top, int value) {
+  top->core0_coretoic_pc_valid                 = value < 0? rand() & 0x1 : value & 0x1;
+  top->core0_slice0_coretodc_ld_valid          = value < 0? rand() & 0x1 : value & 0x1;
+  top->core0_slice0_coretodc_std_valid         = value < 0? rand() & 0x1 : value & 0x1;
+  top->c0_s0_coretodctlb_ld_valid              = value < 0? rand() & 0x1 : value & 0x1;
+  top->c0_s0_coretodctlb_st_valid              = value < 0? rand() & 0x1 : value & 0x1;
+  top->core0_slice1_coretodc_ld_valid          = value < 0? rand() & 0x1 : value & 0x1;
+  top->core0_slice1_coretodc_std_valid         = value < 0? rand() & 0x1 : value & 0x1;
+  top->c0_s1_coretodctlb_ld_valid              = value < 0? rand() & 0x1 : value & 0x1;
+  top->c0_s1_coretodctlb_st_valid              = value < 0? rand() & 0x1 : value & 0x1;
+  top->core0_ictocore_retry                    = value < 0? rand() & 0x1 : value & 0x1;
+  top->core0_slice0_dctocore_ld_retry          = value < 0? rand() & 0x1 : value & 0x1;
+  top->core0_slice0_dctocore_std_ack_retry     = value < 0? rand() & 0x1 : value & 0x1;
+  top->core0_slice1_dctocore_ld_retry          = value < 0? rand() & 0x1 : value & 0x1;
+  top->core0_slice1_dctocore_std_ack_retry     = value < 0? rand() & 0x1 : value & 0x1;
 
-  // no retries for now
-  //top->sumRetry = (rand()&0xF)==0; // randomly, one every 8 packets
 
-  // SEND DCACHE REQUEST
-  if (!top->inp_aRetry) {
-    if (inpa_list.empty() || (rand() & 0x3)) { // Once every 4
-      top->inp_a = rand();
-      top->inp_aValid = 0;
-    } else{
-      if (inpa_list.empty()) {
-        fprintf(stderr,"ERROR: Internal error, could not be empty inpa\n");
-        error_found(top);        
-      }
-      InputPacketA inp = inpa_list.back();
-      top->inp_a = inp.inp_a;
-      top->inp_aValid = 1;
-      inpa_list.pop_back();
-#ifdef DEBUG_TRACE
-      printf("@%lld inp_a=%d\n",global_time, inp.inp_a);
+#ifdef SC_4PIPE
+  top->core0_slice2_dctocore_ld_retry        = value < 0? rand() & 0x1 : value & 0x1;
+  top->core0_slice2_dctocore_std_ack_retry   = value < 0? rand() & 0x1 : value & 0x1;
+  top->core0_slice3_dctocore_ld_retry        = value < 0? rand() & 0x1 : value & 0x1;
+  top->core0_slice3_dctocore_std_ack_retry   = value < 0? rand() & 0x1 : value & 0x1;
+  top->core0_slice2_coretodc_ld_valid        = value < 0? rand() & 0x1 : value & 0x1;
+  top->core0_slice2_coretodc_std_valid       = value < 0? rand() & 0x1 : value & 0x1;
+  top->c0_s2_coretodctlb_ld_valid            = value < 0? rand() & 0x1 : value & 0x1;
+  top->c0_s2_coretodctlb_st_valid            = value < 0? rand() & 0x1 : value & 0x1;
+  top->core0_slice3_coretodc_ld_valid        = value < 0? rand() & 0x1 : value & 0x1;
+  top->core0_slice3_coretodc_std_valid       = value < 0? rand() & 0x1 : value & 0x1;
+  top->c0_s3_coretodctlb_ld_valid            = value < 0? rand() & 0x1 : value & 0x1;
+  top->c0_s3_coretodctlb_st_valid            = value < 0? rand() & 0x1 : value & 0x1;
+
 #endif
-    }
+  top->core0_pfgtopfe_op_valid               = value < 0? rand() & 0x1 : value & 0x1;
+  top->core1_coretoic_pc_valid               = value < 0? rand() & 0x1 : value & 0x1;
+  top->core1_slice0_coretodc_ld_valid        = value < 0? rand() & 0x1 : value & 0x1;
+  top->core1_slice0_coretodc_std_valid       = value < 0? rand() & 0x1 : value & 0x1;
+  top->c1_s0_coretodctlb_ld_valid            = value < 0? rand() & 0x1 : value & 0x1;
+  top->c1_s0_coretodctlb_st_valid            = value < 0? rand() & 0x1 : value & 0x1;
+  top->core1_slice1_coretodc_ld_valid        = value < 0? rand() & 0x1 : value & 0x1;
+  top->core1_slice1_coretodc_std_valid       = value < 0? rand() & 0x1 : value & 0x1;
+  top->c1_s1_coretodctlb_ld_valid            = value < 0? rand() & 0x1 : value & 0x1;
+  top->c1_s1_coretodctlb_st_valid            = value < 0? rand() & 0x1 : value & 0x1;
+  top->core1_ictocore_retry                  = value < 0? rand() & 0x1 : value & 0x1;
+  top->core1_slice0_dctocore_ld_retry        = value < 0? rand() & 0x1 : value & 0x1;
+  top->core1_slice0_dctocore_std_ack_retry   = value < 0? rand() & 0x1 : value & 0x1;
+  top->core1_slice1_dctocore_ld_retry        = value < 0? rand() & 0x1 : value & 0x1;
+  top->core1_slice1_dctocore_std_ack_retry   = value < 0? rand() & 0x1 : value & 0x1;
+
+
+#ifdef SC_4PIPE
+  top->core1_slice2_dctocore_ld_retry         = value < 0? rand() & 0x1 : value & 0x1;
+  top->core1_slice2_dctocore_std_ack_retry    = value < 0? rand() & 0x1 : value & 0x1;
+  top->core1_slice3_dctocore_ld_retry         = value < 0? rand() & 0x1 : value & 0x1;
+  top->core1_slice3_dctocore_std_ack_retry    = value < 0? rand() & 0x1 : value & 0x1;
+  top->core1_slice2_coretodc_ld_valid         = value < 0? rand() & 0x1 : value & 0x1;
+  top->core1_slice2_coretodc_std_valid        = value < 0? rand() & 0x1 : value & 0x1;
+  top->c1_s2_coretodctlb_ld_valid             = value < 0? rand() & 0x1 : value & 0x1;
+  top->c1_s2_coretodctlb_st_valid             = value < 0? rand() & 0x1 : value & 0x1;
+  top->core1_slice3_coretodc_ld_valid         = value < 0? rand() & 0x1 : value & 0x1;
+  top->core1_slice3_coretodc_std_valid        = value < 0? rand() & 0x1 : value & 0x1;
+  top->c1_s3_coretodctlb_ld_valid             = value < 0? rand() & 0x1 : value & 0x1;
+  top->c1_s3_coretodctlb_st_valid             = value < 0? rand() & 0x1 : value & 0x1;
+
+#endif
+
+  top->core1_pfgtopfe_op_valid  = value < 0? rand() & 0x1 : value & 0x1;
+  top->dr0_memtodr_ack_valid    = value < 0? rand() & 0x1 : value & 0x1;
+  top->dr1_memtodr_ack_valid    = value < 0? rand() & 0x1 : value & 0x1;
+  top->dr0_drtomem_req_retry    = value < 0? rand() & 0x1 : value & 0x1;
+  top->dr0_drtomem_wb_retry     = value < 0? rand() & 0x1 : value & 0x1;
+  top->dr0_drtomem_pfreq_retry  = value < 0? rand() & 0x1 : value & 0x1;
+  top->dr1_drtomem_req_retry    = value < 0? rand() & 0x1 : value & 0x1;
+  top->dr1_drtomem_wb_retry     = value < 0? rand() & 0x1 : value & 0x1;
+  top->dr1_drtomem_pfreq_retry  = value < 0? rand() & 0x1 : value & 0x1;
+}
+
+void set_array(int size, unsigned int* data, int value) {
+  for(int i = 0; i < size; ++i){
+    data[i] = (value < 0? rand() : value);
   }
 }
 
-void set_handshake(Vintegration_2core2dr* top, int value) {
+void set_ports(Vintegration_2core2dr* top, int value) {
 
-  top->core0_coretoic_pc_valid             = value < 0? rand() & 0x1 : value & 0x1;
-  top->core0_coretoic_pc_retry             =  value < 0? rand() & 0x1 : value & 0x1;
-  top->core0_ictocore_valid                =  value < 0? rand() & 0x1 : value & 0x1;
-  top->core0_ictocore_retry                =  value < 0? rand() & 0x1 : value & 0x1;
-  top->core0_slice0_coretodc_ld_valid      =  value < 0? rand() & 0x1 : value & 0x1;
-  top->core0_slice0_coretodc_ld_retry      =  value < 0? rand() & 0x1 : value & 0x1;
-  top->core0_slice0_dctocore_ld_valid      =  value < 0? rand() & 0x1 : value & 0x1;
-  top->core0_slice0_dctocore_ld_retry      =  value < 0? rand() & 0x1 : value & 0x1;
-  top->core0_slice0_coretodc_std_valid     =  value < 0? rand() & 0x1 : value & 0x1;
-  top->core0_slice0_coretodc_std_retry     =  value < 0? rand() & 0x1 : value & 0x1;
-  top->core0_slice0_dctocore_std_ack_valid =  value < 0? rand() & 0x1 : value & 0x1;
-  top->core0_slice0_dctocore_std_ack_retry =  value < 0? rand() & 0x1 : value & 0x1;
+  //FIXME: we should have a different rand for each data camp.
 
-	top->c0_s0_coretodctlb_ld_valid          =  value < 0? rand() & 0x1 : value & 0x1;
-	top->c0_s0_coretodctlb_st_valid          =  value < 0? rand() & 0x1 : value & 0x1;
-	top->core0_slice1_coretodc_ld_valid      =  value < 0? rand() & 0x1 : value & 0x1;
-	top->core0_slice1_dctocore_ld_valid      =  value < 0? rand() & 0x1 : value & 0x1;
-	top->core0_slice1_coretodc_std_valid     =  value < 0? rand() & 0x1 : value & 0x1;
-	top->core0_slice1_dctocore_std_ack_valid =  value < 0? rand() & 0x1 : value & 0x1;
-	top->c0_s1_coretodctlb_ld_valid          =  value < 0? rand() & 0x1 : value & 0x1;
-	top->c0_s1_coretodctlb_st_valid          =  value < 0? rand() & 0x1 : value & 0x1;
-
-	top->c0_s0_coretodctlb_ld_retry          =  value < 0? rand() & 0x1 : value & 0x1;
-	top->c0_s0_coretodctlb_st_retry          =  value < 0? rand() & 0x1 : value & 0x1;
-	top->core0_slice1_coretodc_ld_retry      =  value < 0? rand() & 0x1 : value & 0x1;
-	top->core0_slice1_dctocore_ld_retry      =  value < 0? rand() & 0x1 : value & 0x1;
-	top->core0_slice1_coretodc_std_retry     =  value < 0? rand() & 0x1 : value & 0x1;
-	top->core0_slice1_dctocore_std_ack_retry =  value < 0? rand() & 0x1 : value & 0x1;
-	top->c0_s1_coretodctlb_ld_retry          =  value < 0? rand() & 0x1 : value & 0x1;
-	top->c0_s1_coretodctlb_st_retry          =  value < 0? rand() & 0x1 : value & 0x1;
-
-#ifdef SC_4PIPE
-	top->core0_slice2_coretodc_ld_retry      =  value < 0? rand() & 0x1 : value & 0x1;
-	top->core0_slice2_dctocore_ld_retry      =  value < 0? rand() & 0x1 : value & 0x1;
-	top->core0_slice2_coretodc_std_retry     =  value < 0? rand() & 0x1 : value & 0x1;
-	top->core0_slice2_dctocore_std_ack_retry =  value < 0? rand() & 0x1 : value & 0x1;
-	top->c0_s2_coretodctlb_ld_retry          =  value < 0? rand() & 0x1 : value & 0x1;
-	top->c0_s2_coretodctlb_st_retry          =  value < 0? rand() & 0x1 : value & 0x1;
-	top->core0_slice3_coretodc_ld_retry      =  value < 0? rand() & 0x1 : value & 0x1;
-	top->core0_slice3_dctocore_ld_retry      =  value < 0? rand() & 0x1 : value & 0x1;
-	top->core0_slice3_coretodc_std_retry     =  value < 0? rand() & 0x1 : value & 0x1;
-	top->core0_slice3_dctocore_std_ack_retry =  value < 0? rand() & 0x1 : value & 0x1;
-	top->c0_s3_coretodctlb_ld_retry          =  value < 0? rand() & 0x1 : value & 0x1;
-	top->c0_s3_coretodctlb_st_retry          =  value < 0? rand() & 0x1 : value & 0x1;
-	top->core0_slice2_coretodc_ld_valid      =  value < 0? rand() & 0x1 : value & 0x1;
-	top->core0_slice2_dctocore_ld_valid      =  value < 0? rand() & 0x1 : value & 0x1;
-	top->core0_slice2_coretodc_std_valid     =  value < 0? rand() & 0x1 : value & 0x1;
-	top->core0_slice2_dctocore_std_ack_valid =  value < 0? rand() & 0x1 : value & 0x1;
-	top->c0_s2_coretodctlb_ld_valid          =  value < 0? rand() & 0x1 : value & 0x1;
-	top->c0_s2_coretodctlb_st_valid          =  value < 0? rand() & 0x1 : value & 0x1;
-	top->core0_slice3_coretodc_ld_valid      =  value < 0? rand() & 0x1 : value & 0x1;
-	top->core0_slice3_dctocore_ld_valid      =  value < 0? rand() & 0x1 : value & 0x1;
-	top->core0_slice3_coretodc_std_valid     =  value < 0? rand() & 0x1 : value & 0x1;
-	top->core0_slice3_dctocore_std_ack_valid =  value < 0? rand() & 0x1 : value & 0x1;
-	top->c0_s3_coretodctlb_ld_valid          =  value < 0? rand() & 0x1 : value & 0x1;
-	top->c0_s3_coretodctlb_st_valid          =  value < 0? rand() & 0x1 : value & 0x1;
+  top->core0_coretoic_pc_coreid          = value < 0? rand() : value ;
+  top->core0_coretoic_pc_poffset         = value < 0? rand() : value ;
+  top->core0_slice0_coretodc_ld_ckpid    = value < 0? rand() : value ;
+  top->core0_slice0_coretodc_ld_coreid   = value < 0? rand() : value ;
+  top->core0_slice0_coretodc_ld_lop      = value < 0? rand() : value ;
+  top->core0_slice0_coretodc_ld_pnr      = value < 0? rand() : value ;
+  top->core0_slice0_coretodc_ld_pcsign   = value < 0? rand() : value ;
+  top->core0_slice0_coretodc_ld_poffset  = value < 0? rand() : value ;
+  top->core0_slice0_coretodc_ld_imm      = value < 0? rand() : value ;
+  top->core0_slice0_coretodc_std_ckpid   = value < 0? rand() : value ;
+  top->core0_slice0_coretodc_std_coreid  = value < 0? rand() : value ;
+  top->core0_slice0_coretodc_std_mop     = value < 0? rand() : value ;
+  top->core0_slice0_coretodc_std_pnr     = value < 0? rand() : value ;
+  top->core0_slice0_coretodc_std_pcsign  = value < 0? rand() : value ;
+  top->core0_slice0_coretodc_std_poffset = value < 0? rand() : value ;
+  top->core0_slice0_coretodc_std_imm     = value < 0? rand() : value ;
+  set_array(16,top->core0_slice0_coretodc_std_data,value);
+  top->c0_s0_coretodctlb_ld_ckpid        = value < 0? rand() : value ;
+  top->c0_s0_coretodctlb_ld_coreid       = value < 0? rand() : value ;
+  top->c0_s0_coretodctlb_ld_lop          = value < 0? rand() : value ;
+  top->c0_s0_coretodctlb_ld_pnr          = value < 0? rand() : value ;
+  top->c0_s0_coretodctlb_ld_laddr        = value < 0? rand() : value ;
+  top->c0_s0_coretodctlb_ld_imm          = value < 0? rand() : value ;
+  top->c0_s0_coretodctlb_ld_sptbr        = value < 0? rand() : value ;
+  top->c0_s0_coretodctlb_ld_user         = value < 0? rand() : value ;
+  top->c0_s0_coretodctlb_st_ckpid        = value < 0? rand() : value ;
+  top->c0_s0_coretodctlb_st_coreid       = value < 0? rand() : value ;
+  top->c0_s0_coretodctlb_st_mop          = value < 0? rand() : value ;
+  top->c0_s0_coretodctlb_st_pnr          = value < 0? rand() : value ;
+  top->c0_s0_coretodctlb_st_laddr        = value < 0? rand() : value ;
+  top->c0_s0_coretodctlb_st_imm          = value < 0? rand() : value ;
+  top->c0_s0_coretodctlb_st_sptbr        = value < 0? rand() : value ;
+  top->c0_s0_coretodctlb_st_user         = value < 0? rand() : value ;
+  top->core0_slice1_coretodc_ld_ckpid    = value < 0? rand() : value ;
+  top->core0_slice1_coretodc_ld_coreid   = value < 0? rand() : value ;
+  top->core0_slice1_coretodc_ld_lop      = value < 0? rand() : value ;
+  top->core0_slice1_coretodc_ld_pnr      = value < 0? rand() : value ;
+  top->core0_slice1_coretodc_ld_pcsign   = value < 0? rand() : value ;
+  top->core0_slice1_coretodc_ld_poffset  = value < 0? rand() : value ;
+  top->core0_slice1_coretodc_ld_imm      = value < 0? rand() : value ;
+  top->core0_slice1_coretodc_std_ckpid   = value < 0? rand() : value ;
+  top->core0_slice1_coretodc_std_coreid  = value < 0? rand() : value ;
+  top->core0_slice1_coretodc_std_mop     = value < 0? rand() : value ;
+  top->core0_slice1_coretodc_std_pnr     = value < 0? rand() : value ;
+  top->core0_slice1_coretodc_std_pcsign  = value < 0? rand() : value ;
+  top->core0_slice1_coretodc_std_poffset = value < 0? rand() : value ;
+  top->core0_slice1_coretodc_std_imm     = value < 0? rand() : value ;
+  set_array(16,top->core0_slice1_coretodc_std_data,value);
+  top->c0_s1_coretodctlb_ld_ckpid        = value < 0? rand() : value ;
+  top->c0_s1_coretodctlb_ld_coreid       = value < 0? rand() : value ;
+  top->c0_s1_coretodctlb_ld_lop          = value < 0? rand() : value ;
+  top->c0_s1_coretodctlb_ld_pnr          = value < 0? rand() : value ;
+  top->c0_s1_coretodctlb_ld_laddr        = value < 0? rand() : value ;
+  top->c0_s1_coretodctlb_ld_imm          = value < 0? rand() : value ;
+  top->c0_s1_coretodctlb_ld_sptbr        = value < 0? rand() : value ;
+  top->c0_s1_coretodctlb_ld_user         = value < 0? rand() : value ;
+  top->c0_s1_coretodctlb_st_ckpid        = value < 0? rand() : value ;
+  top->c0_s1_coretodctlb_st_coreid       = value < 0? rand() : value ;
+  top->c0_s1_coretodctlb_st_mop          = value < 0? rand() : value ;
+  top->c0_s1_coretodctlb_st_pnr          = value < 0? rand() : value ;
+  top->c0_s1_coretodctlb_st_laddr        = value < 0? rand() : value ;
+  top->c0_s1_coretodctlb_st_imm          = value < 0? rand() : value ;
+  top->c0_s1_coretodctlb_st_sptbr        = value < 0? rand() : value ;
+  top->c0_s1_coretodctlb_st_user         = value < 0? rand() : value ;
+#ifdef  SC_4PIPE
+  top->core0_slice2_coretodc_ld_ckpid    = value < 0? rand() : value ;
+  top->core0_slice2_coretodc_ld_coreid   = value < 0? rand() : value ;
+  top->core0_slice2_coretodc_ld_lop      = value < 0? rand() : value ;
+  top->core0_slice2_coretodc_ld_pnr      = value < 0? rand() : value ;
+  top->core0_slice2_coretodc_ld_pcsign   = value < 0? rand() : value ;
+  top->core0_slice2_coretodc_ld_poffset  = value < 0? rand() : value ;
+  top->core0_slice2_coretodc_ld_imm      = value < 0? rand() : value ;
+  top->core0_slice2_coretodc_std_ckpid   = value < 0? rand() : value ;
+  top->core0_slice2_coretodc_std_coreid  = value < 0? rand() : value ;
+  top->core0_slice2_coretodc_std_mop     = value < 0? rand() : value ;
+  top->core0_slice2_coretodc_std_pnr     = value < 0? rand() : value ;
+  top->core0_slice2_coretodc_std_pcsign  = value < 0? rand() : value ;
+  top->core0_slice2_coretodc_std_poffset = value < 0? rand() : value ;
+  top->core0_slice2_coretodc_std_imm     = value < 0? rand() : value ;
+  set_array(16,top->core0_slice2_coretodc_std_data,value);
+  top->c0_s2_coretodctlb_ld_ckpid        = value < 0? rand() : value ;
+  top->c0_s2_coretodctlb_ld_coreid       = value < 0? rand() : value ;
+  top->c0_s2_coretodctlb_ld_lop          = value < 0? rand() : value ;
+  top->c0_s2_coretodctlb_ld_pnr          = value < 0? rand() : value ;
+  top->c0_s2_coretodctlb_ld_laddr        = value < 0? rand() : value ;
+  top->c0_s2_coretodctlb_ld_imm          = value < 0? rand() : value ;
+  top->c0_s2_coretodctlb_ld_sptbr        = value < 0? rand() : value ;
+  top->c0_s2_coretodctlb_ld_user         = value < 0? rand() : value ;
+  top->c0_s2_coretodctlb_st_ckpid        = value < 0? rand() : value ;
+  top->c0_s2_coretodctlb_st_coreid       = value < 0? rand() : value ;
+  top->c0_s2_coretodctlb_st_mop          = value < 0? rand() : value ;
+  top->c0_s2_coretodctlb_st_pnr          = value < 0? rand() : value ;
+  top->c0_s2_coretodctlb_st_laddr        = value < 0? rand() : value ;
+  top->c0_s2_coretodctlb_st_imm          = value < 0? rand() : value ;
+  top->c0_s2_coretodctlb_st_sptbr        = value < 0? rand() : value ;
+  top->c0_s2_coretodctlb_st_user         = value < 0? rand() : value ;
+  top->core0_slice3_coretodc_ld_ckpid    = value < 0? rand() : value ;
+  top->core0_slice3_coretodc_ld_coreid   = value < 0? rand() : value ;
+  top->core0_slice3_coretodc_ld_lop      = value < 0? rand() : value ;
+  top->core0_slice3_coretodc_ld_pnr      = value < 0? rand() : value ;
+  top->core0_slice3_coretodc_ld_pcsign   = value < 0? rand() : value ;
+  top->core0_slice3_coretodc_ld_poffset  = value < 0? rand() : value ;
+  top->core0_slice3_coretodc_ld_imm      = value < 0? rand() : value ;
+  top->core0_slice3_coretodc_std_ckpid   = value < 0? rand() : value ;
+  top->core0_slice3_coretodc_std_coreid  = value < 0? rand() : value ;
+  top->core0_slice3_coretodc_std_mop     = value < 0? rand() : value ;
+  top->core0_slice3_coretodc_std_pnr     = value < 0? rand() : value ;
+  top->core0_slice3_coretodc_std_pcsign  = value < 0? rand() : value ;
+  top->core0_slice3_coretodc_std_poffset = value < 0? rand() : value ;
+  top->core0_slice3_coretodc_std_imm     = value < 0? rand() : value ;
+  set_array(16,top->core0_slice3_coretodc_std_data,value);
+  top->c0_s3_coretodctlb_ld_ckpid        = value < 0? rand() : value ;
+  top->c0_s3_coretodctlb_ld_coreid       = value < 0? rand() : value ;
+  top->c0_s3_coretodctlb_ld_lop          = value < 0? rand() : value ;
+  top->c0_s3_coretodctlb_ld_pnr          = value < 0? rand() : value ;
+  top->c0_s3_coretodctlb_ld_laddr        = value < 0? rand() : value ;
+  top->c0_s3_coretodctlb_ld_imm          = value < 0? rand() : value ;
+  top->c0_s3_coretodctlb_ld_sptbr        = value < 0? rand() : value ;
+  top->c0_s3_coretodctlb_ld_user         = value < 0? rand() : value ;
+  top->c0_s3_coretodctlb_st_ckpid        = value < 0? rand() : value ;
+  top->c0_s3_coretodctlb_st_coreid       = value < 0? rand() : value ;
+  top->c0_s3_coretodctlb_st_mop          = value < 0? rand() : value ;
+  top->c0_s3_coretodctlb_st_pnr          = value < 0? rand() : value ;
+  top->c0_s3_coretodctlb_st_laddr        = value < 0? rand() : value ;
+  top->c0_s3_coretodctlb_st_imm          = value < 0? rand() : value ;
+  top->c0_s3_coretodctlb_st_sptbr        = value < 0? rand() : value ;
+  top->c0_s3_coretodctlb_st_user         = value < 0? rand() : value ;
 #endif
-
-	top->core0_pfgtopfe_op_valid             = value < 0? rand() & 0x1 : value & 0x1;
-	top->core1_coretoic_pc_valid             =  value < 0? rand() & 0x1 : value & 0x1;
-	top->core1_ictocore_valid                =  value < 0? rand() & 0x1 : value & 0x1;
-	top->core1_slice0_coretodc_ld_valid      =  value < 0? rand() & 0x1 : value & 0x1;
-	top->core1_slice0_dctocore_ld_valid      =  value < 0? rand() & 0x1 : value & 0x1;
-	top->core1_slice0_coretodc_std_valid     =  value < 0? rand() & 0x1 : value & 0x1;
-	top->core1_slice0_dctocore_std_ack_valid =  value < 0? rand() & 0x1 : value & 0x1;
-	top->c1_s0_coretodctlb_ld_valid          =  value < 0? rand() & 0x1 : value & 0x1;
-	top->c1_s0_coretodctlb_st_valid          =  value < 0? rand() & 0x1 : value & 0x1;
-	top->core1_slice1_coretodc_ld_valid      =  value < 0? rand() & 0x1 : value & 0x1;
-	top->core1_slice1_dctocore_ld_valid      =  value < 0? rand() & 0x1 : value & 0x1;
-	top->core1_slice1_coretodc_std_valid     =  value < 0? rand() & 0x1 : value & 0x1;
-	top->core1_slice1_dctocore_std_ack_valid =  value < 0? rand() & 0x1 : value & 0x1;
-	top->c1_s1_coretodctlb_ld_valid          =  value < 0? rand() & 0x1 : value & 0x1;
-	top->c1_s1_coretodctlb_st_valid          =  value < 0? rand() & 0x1 : value & 0x1;
-	top->core0_pfgtopfe_op_retry             =  value < 0? rand() & 0x1 : value & 0x1;
-	top->core1_coretoic_pc_retry             =  value < 0? rand() & 0x1 : value & 0x1;
-	top->core1_ictocore_retry                =  value < 0? rand() & 0x1 : value & 0x1;
-	top->core1_slice0_coretodc_ld_retry      =  value < 0? rand() & 0x1 : value & 0x1;
-	top->core1_slice0_dctocore_ld_retry      =  value < 0? rand() & 0x1 : value & 0x1;
-	top->core1_slice0_coretodc_std_retry     =  value < 0? rand() & 0x1 : value & 0x1;
-	top->core1_slice0_dctocore_std_ack_retry =  value < 0? rand() & 0x1 : value & 0x1;
-	top->c1_s0_coretodctlb_ld_retry          =  value < 0? rand() & 0x1 : value & 0x1;
-	top->c1_s0_coretodctlb_st_retry          =  value < 0? rand() & 0x1 : value & 0x1;
-	top->core1_slice1_coretodc_ld_retry      =  value < 0? rand() & 0x1 : value & 0x1;
-	top->core1_slice1_dctocore_ld_retry      =  value < 0? rand() & 0x1 : value & 0x1;
-	top->core1_slice1_coretodc_std_retry     =  value < 0? rand() & 0x1 : value & 0x1;
-	top->core1_slice1_dctocore_std_ack_retry =  value < 0? rand() & 0x1 : value & 0x1;
-	top->c1_s1_coretodctlb_ld_retry          =  value < 0? rand() & 0x1 : value & 0x1;
-	top->c1_s1_coretodctlb_st_retry          =  value < 0? rand() & 0x1 : value & 0x1;
-                                             
-
-#ifdef SC_4PIPE
-	top->core1_slice2_coretodc_ld_retry      =  value < 0? rand() & 0x1 : value & 0x1;
-	top->core1_slice2_dctocore_ld_retry      =  value < 0? rand() & 0x1 : value & 0x1;
-	top->core1_slice2_coretodc_std_retry     =  value < 0? rand() & 0x1 : value & 0x1;
-	top->core1_slice2_dctocore_std_ack_retry =  value < 0? rand() & 0x1 : value & 0x1;
-	top->c1_s2_coretodctlb_ld_retry          =  value < 0? rand() & 0x1 : value & 0x1;
-	top->c1_s2_coretodctlb_st_retry          =  value < 0? rand() & 0x1 : value & 0x1;
-	top->core1_slice3_coretodc_ld_retry      =  value < 0? rand() & 0x1 : value & 0x1;
-	top->core1_slice3_dctocore_ld_retry      =  value < 0? rand() & 0x1 : value & 0x1;
-	top->core1_slice3_coretodc_std_retry     =  value < 0? rand() & 0x1 : value & 0x1;
-	top->core1_slice3_dctocore_std_ack_retry =  value < 0? rand() & 0x1 : value & 0x1;
-	top->c1_s3_coretodctlb_ld_retry          =  value < 0? rand() & 0x1 : value & 0x1;
-	top->c1_s3_coretodctlb_st_retry          =  value < 0? rand() & 0x1 : value & 0x1;
-	top->core1_slice2_coretodc_ld_valid      =  value < 0? rand() & 0x1 : value & 0x1;
-	top->core1_slice2_dctocore_ld_valid      =  value < 0? rand() & 0x1 : value & 0x1;
-	top->core1_slice2_coretodc_std_valid     =  value < 0? rand() & 0x1 : value & 0x1;
-	top->core1_slice2_dctocore_std_ack_valid =  value < 0? rand() & 0x1 : value & 0x1;
-	top->c1_s2_coretodctlb_ld_valid          =  value < 0? rand() & 0x1 : value & 0x1;
-	top->c1_s2_coretodctlb_st_valid          =  value < 0? rand() & 0x1 : value & 0x1;
-	top->core1_slice3_coretodc_ld_valid      =  value < 0? rand() & 0x1 : value & 0x1;
-	top->core1_slice3_dctocore_ld_valid      =  value < 0? rand() & 0x1 : value & 0x1;
-	top->core1_slice3_coretodc_std_valid     =  value < 0? rand() & 0x1 : value & 0x1;
-	top->core1_slice3_dctocore_std_ack_valid =  value < 0? rand() & 0x1 : value & 0x1;
-	top->c1_s3_coretodctlb_ld_valid          =  value < 0? rand() & 0x1 : value & 0x1;
-	top->c1_s3_coretodctlb_st_valid          =  value < 0? rand() & 0x1 : value & 0x1;
+  top->core0_pfgtopfe_op_delta           = value < 0? rand() : value ;
+  top->core0_pfgtopfe_op_w1              = value < 0? rand() : value ;
+  top->core0_pfgtopfe_op_w2              = value < 0? rand() : value ;
+  top->core0_pfgtopfe_op_pcsign          = value < 0? rand() : value ;
+  top->core0_pfgtopfe_op_laddr           = value < 0? rand() : value ;
+  top->core0_pfgtopfe_op_sptbr           = value < 0? rand() : value ;
+  top->core1_coretoic_pc_coreid          = value < 0? rand() : value ;
+  top->core1_coretoic_pc_poffset         = value < 0? rand() : value ;
+  top->core1_slice0_coretodc_ld_ckpid    = value < 0? rand() : value ;
+  top->core1_slice0_coretodc_ld_coreid   = value < 0? rand() : value ;
+  top->core1_slice0_coretodc_ld_lop      = value < 0? rand() : value ;
+  top->core1_slice0_coretodc_ld_pnr      = value < 0? rand() : value ;
+  top->core1_slice0_coretodc_ld_pcsign   = value < 0? rand() : value ;
+  top->core1_slice0_coretodc_ld_poffset  = value < 0? rand() : value ;
+  top->core1_slice0_coretodc_ld_imm      = value < 0? rand() : value ;
+  top->core1_slice0_coretodc_std_ckpid   = value < 0? rand() : value ;
+  top->core1_slice0_coretodc_std_coreid  = value < 0? rand() : value ;
+  top->core1_slice0_coretodc_std_mop     = value < 0? rand() : value ;
+  top->core1_slice0_coretodc_std_pnr     = value < 0? rand() : value ;
+  top->core1_slice0_coretodc_std_pcsign  = value < 0? rand() : value ;
+  top->core1_slice0_coretodc_std_poffset = value < 0? rand() : value ;
+  top->core1_slice0_coretodc_std_imm     = value < 0? rand() : value ;
+  set_array(16,top->core1_slice0_coretodc_std_data,value);
+  top->c1_s0_coretodctlb_ld_ckpid        = value < 0? rand() : value ;
+  top->c1_s0_coretodctlb_ld_coreid       = value < 0? rand() : value ;
+  top->c1_s0_coretodctlb_ld_lop          = value < 0? rand() : value ;
+  top->c1_s0_coretodctlb_ld_pnr          = value < 0? rand() : value ;
+  top->c1_s0_coretodctlb_ld_laddr        = value < 0? rand() : value ;
+  top->c1_s0_coretodctlb_ld_imm          = value < 0? rand() : value ;
+  top->c1_s0_coretodctlb_ld_sptbr        = value < 0? rand() : value ;
+  top->c1_s0_coretodctlb_ld_user         = value < 0? rand() : value ;
+  top->c1_s0_coretodctlb_st_ckpid        = value < 0? rand() : value ;
+  top->c1_s0_coretodctlb_st_coreid       = value < 0? rand() : value ;
+  top->c1_s0_coretodctlb_st_mop          = value < 0? rand() : value ;
+  top->c1_s0_coretodctlb_st_pnr          = value < 0? rand() : value ;
+  top->c1_s0_coretodctlb_st_laddr        = value < 0? rand() : value ;
+  top->c1_s0_coretodctlb_st_imm          = value < 0? rand() : value ;
+  top->c1_s0_coretodctlb_st_sptbr        = value < 0? rand() : value ;
+  top->c1_s0_coretodctlb_st_user         = value < 0? rand() : value ;
+  top->core1_slice1_coretodc_ld_ckpid    = value < 0? rand() : value ;
+  top->core1_slice1_coretodc_ld_coreid   = value < 0? rand() : value ;
+  top->core1_slice1_coretodc_ld_lop      = value < 0? rand() : value ;
+  top->core1_slice1_coretodc_ld_pnr      = value < 0? rand() : value ;
+  top->core1_slice1_coretodc_ld_pcsign   = value < 0? rand() : value ;
+  top->core1_slice1_coretodc_ld_poffset  = value < 0? rand() : value ;
+  top->core1_slice1_coretodc_ld_imm      = value < 0? rand() : value ;
+  top->core1_slice1_coretodc_std_ckpid   = value < 0? rand() : value ;
+  top->core1_slice1_coretodc_std_coreid  = value < 0? rand() : value ;
+  top->core1_slice1_coretodc_std_mop     = value < 0? rand() : value ;
+  top->core1_slice1_coretodc_std_pnr     = value < 0? rand() : value ;
+  top->core1_slice1_coretodc_std_pcsign  = value < 0? rand() : value ;
+  top->core1_slice1_coretodc_std_poffset = value < 0? rand() : value ;
+  top->core1_slice1_coretodc_std_imm     = value < 0? rand() : value ;
+  set_array(16,top->core1_slice1_coretodc_std_data,value);
+  top->c1_s1_coretodctlb_ld_ckpid        = value < 0? rand() : value ;
+  top->c1_s1_coretodctlb_ld_coreid       = value < 0? rand() : value ;
+  top->c1_s1_coretodctlb_ld_lop          = value < 0? rand() : value ;
+  top->c1_s1_coretodctlb_ld_pnr          = value < 0? rand() : value ;
+  top->c1_s1_coretodctlb_ld_laddr        = value < 0? rand() : value ;
+  top->c1_s1_coretodctlb_ld_imm          = value < 0? rand() : value ;
+  top->c1_s1_coretodctlb_ld_sptbr        = value < 0? rand() : value ;
+  top->c1_s1_coretodctlb_ld_user         = value < 0? rand() : value ;
+  top->c1_s1_coretodctlb_st_ckpid        = value < 0? rand() : value ;
+  top->c1_s1_coretodctlb_st_coreid       = value < 0? rand() : value ;
+  top->c1_s1_coretodctlb_st_mop          = value < 0? rand() : value ;
+  top->c1_s1_coretodctlb_st_pnr          = value < 0? rand() : value ;
+  top->c1_s1_coretodctlb_st_laddr        = value < 0? rand() : value ;
+  top->c1_s1_coretodctlb_st_imm          = value < 0? rand() : value ;
+  top->c1_s1_coretodctlb_st_sptbr        = value < 0? rand() : value ;
+  top->c1_s1_coretodctlb_st_user         = value < 0? rand() : value ;
+#ifdef  SC_4PIPE
+  top->core1_slice2_coretodc_ld_ckpid    = value < 0? rand() : value ;
+  top->core1_slice2_coretodc_ld_coreid   = value < 0? rand() : value ;
+  top->core1_slice2_coretodc_ld_lop      = value < 0? rand() : value ;
+  top->core1_slice2_coretodc_ld_pnr      = value < 0? rand() : value ;
+  top->core1_slice2_coretodc_ld_pcsign   = value < 0? rand() : value ;
+  top->core1_slice2_coretodc_ld_poffset  = value < 0? rand() : value ;
+  top->core1_slice2_coretodc_ld_imm      = value < 0? rand() : value ;
+  top->core1_slice2_coretodc_std_ckpid   = value < 0? rand() : value ;
+  top->core1_slice2_coretodc_std_coreid  = value < 0? rand() : value ;
+  top->core1_slice2_coretodc_std_mop     = value < 0? rand() : value ;
+  top->core1_slice2_coretodc_std_pnr     = value < 0? rand() : value ;
+  top->core1_slice2_coretodc_std_pcsign  = value < 0? rand() : value ;
+  top->core1_slice2_coretodc_std_poffset = value < 0? rand() : value ;
+  top->core1_slice2_coretodc_std_imm     = value < 0? rand() : value ;
+  set_array(16,top->core1_slice2_coretodc_std_data,value);
+  top->c1_s2_coretodctlb_ld_ckpid        = value < 0? rand() : value ;
+  top->c1_s2_coretodctlb_ld_coreid       = value < 0? rand() : value ;
+  top->c1_s2_coretodctlb_ld_lop          = value < 0? rand() : value ;
+  top->c1_s2_coretodctlb_ld_pnr          = value < 0? rand() : value ;
+  top->c1_s2_coretodctlb_ld_laddr        = value < 0? rand() : value ;
+  top->c1_s2_coretodctlb_ld_imm          = value < 0? rand() : value ;
+  top->c1_s2_coretodctlb_ld_sptbr        = value < 0? rand() : value ;
+  top->c1_s2_coretodctlb_ld_user         = value < 0? rand() : value ;
+  top->c1_s2_coretodctlb_st_ckpid        = value < 0? rand() : value ;
+  top->c1_s2_coretodctlb_st_coreid       = value < 0? rand() : value ;
+  top->c1_s2_coretodctlb_st_mop          = value < 0? rand() : value ;
+  top->c1_s2_coretodctlb_st_pnr          = value < 0? rand() : value ;
+  top->c1_s2_coretodctlb_st_laddr        = value < 0? rand() : value ;
+  top->c1_s2_coretodctlb_st_imm          = value < 0? rand() : value ;
+  top->c1_s2_coretodctlb_st_sptbr        = value < 0? rand() : value ;
+  top->c1_s2_coretodctlb_st_user         = value < 0? rand() : value ;
+  top->core1_slice3_coretodc_ld_ckpid    = value < 0? rand() : value ;
+  top->core1_slice3_coretodc_ld_coreid   = value < 0? rand() : value ;
+  top->core1_slice3_coretodc_ld_lop      = value < 0? rand() : value ;
+  top->core1_slice3_coretodc_ld_pnr      = value < 0? rand() : value ;
+  top->core1_slice3_coretodc_ld_pcsign   = value < 0? rand() : value ;
+  top->core1_slice3_coretodc_ld_poffset  = value < 0? rand() : value ;
+  top->core1_slice3_coretodc_ld_imm      = value < 0? rand() : value ;
+  top->core1_slice3_coretodc_std_ckpid   = value < 0? rand() : value ;
+  top->core1_slice3_coretodc_std_coreid  = value < 0? rand() : value ;
+  top->core1_slice3_coretodc_std_mop     = value < 0? rand() : value ;
+  top->core1_slice3_coretodc_std_pnr     = value < 0? rand() : value ;
+  top->core1_slice3_coretodc_std_pcsign  = value < 0? rand() : value ;
+  top->core1_slice3_coretodc_std_poffset = value < 0? rand() : value ;
+  top->core1_slice3_coretodc_std_imm     = value < 0? rand() : value ;
+  set_array(16,top->core1_slice3_coretodc_std_data,value);
+  top->c1_s3_coretodctlb_ld_ckpid        = value < 0? rand() : value ;
+  top->c1_s3_coretodctlb_ld_coreid       = value < 0? rand() : value ;
+  top->c1_s3_coretodctlb_ld_lop          = value < 0? rand() : value ;
+  top->c1_s3_coretodctlb_ld_pnr          = value < 0? rand() : value ;
+  top->c1_s3_coretodctlb_ld_laddr        = value < 0? rand() : value ;
+  top->c1_s3_coretodctlb_ld_imm          = value < 0? rand() : value ;
+  top->c1_s3_coretodctlb_ld_sptbr        = value < 0? rand() : value ;
+  top->c1_s3_coretodctlb_ld_user         = value < 0? rand() : value ;
+  top->c1_s3_coretodctlb_st_ckpid        = value < 0? rand() : value ;
+  top->c1_s3_coretodctlb_st_coreid       = value < 0? rand() : value ;
+  top->c1_s3_coretodctlb_st_mop          = value < 0? rand() : value ;
+  top->c1_s3_coretodctlb_st_pnr          = value < 0? rand() : value ;
+  top->c1_s3_coretodctlb_st_laddr        = value < 0? rand() : value ;
+  top->c1_s3_coretodctlb_st_imm          = value < 0? rand() : value ;
+  top->c1_s3_coretodctlb_st_sptbr        = value < 0? rand() : value ;
+  top->c1_s3_coretodctlb_st_user         = value < 0? rand() : value ;
 #endif
-
-	top->core1_pfgtopfe_op_valid =  value < 0? rand() & 0x1 : value & 0x1;
-	top->dr0_drtomem_req_valid   =   value < 0? rand() & 0x1 : value & 0x1;
-	top->dr0_memtodr_ack_valid   =   value < 0? rand() & 0x1 : value & 0x1;
-	top->dr0_drtomem_wb_valid    =   value < 0? rand() & 0x1 : value & 0x1;
-	top->dr0_drtomem_pfreq_valid =   value < 0? rand() & 0x1 : value & 0x1;
-	top->dr1_drtomem_req_valid   =   value < 0? rand() & 0x1 : value & 0x1;
-	top->dr1_memtodr_ack_valid   =   value < 0? rand() & 0x1 : value & 0x1;
-	top->dr1_drtomem_wb_valid    =   value < 0? rand() & 0x1 : value & 0x1;
-	top->dr1_drtomem_pfreq_valid =   value < 0? rand() & 0x1 : value & 0x1;
-	top->core1_pfgtopfe_op_retry =   value < 0? rand() & 0x1 : value & 0x1;
-	top->dr0_drtomem_req_retry   =   value < 0? rand() & 0x1 : value & 0x1;
-	top->dr0_memtodr_ack_retry   =   value < 0? rand() & 0x1 : value & 0x1;
-	top->dr0_drtomem_wb_retry    =   value < 0? rand() & 0x1 : value & 0x1;
-	top->dr0_drtomem_pfreq_retry =   value < 0? rand() & 0x1 : value & 0x1;
-	top->dr1_drtomem_req_retry   =   value < 0? rand() & 0x1 : value & 0x1;
-	top->dr1_memtodr_ack_retry   =   value < 0? rand() & 0x1 : value & 0x1;
-	top->dr1_drtomem_wb_retry    =   value < 0? rand() & 0x1 : value & 0x1;
-	top->dr1_drtomem_pfreq_retry =   value < 0? rand() & 0x1 : value & 0x1;
-                                   
+  top->core1_pfgtopfe_op_delta           = value < 0? rand() : value ;
+  top->core1_pfgtopfe_op_w1              = value < 0? rand() : value ;
+  top->core1_pfgtopfe_op_w2              = value < 0? rand() : value ;
+  top->core1_pfgtopfe_op_pcsign          = value < 0? rand() : value ;
+  top->core1_pfgtopfe_op_laddr           = value < 0? rand() : value ;
+  top->core1_pfgtopfe_op_sptbr           = value < 0? rand() : value ;
+  top->dr0_memtodr_ack_drid              = value < 0? rand() : value ;
+  top->dr0_memtodr_ack_nid               = value < 0? rand() : value ;
+  top->dr0_memtodr_ack_paddr             = value < 0? rand() : value ;
+  top->dr0_memtodr_ack_ack               = value < 0? rand() : value ;
+  set_array(16,top->dr0_memtodr_ack_line,value);
+  top->dr1_memtodr_ack_drid              = value < 0? rand() : value ;
+  top->dr1_memtodr_ack_nid               = value < 0? rand() : value ;
+  top->dr1_memtodr_ack_paddr             = value < 0? rand() : value ;
+  top->dr1_memtodr_ack_ack               = value < 0? rand() : value ;
+  set_array(16,top->dr1_memtodr_ack_line,value);
 }
 
-void set_ports(Vintegration_2core2dr* top, int value) {
- top->core0_coretoic_pc                            value < 0? rand() : value ; //   I_coretoic_pc_type     
- top->core0_ictocore_coreid                        value < 0? rand() : value ; //  CORE_reqid_type        
- top->core0_ictocore_fault                         value < 0? rand() : value ; //  SC_fault_type          
- top->core0_ictocore_data                          value < 0? rand() : value ; //  IC_fwidth_type         
- top->core0_slice0_coretodc_ld_ckpid               value < 0? rand() : value ; //  DC_ckpid_type          
- top->core0_slice0_coretodc_ld_coreid              value < 0? rand() : value ; //  CORE_reqid_type        
- top->core0_slice0_coretodc_ld_lop                 value < 0? rand() : value ; //  CORE_lop_type          
- top->core0_slice0_coretodc_ld_pnr                 value < 0? rand() : value ; //  logic                  
- top->core0_slice0_coretodc_ld_pcsign              value < 0? rand() : value ; //  SC_pcsign_type         
- top->core0_slice0_coretodc_ld_poffset             value < 0? rand() : value ; //  SC_poffset_type        
- top->core0_slice0_coretodc_ld_imm                 value < 0? rand() : value ; //  SC_imm_type            
- top->core0_slice0_dctocore_ld_coreid              value < 0? rand() : value ; //  CORE_reqid_type        
- top->core0_slice0_dctocore_ld_fault               value < 0? rand() : value ; //  SC_fault_type          
- top->core0_slice0_dctocore_ld_data                value < 0? rand() : value ; //  SC_line_type           
- top->core0_slice0_coretodc_std_ckpid              value < 0? rand() : value ; //  DC_ckpid_type          
- top->core0_slice0_coretodc_std_coreid             value < 0? rand() : value ; //  CORE_reqid_type        
- top->core0_slice0_coretodc_std_mop                value < 0? rand() : value ; //  CORE_mop_type          
- top->core0_slice0_coretodc_std_pnr                value < 0? rand() : value ; //  logic                  
- top->core0_slice0_coretodc_std_pcsign             value < 0? rand() : value ; //  SC_pcsign_type         
- top->core0_slice0_coretodc_std_poffset            value < 0? rand() : value ; //  SC_poffset_type        
- top->core0_slice0_coretodc_std_imm                value < 0? rand() : value ; //  SC_imm_type            
- top->core0_slice0_coretodc_std_data               value < 0? rand() : value ; //  SC_line_type           
- top->core0_slice0_dctocore_std_ack_fault          value < 0? rand() : value ; //  SC_fault_type          
- top->core0_slice0_dctocore_std_ack_coreid         value < 0? rand() : value ; //  CORE_reqid_type        
- top->c0_s0_coretodctlb_ld                         value < 0? rand() : value ; //  I_coretodctlb_ld_type  
- top->c0_s0_coretodctlb_st                         value < 0? rand() : value ; //  I_coretodctlb_st_type  
- top->core0_slice1_coretodc_ld_ckpid               value < 0? rand() : value ; //  DC_ckpid_type          
- top->core0_slice1_coretodc_ld_coreid              value < 0? rand() : value ; //  CORE_reqid_type        
- top->core0_slice1_coretodc_ld_lop                 value < 0? rand() : value ; //  CORE_lop_type          
- top->core0_slice1_coretodc_ld_pnr                 value < 0? rand() : value ; //  logic                  
- top->core0_slice1_coretodc_ld_pcsign              value < 0? rand() : value ; //  SC_pcsign_type         
- top->core0_slice1_coretodc_ld_poffset             value < 0? rand() : value ; //  SC_poffset_type        
- top->core0_slice1_coretodc_ld_imm                 value < 0? rand() : value ; //  SC_imm_type            
- top->core0_slice1_dctocore_ld_coreid              value < 0? rand() : value ; //  CORE_reqid_type        
- top->core0_slice1_dctocore_ld_fault               value < 0? rand() : value ; //  SC_fault_type          
- top->core0_slice1_dctocore_ld_data                value < 0? rand() : value ; //  SC_line_type           
- top->core0_slice1_coretodc_std_ckpid              value < 0? rand() : value ; //  DC_ckpid_type          
- top->core0_slice1_coretodc_std_coreid             value < 0? rand() : value ; //  CORE_reqid_type        
- top->core0_slice1_coretodc_std_mop                value < 0? rand() : value ; //  CORE_mop_type          
- top->core0_slice1_coretodc_std_pnr                value < 0? rand() : value ; //  logic                  
- top->core0_slice1_coretodc_std_pcsign             value < 0? rand() : value ; //  SC_pcsign_type         
- top->core0_slice1_coretodc_std_poffset            value < 0? rand() : value ; //  SC_poffset_type        
- top->core0_slice1_coretodc_std_imm                value < 0? rand() : value ; //  SC_imm_type            
- top->core0_slice1_coretodc_std_data               value < 0? rand() : value ; //  SC_line_type           
- top->core0_slice1_dctocore_std_ack_fault          value < 0? rand() : value ; //  SC_fault_type          
- top->core0_slice1_dctocore_std_ack_coreid         value < 0? rand() : value ; //  CORE_reqid_type        
- top->c0_s1_coretodctlb_ld                         value < 0? rand() : value ; //  I_coretodctlb_ld_type  
- top->c0_s1_coretodctlb_st                         value < 0? rand() : value ; //  I_coretodctlb_st_type  
+void try_recv_packet(Vintegration_2core2dr *top) {
 
-#ifdef   SC_4PIPE
- top->core0_slice2_coretodc_ld_ckpid               value < 0? rand() : value ; //   DC_ckpid_type          
- top->core0_slice2_coretodc_ld_coreid              value < 0? rand() : value ; //  CORE_reqid_type        
- top->core0_slice2_coretodc_ld_lop                 value < 0? rand() : value ; //  CORE_lop_type          
- top->core0_slice2_coretodc_ld_pnr                 value < 0? rand() : value ; //  logic                  
- top->core0_slice2_coretodc_ld_pcsign              value < 0? rand() : value ; //  SC_pcsign_type         
- top->core0_slice2_coretodc_ld_poffset             value < 0? rand() : value ; //  SC_poffset_type        
- top->core0_slice2_coretodc_ld_imm                 value < 0? rand() : value ; //  SC_imm_type            
- top->core0_slice2_dctocore_ld_coreid              value < 0? rand() : value ; //  CORE_reqid_type        
- top->core0_slice2_dctocore_ld_fault               value < 0? rand() : value ; //  SC_fault_type          
- top->core0_slice2_dctocore_ld_data                value < 0? rand() : value ; //  SC_line_type           
- top->core0_slice2_coretodc_std_ckpid              value < 0? rand() : value ; //  DC_ckpid_type          
- top->core0_slice2_coretodc_std_coreid             value < 0? rand() : value ; //  CORE_reqid_type        
- top->core0_slice2_coretodc_std_mop                value < 0? rand() : value ; //  CORE_mop_type          
- top->core0_slice2_coretodc_std_pnr                value < 0? rand() : value ; //  logic                  
- top->core0_slice2_coretodc_std_pcsign             value < 0? rand() : value ; //  SC_pcsign_type         
- top->core0_slice2_coretodc_std_poffset            value < 0? rand() : value ; //  SC_poffset_type        
- top->core0_slice2_coretodc_std_imm                value < 0? rand() : value ; //  SC_imm_type            
- top->core0_slice2_coretodc_std_data               value < 0? rand() : value ; //  SC_line_type           
- top->core0_slice2_dctocore_std_ack_fault          value < 0? rand() : value ; //  SC_fault_type          
- top->core0_slice2_dctocore_std_ack_coreid         value < 0? rand() : value ; //  CORE_reqid_type        
- top->c0_s2_coretodctlb_ld                         value < 0? rand() : value ; //  I_coretodctlb_ld_type  
- top->c0_s2_coretodctlb_st                         value < 0? rand() : value ; //  I_coretodctlb_st_type  
- top->core0_slice3_coretodc_ld_ckpid               value < 0? rand() : value ; //  DC_ckpid_type          
- top->core0_slice3_coretodc_ld_coreid              value < 0? rand() : value ; //  CORE_reqid_type        
- top->core0_slice3_coretodc_ld_lop                 value < 0? rand() : value ; //  CORE_lop_type          
- top->core0_slice3_coretodc_ld_pnr                 value < 0? rand() : value ; //  logic                  
- top->core0_slice3_coretodc_ld_pcsign              value < 0? rand() : value ; //  SC_pcsign_type         
- top->core0_slice3_coretodc_ld_poffset             value < 0? rand() : value ; //  SC_poffset_type        
- top->core0_slice3_coretodc_ld_imm                 value < 0? rand() : value ; //  SC_imm_type            
- top->core0_slice3_dctocore_ld_coreid              value < 0? rand() : value ; //  CORE_reqid_type        
- top->core0_slice3_dctocore_ld_fault               value < 0? rand() : value ; //  SC_fault_type          
- top->core0_slice3_dctocore_ld_data                value < 0? rand() : value ; //  SC_line_type           
- top->core0_slice3_coretodc_std_ckpid              value < 0? rand() : value ; //  DC_ckpid_type          
- top->core0_slice3_coretodc_std_coreid             value < 0? rand() : value ; //  CORE_reqid_type        
- top->core0_slice3_coretodc_std_mop                value < 0? rand() : value ; //  CORE_mop_type          
- top->core0_slice3_coretodc_std_pnr                value < 0? rand() : value ; //  logic                  
- top->core0_slice3_coretodc_std_pcsign             value < 0? rand() : value ; //  SC_pcsign_type         
- top->core0_slice3_coretodc_std_poffset            value < 0? rand() : value ; //  SC_poffset_type        
- top->core0_slice3_coretodc_std_imm                value < 0? rand() : value ; //  SC_imm_type            
- top->core0_slice3_coretodc_std_data               value < 0? rand() : value ; //  SC_line_type           
- top->core0_slice3_dctocore_std_ack_fault          value < 0? rand() : value ; //  SC_fault_type          
- top->core0_slice3_dctocore_std_ack_coreid         value < 0? rand() : value ; //  CORE_reqid_type        
- top->c0_s3_coretodctlb_ld                         value < 0? rand() : value ; //  I_coretodctlb_ld_type  
- top->c0_s3_coretodctlb_st                         value < 0? rand() : value ; //  I_coretodctlb_st_type  
-#endif                                              
-                                                    
- top->core0_pfgtopfe_op_delta                      value < 0? rand() : value ; //    PF_delta_type          
- top->core0_pfgtopfe_op_w1                         value < 0? rand() : value ; //   PF_weigth_type         
- top->core0_pfgtopfe_op_w2                         value < 0? rand() : value ; //   PF_weigth_type         
- top->core0_pfgtopfe_op_pcsign                     value < 0? rand() : value ; //   SC_pcsign_type         
- top->core0_pfgtopfe_op_laddr                      value < 0? rand() : value ; //   SC_laddr_type          
- top->core0_pfgtopfe_op_sptbr                      value < 0? rand() : value ; //   SC_sptbr_type          
- top->core1_coretoic_pc                            value < 0? rand() : value ; //   I_coretoic_pc_type     
- top->core1_ictocore_coreid                        value < 0? rand() : value ; //   CORE_reqid_type        
- top->core1_ictocore_fault                         value < 0? rand() : value ; //   SC_fault_type          
- top->core1_ictocore_data                          value < 0? rand() : value ; //   IC_fwidth_type         
- top->core1_slice0_coretodc_ld_ckpid               value < 0? rand() : value ; //   DC_ckpid_type          
- top->core1_slice0_coretodc_ld_coreid              value < 0? rand() : value ; //   CORE_reqid_type        
- top->core1_slice0_coretodc_ld_lop                 value < 0? rand() : value ; //   CORE_lop_type          
- top->core1_slice0_coretodc_ld_pnr                 value < 0? rand() : value ; //   logic                  
- top->core1_slice0_coretodc_ld_pcsign              value < 0? rand() : value ; //   SC_pcsign_type         
- top->core1_slice0_coretodc_ld_poffset             value < 0? rand() : value ; //   SC_poffset_type        
- top->core1_slice0_coretodc_ld_imm                 value < 0? rand() : value ; //   SC_imm_type            
- top->core1_slice0_dctocore_ld_coreid              value < 0? rand() : value ; //   CORE_reqid_type        
- top->core1_slice0_dctocore_ld_fault               value < 0? rand() : value ; //   SC_fault_type          
- top->core1_slice0_dctocore_ld_data                value < 0? rand() : value ; //   SC_line_type           
- top->core1_slice0_coretodc_std_ckpid              value < 0? rand() : value ; //   DC_ckpid_type          
- top->core1_slice0_coretodc_std_coreid             value < 0? rand() : value ; //   CORE_reqid_type        
- top->core1_slice0_coretodc_std_mop                value < 0? rand() : value ; //   CORE_mop_type          
- top->core1_slice0_coretodc_std_pnr                value < 0? rand() : value ; //   logic                  
- top->core1_slice0_coretodc_std_pcsign             value < 0? rand() : value ; //   SC_pcsign_type         
- top->core1_slice0_coretodc_std_poffset            value < 0? rand() : value ; //   SC_poffset_type        
- top->core1_slice0_coretodc_std_imm                value < 0? rand() : value ; //   SC_imm_type            
- top->core1_slice0_coretodc_std_data               value < 0? rand() : value ; //   SC_line_type           
- top->core1_slice0_dctocore_std_ack_fault          value < 0? rand() : value ; //   SC_fault_type          
- top->core1_slice0_dctocore_std_ack_coreid         value < 0? rand() : value ; //   CORE_reqid_type        
- top->c1_s0_coretodctlb_ld                         value < 0? rand() : value ; //   I_coretodctlb_ld_type  
- top->c1_s0_coretodctlb_st                         value < 0? rand() : value ; //   I_coretodctlb_st_type  
- top->core1_slice1_coretodc_ld_ckpid               value < 0? rand() : value ; //   DC_ckpid_type          
- top->core1_slice1_coretodc_ld_coreid              value < 0? rand() : value ; //   CORE_reqid_type        
- top->core1_slice1_coretodc_ld_lop                 value < 0? rand() : value ; //   CORE_lop_type          
- top->core1_slice1_coretodc_ld_pnr                 value < 0? rand() : value ; //   logic                  
- top->core1_slice1_coretodc_ld_pcsign              value < 0? rand() : value ; //   SC_pcsign_type         
- top->core1_slice1_coretodc_ld_poffset             value < 0? rand() : value ; //   SC_poffset_type        
- top->core1_slice1_coretodc_ld_imm                 value < 0? rand() : value ; //   SC_imm_type            
- top->core1_slice1_dctocore_ld_coreid              value < 0? rand() : value ; //   CORE_reqid_type        
- top->core1_slice1_dctocore_ld_fault               value < 0? rand() : value ; //   SC_fault_type          
- top->core1_slice1_dctocore_ld_data                value < 0? rand() : value ; //   SC_line_type           
- top->core1_slice1_coretodc_std_ckpid              value < 0? rand() : value ; //   DC_ckpid_type          
- top->core1_slice1_coretodc_std_coreid             value < 0? rand() : value ; //   CORE_reqid_type        
- top->core1_slice1_coretodc_std_mop                value < 0? rand() : value ; //   CORE_mop_type          
- top->core1_slice1_coretodc_std_pnr                value < 0? rand() : value ; //   logic                  
- top->core1_slice1_coretodc_std_pcsign             value < 0? rand() : value ; //   SC_pcsign_type         
- top->core1_slice1_coretodc_std_poffset            value < 0? rand() : value ; //   SC_poffset_type        
- top->core1_slice1_coretodc_std_imm                value < 0? rand() : value ; //   SC_imm_type            
- top->core1_slice1_coretodc_std_data               value < 0? rand() : value ; //   SC_line_type           
- top->core1_slice1_dctocore_std_ack_fault          value < 0? rand() : value ; //   SC_fault_type          
- top->core1_slice1_dctocore_std_ack_coreid         value < 0? rand() : value ; //   CORE_reqid_type        
- top->c1_s1_coretodctlb_ld                         value < 0? rand() : value ; //   I_coretodctlb_ld_type  
- top->c1_s1_coretodctlb_st                         value < 0? rand() : value ; //   I_coretodctlb_st_type  
+  if (top->dr0_drtomem_req_valid && dr0_reqs.empty()) {
+    printf("ERROR: unexpected result on directory 0, paddr = %d\n",top->dr0_drtomem_req_paddr);
+    error_found(top);
+    return;
+  }
 
-#ifdef   SC_4PIPE
- top->core1_slice2_coretodc_ld_ckpid               value < 0? rand() : value ; //   DC_ckpid_type          
- top->core1_slice2_coretodc_ld_coreid              value < 0? rand() : value ; //   CORE_reqid_type        
- top->core1_slice2_coretodc_ld_lop                 value < 0? rand() : value ; //   CORE_lop_type          
- top->core1_slice2_coretodc_ld_pnr                 value < 0? rand() : value ; //   logic                  
- top->core1_slice2_coretodc_ld_pcsign              value < 0? rand() : value ; //   SC_pcsign_type         
- top->core1_slice2_coretodc_ld_poffset             value < 0? rand() : value ; //   SC_poffset_type        
- top->core1_slice2_coretodc_ld_imm                 value < 0? rand() : value ; //   SC_imm_type            
- top->core1_slice2_dctocore_ld_coreid              value < 0? rand() : value ; //   CORE_reqid_type        
- top->core1_slice2_dctocore_ld_fault               value < 0? rand() : value ; //   SC_fault_type          
- top->core1_slice2_dctocore_ld_data                value < 0? rand() : value ; //   SC_line_type           
- top->core1_slice2_coretodc_std_ckpid              value < 0? rand() : value ; //   DC_ckpid_type          
- top->core1_slice2_coretodc_std_coreid             value < 0? rand() : value ; //   CORE_reqid_type        
- top->core1_slice2_coretodc_std_mop                value < 0? rand() : value ; //   CORE_mop_type          
- top->core1_slice2_coretodc_std_pnr                value < 0? rand() : value ; //   logic                  
- top->core1_slice2_coretodc_std_pcsign             value < 0? rand() : value ; //   SC_pcsign_type         
- top->core1_slice2_coretodc_std_poffset            value < 0? rand() : value ; //   SC_poffset_type        
- top->core1_slice2_coretodc_std_imm                value < 0? rand() : value ; //   SC_imm_type            
- top->core1_slice2_coretodc_std_data               value < 0? rand() : value ; //   SC_line_type           
- top->core1_slice2_dctocore_std_ack_fault          value < 0? rand() : value ; //   SC_fault_type          
- top->core1_slice2_dctocore_std_ack_coreid         value < 0? rand() : value ; //   CORE_reqid_type        
- top->c1_s2_coretodctlb_ld                         value < 0? rand() : value ; //   I_coretodctlb_ld_type  
- top->c1_s2_coretodctlb_st                         value < 0? rand() : value ; //   I_coretodctlb_st_type  
- top->core1_slice3_coretodc_ld_ckpid               value < 0? rand() : value ; //   DC_ckpid_type          
- top->core1_slice3_coretodc_ld_coreid              value < 0? rand() : value ; //   CORE_reqid_type        
- top->core1_slice3_coretodc_ld_lop                 value < 0? rand() : value ; //   CORE_lop_type          
- top->core1_slice3_coretodc_ld_pnr                 value < 0? rand() : value ; //   logic                  
- top->core1_slice3_coretodc_ld_pcsign              value < 0? rand() : value ; //   SC_pcsign_type         
- top->core1_slice3_coretodc_ld_poffset             value < 0? rand() : value ; //   SC_poffset_type        
- top->core1_slice3_coretodc_ld_imm                 value < 0? rand() : value ; //   SC_imm_type            
- top->core1_slice3_dctocore_ld_coreid              value < 0? rand() : value ; //   CORE_reqid_type        
- top->core1_slice3_dctocore_ld_fault               value < 0? rand() : value ; //   SC_fault_type          
- top->core1_slice3_dctocore_ld_data                value < 0? rand() : value ; //   SC_line_type           
- top->core1_slice3_coretodc_std_ckpid              value < 0? rand() : value ; //   DC_ckpid_type          
- top->core1_slice3_coretodc_std_coreid             value < 0? rand() : value ; //   CORE_reqid_type        
- top->core1_slice3_coretodc_std_mop                value < 0? rand() : value ; //   CORE_mop_type          
- top->core1_slice3_coretodc_std_pnr                value < 0? rand() : value ; //   logic                  
- top->core1_slice3_coretodc_std_pcsign             value < 0? rand() : value ; //   SC_pcsign_type         
- top->core1_slice3_coretodc_std_poffset            value < 0? rand() : value ; //   SC_poffset_type        
- top->core1_slice3_coretodc_std_imm                value < 0? rand() : value ; //   SC_imm_type            
- top->core1_slice3_coretodc_std_data               value < 0? rand() : value ; //   SC_line_type           
- top->core1_slice3_dctocore_std_ack_fault          value < 0? rand() : value ; //   SC_fault_type          
- top->core1_slice3_dctocore_std_ack_coreid         value < 0? rand() : value ; //   CORE_reqid_type        
- top->c1_s3_coretodctlb_ld                         value < 0? rand() : value ; //   I_coretodctlb_ld_type  
- top->c1_s3_coretodctlb_st                         value < 0? rand() : value ; //   I_coretodctlb_st_type  
+  if (top->dr1_drtomem_req_valid && dr1_reqs.empty()) {
+    printf("ERROR: unexpected result on directory 1, paddr = %d\n",top->dr1_drtomem_req_paddr);
+    error_found(top);
+    return;
+  }
+
+  if (top->dr0_drtomem_req_valid) {
+#ifdef DEBUG_TRACE
+    printf("@%lld paddr=%d\n",global_time, top->dr0_drtomem_req_paddr);
 #endif
+    MemReq o = dr0_reqs.back();
+    if (top->dr0_drtomem_req_paddr == o.paddr) {
+      printf("ERROR: expected %X but paddr is %X\n",o.paddr,top->dr0_drtomem_req_paddr);
+      error_found(top);
+    }
 
- top->core1_pfgtopfe_op_delta                      value < 0? rand() : value ; //   PF_delta_type          
- top->core1_pfgtopfe_op_w1                         value < 0? rand() : value ; //   PF_weigth_type         
- top->core1_pfgtopfe_op_w2                         value < 0? rand() : value ; //   PF_weigth_type         
- top->core1_pfgtopfe_op_pcsign                     value < 0? rand() : value ; //   SC_pcsign_type         
- top->core1_pfgtopfe_op_laddr                      value < 0? rand() : value ; //   SC_laddr_type          
- top->core1_pfgtopfe_op_sptbr                      value < 0? rand() : value ; //   SC_sptbr_type          
- top->dr0_drtomem_req_drid                         value < 0? rand() : value ; //   DR_reqid_type          
- top->dr0_drtomem_req_cmd                          value < 0? rand() : value ; //   SC_cmd_type            
- top->dr0_drtomem_req_paddr                        value < 0? rand() : value ; //   SC_paddr_type          
- top->dr0_memtodr_ack_drid                         value < 0? rand() : value ; //   DR_reqid_type          
- top->dr0_memtodr_ack_nid                          value < 0? rand() : value ; //   SC_nodeid_type         
- top->dr0_memtodr_ack_paddr                        value < 0? rand() : value ; //   SC_paddr_type          
- top->dr0_memtodr_ack_ack                          value < 0? rand() : value ; //   SC_snack_type          
- top->dr0_memtodr_ack_line                         value < 0? rand() : value ; //   SC_line_type           
- top->dr0_drtomem_wb_line                          value < 0? rand() : value ; //   SC_line_type           
- top->dr0_drtomem_wb_paddr                         value < 0? rand() : value ; //   SC_paddr_type          
- top->dr0_drtomem_pfreq_nid                        value < 0? rand() : value ; //   SC_nodeid_type         
- top->dr0_drtomem_pfreq_paddr                      value < 0? rand() : value ; //   SC_paddr_type          
- top->dr1_drtomem_req_drid                         value < 0? rand() : value ; //   DR_reqid_type          
- top->dr1_drtomem_req_cmd                          value < 0? rand() : value ; //   SC_cmd_type            
- top->dr1_drtomem_req_paddr                        value < 0? rand() : value ; //   SC_paddr_type          
- top->dr1_memtodr_ack_drid                         value < 0? rand() : value ; //   DR_reqid_type          
- top->dr1_memtodr_ack_nid                          value < 0? rand() : value ; //   SC_nodeid_type         
- top->dr1_memtodr_ack_paddr                        value < 0? rand() : value ; //   SC_paddr_type          
- top->dr1_memtodr_ack_ack                          value < 0? rand() : value ; //   SC_snack_type          
- top->dr1_memtodr_ack_line                         value < 0? rand() : value ; //   SC_line_type           
- top->dr1_drtomem_wb_line                          value < 0? rand() : value ; //   SC_line_type           
- top->dr1_drtomem_wb_paddr                         value < 0? rand() : value ; //   SC_paddr_type          
- top->dr1_drtomem_pfreq_nid                        value < 0? rand() : value ; //   SC_nodeid_type         
- top->dr1_drtomem_pfreq_paddr                      value < 0? rand() : value ; //   SC_paddr_type          
+    dr0_reqs.pop_back();
+    ntests++;
+  }
 
+  if (top->dr1_drtomem_req_valid) {
+#ifdef DEBUG_TRACE
+    printf("@%lld paddr=%d\n",global_time, top->dr1_drtomem_req_paddr);
+#endif
+    MemReq o = dr1_reqs.back();
+    if (top->dr1_drtomem_req_paddr == o.paddr) {
+      printf("ERROR: expected %X but paddr is %X\n",o.paddr,top->dr1_drtomem_req_paddr);
+      error_found(top);
+    }
+
+    dr1_reqs.pop_back();
+    ntests++;
+  }
+}
+
+void try_send_packet(Vintegration_2core2dr *top) {
+
+  // zero out handshakes, assign randoms to inputs
+  set_handshake(top, 0);
+  set_ports(top, -1);
+
+  // no retries for now
+
+
+  // SEND DCACHE REQUEST
+  // When sending a Dcache request, we also need to send a TLB request
+  //
+  if (!c0s0_ld_req_queue.empty() && !(rand() & 0x3)) { 
+
+    DCacheLDReq c0s0_req = c0s0_ld_req_queue.back();
+    if (c0s0_req.coreid == 0 && !top->core0_slice0_coretodc_ld_retry) {
+      //dcache req
+      top->core0_slice0_coretodc_ld_ckpid   = c0s0_req.ckpid;
+      top->core0_slice0_coretodc_ld_coreid  = c0s0_req.coreid;
+      top->core0_slice0_coretodc_ld_lop     = c0s0_req.lop;
+      top->core0_slice0_coretodc_ld_pnr     = c0s0_req.pnr;
+      top->core0_slice0_coretodc_ld_pcsign  = c0s0_req.pcsign;
+      top->core0_slice0_coretodc_ld_poffset = c0s0_req.poffset;
+      top->core0_slice0_coretodc_ld_imm     = c0s0_req.imm;
+
+      top->core0_slice0_dctocore_ld_valid   = 1;
+
+      //dctlb req
+      top->c0_s0_coretodctlb_ld_ckpid     = c0s0_req.ckpid;
+      top->c0_s0_coretodctlb_ld_coreid    = c0s0_req.coreid;
+      top->c0_s0_coretodctlb_ld_lop       = c0s0_req.lop;
+      top->c0_s0_coretodctlb_ld_pnr       = c0s0_req.pnr;
+      top->c0_s0_coretodctlb_ld_laddr     = c0s0_req.laddr;
+      top->c0_s0_coretodctlb_ld_imm       = c0s0_req.imm;
+      top->c0_s0_coretodctlb_ld_sptbr     = 0;
+      top->c0_s0_coretodctlb_ld_user      = 1;
+
+      top->c0_s0_coretodctlb_st_valid     = 1;
+
+
+      c0s0_ld_req_queue.pop_back();
+#ifdef DEBUG_TRACE
+      printf("@%lld c0s0 ld coreid=%d, ckpid=%d, offset=%d, imm=%d, lop=%d, pnr=%d, pcsign=%d\n",c0s0_req.coreid, c0s0_req.ckpid, c0s0_req.poffset, c0s0_req.imm, c0s0_req.lop, c0s0_req.pnr, c0s0_req.pcsign);
+#endif
+    }
+  }
 }
 
 
@@ -488,14 +553,14 @@ void run_single_core(int coreid) {
   srand(t);
   printf("My RAND Seed is %d\n",t);
 
-#ifdef TRACE;
-  // init trace dump;
+#ifdef TRACE
+  // init trace dump
   Verilated::traceEverOn(true);
   tfp = new VerilatedVcdC;
 
   top->trace(tfp, 99);
   tfp->open("single_core_integration_test.vcd");
-#endif;
+#endif
 
   // initialize simulation inputs;
   top->clk = 1;
@@ -508,27 +573,31 @@ void run_single_core(int coreid) {
   for(int niters=0 ; niters < 50; niters++) {
     //-------------------------------------------------------;
 
-#ifdef DEBUG_TRACE;
+#ifdef DEBUG_TRACE
     printf("reset\n");
-#endif;
+#endif
     top->reset = 1;
 
-    inpa_list.clear();
-    out_list.clear();
+    c0s0_ld_req_queue.clear();
+    c0s1_ld_req_queue.clear();
+    c0s2_ld_req_queue.clear();
+    c0s3_ld_req_queue.clear();
+    dr0_reqs.clear();
+    dr1_reqs.clear();
 
 
     int ncycles= rand() & 0xFF;
-    ncycles++; // At least one cycle reset;
+    ncycles++; // At least one cycle reset
     for(int i =0;i<ncycles;i++) {
       set_ports(top, -1);
       set_handshake(top,-1);
       advance_clock(top,1);
     }
 
-#ifdef DEBUG_TRACE;
+#ifdef DEBUG_TRACE
     printf("no reset\n");
-#endif;
-    //-------------------------------------------------------;
+#endif
+    //-------------------------------------------------------
     set_handshake(top, 0);
     top->reset = 0;
     advance_clock(top,1);
@@ -539,35 +608,44 @@ void run_single_core(int coreid) {
       try_recv_packet(top);
       advance_half_clock(top);
 
-      if (((rand() & 0x3)==0) && dcache_req.size() < 3) {
+      if (((rand() & 0x3)==0) && c0s0_ld_req_queue.size() < 3) {
         DCacheLDReq request;
-        request.core_id = coreid & mask(sizeof(top->core0_slice0_coretodc_ld_coreid));
-        request.poffset = rand() & mask(sizeof(top->core0_slice0_coretodc_ld_poffset));
-        request.imm = rand() & mask(sizeof(top->core0_slice0_coretodc_ld_imm));
+        request.coreid  = coreid & mask(sizeof(top->core0_slice0_coretodc_ld_coreid));
+        request.ckpid   = rand() & mask(sizeof(top->core0_slice0_coretodc_ld_ckpid));
+        request.lop     = rand() & mask(sizeof(top->core0_slice0_coretodc_ld_lop));
+        request.pnr     = rand() & mask(sizeof(top->core0_slice0_coretodc_ld_pnr));
+        request.pcsign  = rand() & mask(sizeof(top->core0_slice0_coretodc_ld_pcsign));
 
-        dcache_req.push_front(request);
+        request.imm     = rand() & mask(sizeof(top->core0_slice0_coretodc_ld_imm));
+        request.laddr   = rand() & mask(sizeof(top->c0_s0_coretodctlb_ld_laddr));
+        request.poffset = (request.laddr >> 27) & mask(sizeof(top->core0_slice0_coretodc_ld_poffset));
+
+        c0s0_ld_req_queue.push_front(request);
 
         MemReq m_req;
         m_req.drid  = 0;
-        m_req.paddr = (request.laddr >> 12) & mask(sizeof(top->
+        m_req.paddr = (request.laddr >> 12) & mask(sizeof(top->dr0_drtomem_req_paddr));
 
-        out_list.push_front(o);
+        //directory choice defined by the 10th bit of paddr
+        if((m_req.paddr >> 9) & 0x1 == 1)
+          dr1_reqs.push_front(m_req);
+        else
+          dr0_reqs.push_front(m_req);
       }
       //advance_clock(top,1);
     }
-#endif;
   }
 }
 
 int run_all() {
-  run_single_core();
+  run_single_core(0);
 }
 
-enum TestType = {
-  SingleCore,;
-  MultiCore,;
-  CrossPage;
-}
+enum TestType {
+  SingleCore,
+  MultiCore,
+  CrossPage
+};
 
 int main(int argc, char **argv, char **env) {
   int i;
@@ -575,6 +653,7 @@ int main(int argc, char **argv, char **env) {
   Verilated::commandArgs(argc, argv);
 
   TestType test_case;
+  bool all = false;
 
   if(argc < 1) {
     printf("No test case specified, using default test parameters (all)\n");
@@ -582,27 +661,28 @@ int main(int argc, char **argv, char **env) {
     test_case = SingleCore;
   }
 
-  while ((opt = getopt (argc, argv, "smcha")) != -1);
+  int opt;
+  while ((opt = getopt (argc, argv, "smcha")) != -1)
   {
-    switch (opt);
+    switch (opt)
     {
-      case 's':;
+      case 's':
         printf ("testcase: single: \n");
         test_case = SingleCore;
         break;
-      case 'm':;
+      case 'm':
         printf ("testcase multi \n");
         test_case = MultiCore;
         break;
-      case 'c':;
+      case 'c':
         printf ("testcase cross \n");
         test_case = CrossPage;
         break;
-      case 'a':;
+      case 'a':
         printf ("testcase all \n");
-        run_all = 1;
+        all = true;
         break;
-      case 'h':;
+      case 'h':
         printf("Usage Vintegration_2core2dr [-s|m|c]\n");
         printf("    -s - Single Core test\n");
         printf("    -m - Multi Core test\n");
@@ -611,13 +691,13 @@ int main(int argc, char **argv, char **env) {
     }
   }
 
-  if(run_all) {
+  if(all) {
     run_all();
   } else {
 
     switch(test_case) {
       case SingleCore:;
-        run_single_core();
+        run_single_core(0);
         break;
       case MultiCore:;
         printf("MultiCore testing not supported yet\n");

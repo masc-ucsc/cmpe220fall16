@@ -352,6 +352,7 @@ int main(int argc, char **argv, char **env) {
   Vdctlb_wp* top = new Vdctlb_wp;
 
   int t = (int)time(0);
+  printf("sizeof %d\n", sizeof(top->clk));
 #if 0
   //srand(1477809920);
   srand(1479800681);

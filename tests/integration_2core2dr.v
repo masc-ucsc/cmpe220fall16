@@ -13,7 +13,7 @@
 
 
 `include "scmem.vh"
-module integration_2core2dr_wp(
+module integration_2core2dr(
   /* verilator lint_off UNUSED */
   /* verilator lint_off UNDRIVEN */
     input   logic               clk
