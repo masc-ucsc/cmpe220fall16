@@ -131,7 +131,7 @@ ictlb_wp:
 run_ictlb_wp: ictlb_wp
 	./obj_dir/Victlb_wp
 
-REGLIST+=ictlb_wp
+#REGLIST+=ictlb_wp
 ###########################
 dctlb_wp:
 	verilator --assert --debug-check -I./rtl --Wall --cc --trace --top-module dctlb_wp ./tests/dctlb_wp.v ./rtl/dctlb.v ./rtl/fflop.v --exe tests/dctlb_wp_tb.cpp -CFLAGS -DTRACE=1
@@ -140,7 +140,7 @@ dctlb_wp:
 run_dctlb_wp: dctlb_wp
 	./obj_dir/Vdctlb_wp
 
-REGLIST+=dctlb_wp
+#REGLIST+=dctlb_wp
 ###########################
 integration_2core2dr:
 	verilator --assert --debug-check -I./rtl --Wall --cc --trace --top-module integration_2core2dr ./tests/integration_2core2dr.v ./rtl/top_2core2dr.v ./rtl/fflop.v --exe tests/integration_2core2dr_tests.cpp -CFLAGS -DTRACE=1
@@ -149,7 +149,7 @@ integration_2core2dr:
 run_integration_2core2dr: integration_2core2dr
 	./obj_dir/Vintegration_2core2dr
 
-REGLIST+=integration_2core2dr
+#REGLIST+=integration_2core2dr
 ###########################
 regression: $(REGLIST)
 	ruby scripts/regcheck.rb $(REGLIST)
