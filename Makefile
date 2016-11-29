@@ -42,6 +42,10 @@ l2:
 	verilator --assert --debug-check -I./rtl --Wall --cc --trace -Wno-UNDRIVEN -Wno-UNUSED -Wno-UNOPTFLAT  -Wno-CASEINCOMPLETE -Wno-IMPLICIT +define+L2_COMPLETE --top-module l2cache_pipe_wp ./tests/l2cache_pipe_wp.v ./rtl/fflop.v --exe ./tests/l2cache_pipe_wp_tb.cpp -CFLAGS "-DTRACE=1 -DNO_RETRY"
 	make -C obj_dir/ -f Vl2cache_pipe_wp.mk Vl2cache_pipe_wp
 
+yzhu29l2:
+	verilator --assert --debug-check -I./rtl --Wall --cc --trace -Wno-UNDRIVEN -Wno-UNUSED -Wno-UNOPTFLAT  -Wno-CASEINCOMPLETE -Wno-IMPLICIT +define+L2_COMPLETE +define+YZHU29 --top-module l2cache_pipe_wp ./tests/l2cache_pipe_wp.v ./rtl/fflop.v --exe ./tests/l2cache_pipe_wp_tb.cpp -CFLAGS "-DTRACE=1 -DNO_RETRY"
+	make -C obj_dir/ -f Vl2cache_pipe_wp.mk Vl2cache_pipe_wp
+
 l2_pass_through:
 	verilator --assert --debug-check -I./rtl --Wall --cc --trace -Wno-UNDRIVEN -Wno-UNUSED -Wno-UNOPTFLAT  -Wno-CASEINCOMPLETE +define+L2_PASSTHROUGH --top-module l2cache_pipe_wp ./tests/l2cache_pipe_wp.v ./rtl/fflop.v --exe ./tests/l2cache_pipe_wp_tb.cpp -CFLAGS "-DTRACE=1 -DL2_PASSTHROUGH"
 	make -C obj_dir/ -f Vl2cache_pipe_wp.mk Vl2cache_pipe_wp
@@ -56,6 +60,9 @@ run_fflop_understand:	fflop_understand
 	./obj_dir/Vfflop_understand
 
 run_l2: l2
+	./obj_dir/Vl2cache_pipe_wp
+
+run_yzhu29l2: yzhu29l2
 	./obj_dir/Vl2cache_pipe_wp
 
 l2cache_pipe_wp: l2_pass_through
@@ -142,7 +149,7 @@ integration_2core2dr:
 run_integration_2core2dr: integration_2core2dr
 	./obj_dir/Vintegration_2core2dr
 
-REGLIST+=integration_2core2dr
+#REGLIST+=integration_2core2dr
 ###########################
 regression: $(REGLIST)
 	ruby scripts/regcheck.rb $(REGLIST)

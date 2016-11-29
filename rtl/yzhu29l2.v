@@ -67,7 +67,7 @@
 `define L2_PASSTHROUGH
 //`define L2_COMPLETE
 
-module l2cache_pipe(
+module yzhu29l2(
   /* verilator lint_off UNUSED */
    input                           clk
   ,input                           reset
@@ -368,229 +368,32 @@ module l2cache_pipe(
     } I_q_l1tol2_req_linked_list_type;
     // qzhang33
 
-    // Control regs
-    // reg_new_l1tol2_req_tag_access_0
-    logic   reg_new_l1tol2_req_tag_access_0;
-    logic   reg_new_l1tol2_req_tag_access_0_next;
-    logic   reg_new_l1tol2_req_tag_access_1;
-    logic   reg_new_l1tol2_req_tag_access_1_next;
-    logic   reg_new_l1tol2_req_tag_access_2;
-    logic   reg_new_l1tol2_req_tag_access_2_next;
-
-    flop #(.Bits(1)) f_reg_new_l1tol2_req_tag_access_0 (
-    .clk      (clk),
-    .reset    (reset),
-    
-    .d      (reg_new_l1tol2_req_tag_access_0_next),
-
-    .q        (reg_new_l1tol2_req_tag_access_0)
-    //.qRetry   (reg_new_l1tol2_req_tag_access_0_valid)
-
-    );
-    flop #(.Bits(1)) f_reg_new_l1tol2_req_tag_access_1 (
-    .clk      (clk),
-    .reset    (reset),
-    .d        (reg_new_l1tol2_req_tag_access_1_next),
-    .q        (reg_new_l1tol2_req_tag_access_1)
-    );
-    flop #(.Bits(1)) f_reg_new_l1tol2_req_tag_access_2 (
-    .clk      (clk),
-    .reset    (reset),
-    .d        (reg_new_l1tol2_req_tag_access_2_next),
-    .q        (reg_new_l1tol2_req_tag_access_2)
-    );
-
-    // Data bank stage
-    logic   reg_new_l1tol2_req_data_access_0;
-    logic   reg_new_l1tol2_req_data_access_0_next;
-    flop #(.Bits(1)) f_reg_new_l1tol2_data_access_0 (
-    .clk      (clk),
-    .reset    (reset),
-    .d        (reg_new_l1tol2_req_data_access_0_next),
-    .q        (reg_new_l1tol2_req_data_access_0)
-    );
-
-    logic   reg_new_l1tol2_req_data_access_1;
-    logic   reg_new_l1tol2_req_data_access_1_next;
-    flop #(.Bits(1)) f_reg_new_l1tol2_data_access_1 (
-    .clk      (clk),
-    .reset    (reset),
-    .d        (reg_new_l1tol2_req_data_access_1_next),
-    .q        (reg_new_l1tol2_req_data_access_1)
-    );
-
-    logic   reg_new_l1tol2_req_data_access_2;
-    logic   reg_new_l1tol2_req_data_access_2_next;
-    flop #(.Bits(1)) f_reg_new_l1tol2_data_access_2 (
-    .clk      (clk),
-    .reset    (reset),
-    .d        (reg_new_l1tol2_req_data_access_2_next),
-    .q        (reg_new_l1tol2_req_data_access_2)
-    );
-
-
-    //
     /*
-    flop #(.Bits()) f_reg_ (
-    .clk      (clk),
-    .reset    (reset),
-    .d        (),
-    .q        ()
+    ram_2port_fast #(.Width(), .Size(), .Forward(0))   (
+        .clk            (clk),
+        .reset          (reset),
+        
+        .req_wr_valid   (_valid),
+        .req_wr_retry   (_retry),
+        .req_wr_addr    (_addr),
+        .req_wr_data    (_data),
+
+        .req_rd_valid   (_valid),
+        .req_rd_retry   (_retry),
+        .req_rd_addr    (_addr),
+
+        .ack_rd_valid   (_valid),
+        .ack_rd_retry   (_retry),
+        .ack_rd_data    (_data)
     );
-    */
-    
-    logic   l1_match_l2tlb_l1id_next;
-    logic   l1_match_l2tlb_ppaddr_next;
-    logic   l1_match_l2tlb_l1id;
-    logic   l1_match_l2tlb_ppaddr;
-    flop #(.Bits(1)) f_reg_l1_match_l2tlb_l1id (
-    .clk      (clk),
-    .reset    (reset),
-    .d        (l1_match_l2tlb_l1id_next),
-    .q        (l1_match_l2tlb_l1id)
-    );
+*/
 
-    flop #(.Bits(1)) f_reg_l1_match_l2tlb_ppaddr (
-    .clk      (clk),
-    .reset    (reset),
-    .d        (l1_match_l2tlb_ppaddr_next),
-    .q        (l1_match_l2tlb_ppaddr)
-    );
-    
-    logic   tag_hit_next;
-    logic   tag_hit;
-    flop #(.Bits(1)) f_reg_tag_hit (
-    .clk      (clk),
-    .reset    (reset),
-    .d        (tag_hit_next),
-    .q        (tag_hit)
-    );
-
-    logic [3:0]    hit_way_next;
-    logic [3:0]    hit_way;
-
-    flop #(.Bits(4)) f_reg_hit_way (
-    .clk      (clk),
-    .reset    (reset),
-    .d        (hit_way_next),
-    .q        (hit_way)
-    );
-
-    /*
-    fflop #(.Size($bits(I_l2tlbtol2_fwd_type))) f_l2tlbtol2_fwd_reg1 (
-    .clk      (clk),
-    .reset    (reset),
-
-    .din      (),
-    .dinValid (),
-    .dinRetry (),
-
-    .q        (),
-    .qValid   (),
-    .qRetry   ()
-    );
-    */
-    // Data path pipe regs
-    // Register l1tol2_req
-    I_l1tol2_req_type   l1tol2_req_reg1;
-    logic   l1tol2_req_reg1_valid;
-    logic   l1tol2_req_reg1_retry;
-    fflop #(.Size($bits(I_l1tol2_req_type))) f_l1tol2_req_reg1 (
-    .clk      (clk),
-    .reset    (reset),
-
-    .din      (l1tol2_req),
-    .dinValid (l1tol2_req_valid),
-    .dinRetry (l1tol2_req_retry),
-
-    .q        (l1tol2_req_reg1),
-    .qValid   (l1tol2_req_reg1_valid),
-    .qRetry     (1'b0)
-    //.qRetry   (l1tol2_req_reg1_retry)
-    );
-
-    I_l1tol2_req_type   l1tol2_req_reg2;
-    logic   l1tol2_req_reg2_valid;
-    logic   l1tol2_req_reg2_retry;
-    fflop #(.Size($bits(I_l1tol2_req_type))) f_l1tol2_req_reg2 (
-    .clk      (clk),
-    .reset    (reset),
-
-    .din      (l1tol2_req_reg1),
-    .dinValid (l1tol2_req_reg1_valid),
-    .dinRetry (l1tol2_req_reg1_retry),
-
-    .q        (l1tol2_req_reg2),
-    .qValid   (l1tol2_req_reg2_valid),
-    .qRetry (1'b0)
-    //.qRetry   (l1tol2_req_reg2_retry)
-    );
-
-    I_l1tol2_req_type   l1tol2_req_reg3;
-    logic   l1tol2_req_reg3_valid;
-    logic   l1tol2_req_reg3_retry;
-    fflop #(.Size($bits(I_l1tol2_req_type))) f_l1tol2_req_reg3 (
-    .clk      (clk),
-    .reset    (reset),
-
-    .din      (l1tol2_req_reg2),
-    .dinValid (l1tol2_req_reg2_valid),
-    .dinRetry (l1tol2_req_reg2_retry),
-
-    .q        (l1tol2_req_reg3),
-    .qValid   (l1tol2_req_reg3_valid),
-    .qRetry     (1'b0)
-    //.qRetry   (l1tol2_req_reg3_retry)
-    );
-
-    I_l1tol2_req_type   l1tol2_req_reg4;
-    logic   l1tol2_req_reg4_valid;
-    logic   l1tol2_req_reg4_retry;
-    fflop #(.Size($bits(I_l1tol2_req_type))) f_l1tol2_req_reg4 (
-    .clk      (clk),
-    .reset    (reset),
-
-    .din      (l1tol2_req_reg3),
-    .dinValid (l1tol2_req_reg3_valid),
-    .dinRetry (l1tol2_req_reg3_retry),
-
-    .q        (l1tol2_req_reg4),
-    .qValid   (l1tol2_req_reg4_valid),
-    .qRetry     (1'b0)
-    //.qRetry   (l1tol2_req_reg4_retry)
-    );
-
-
-    // Register l2tlbtol2_fwd
-    I_l2tlbtol2_fwd_type    l2tlbtol2_fwd_reg1;
-    logic   l2tlbtol2_fwd_reg1_valid;
-    logic   l2tlbtol2_fwd_reg1_retry;
-    fflop #(.Size($bits(I_l2tlbtol2_fwd_type))) f_l2tlbtol2_fwd_reg1 (
-    .clk      (clk),
-    .reset    (reset),
-
-    .din      (l2tlbtol2_fwd),
-    .dinValid (l2tlbtol2_fwd_valid),
-    .dinRetry (l2tlbtol2_fwd_retry),
-
-    .q        (l2tlbtol2_fwd_reg1),
-    .qValid   (l2tlbtol2_fwd_reg1_valid),
-    .qRetry     (1'b0)
-    //.qRetry   (l2tlbtol2_fwd_reg1_retry)
-    );
-
-    // Nothing blocks the second cycle of tag access
-    assign  reg_new_l1tol2_req_tag_access_1_next = reg_new_l1tol2_req_tag_access_0;
-    assign  reg_new_l1tol2_req_tag_access_2_next = reg_new_l1tol2_req_tag_access_1;
-
-    // Signals for tag
+// Signals for tag
     // Each tag "line" contains all 16 ways 
     localparam  TAG_WIDTH = (16 * `TLB_HPADDRBITS);
     localparam  TAG_SIZE = 128;
-    logic   [1:0]   tag_bank_id_s0;
-    logic   [6:0]  predicted_index_s0;
-    logic   [1:0]   tag_bank_id_s1;
-    logic   [6:0]  predicted_index_s1;
+    logic   [1:0]   tag_bank_id;
+    logic   [6:0]  predicted_index;
     // bank0
     // way0 to way15
     logic tag_req_valid_bank0_ways;
@@ -636,6 +439,452 @@ module l2cache_pipe(
     logic   [TAG_WIDTH-1 : 0]  tag_ack_data_bank3_ways;
 
 
+
+    // Control regs
+    // S1 components
+    // ->S1: Save new l1tol2_req
+    // S1->: choose a request for accessing tag
+    // S1 fflop
+    typedef struct packed {
+        I_l1tol2_req_type   l1tol2_req;
+        logic   [5:0]  llht_addr;
+    } s1_t;
+    s1_t    s1_next_d, s1_q;
+    fflop #(.Size($bits(s1_t))) ff_s1 (
+    .clk      (clk),
+    .reset    (reset),
+
+    .din      (s1_next_d),
+    .dinValid (s1_next_dvalid),
+    .dinRetry (s1_next_dretry),
+
+    .q        (s1_q),
+    .qValid   (s1_qvalid),
+    .qRetry   (s1_qretry)
+    );
+
+    //A Linked List
+    //A.1 Head Tail RAM
+    typedef struct packed {
+        logic   [4:0]   head; // head position in the request queue
+        logic   [4:0]   tail;
+        logic           valid;
+    } llht_ram_t; 
+    localparam  LLHT_RAM_WIDTH =  $bits(llht_ram_t);
+    localparam  LLHT_RAM_SIZE  = 64;
+    logic   req_wr_llht_next_valid;
+    logic   req_wr_llht_next_retry;
+    logic   [`log2(LLHT_RAM_SIZE)-1 : 0]  req_wr_llht_next_addr;
+    llht_ram_t   req_wr_llht_next_data;
+    logic   req_rd_llht_next_valid;
+    logic   req_rd_llht_next_retry;
+    logic   [`log2(LLHT_RAM_SIZE)-1 : 0]  req_rd_llht_next_addr;
+    logic   ack_rd_llht_valid;
+    logic   ack_rd_llht_retry;
+    llht_ram_t   ack_rd_llht_data;
+    ram_2port_fast #(.Width(LLHT_RAM_WIDTH), .Size(64), .Forward(0)) llht_ram  (
+        .clk            (clk),
+        .reset          (reset),
+        
+        .req_wr_valid   (req_wr_llht_next_valid),
+        .req_wr_retry   (req_wr_llht_next_retry),
+        .req_wr_addr    (req_wr_llht_next_addr),
+        .req_wr_data    (req_wr_llht_next_data),
+
+        .req_rd_valid   (req_rd_llht_next_valid),
+        .req_rd_retry   (req_rd_llht_next_retry),
+        .req_rd_addr    (req_rd_llht_next_addr),
+
+        .ack_rd_valid   (ack_rd_llht_valid),
+        .ack_rd_retry   (ack_rd_llht_retry),
+        .ack_rd_data    (ack_rd_llht_data)
+    );
+    //A.2 request queue
+
+    typedef struct packed {
+        logic           valid;
+        logic           ready;
+        logic           ishead;
+        logic   [3:0]   req_type; //1 = l1tol2_req
+        I_l1tol2_req_type   l1tol2_req;
+        logic   [3:0]   next;
+        TLB_hpaddr_type              hpaddr;
+        SC_paddr_type   paddr;
+    } q_req_t;
+    
+    logic   qreq_next_dvalid[16];
+    logic   qreq_next_dretry[16];
+    q_req_t qreq_next_d[16];
+    logic   qreq_qvalid[16];
+    logic   qreq_qretry[16];
+    q_req_t qreq_q[16];
+
+    generate
+        genvar i;
+        for (i=0; i<=15; i=i+1) begin
+            fflop #(.Size($bits(q_req_t))) ff_qreq (
+                .clk      (clk),
+                .reset    (reset),
+
+                .din      (qreq_next_d[i]),
+                .dinValid (qreq_next_dvalid[i]),
+                .dinRetry (qreq_next_dretry[i]),
+
+                .q        (qreq_q[i]),
+                .qValid   (qreq_qvalid[i]),
+                .qRetry   (qreq_qretry[i])
+            );
+        end
+    endgenerate
+
+    //A.3 counter for request queue
+    logic   qreq_counter_next_dvalid;
+    logic   qreq_counter_next_dretry;
+    logic   [4:0]   qreq_counter_next_d;
+    logic   qreq_counter_qvalid;
+    logic   qreq_counter_qretry;
+    logic   [4:0]   qreq_counter_q;
+
+    fflop #(.Size(5)) ff_qreq_counter (
+    .clk      (clk),
+    .reset    (reset),
+
+    .din      (qreq_counter_next_d),
+    .dinValid (qreq_counter_next_dvalid),
+    .dinRetry (qreq_counter_next_dretry),
+
+    .q        (qreq_counter_q),
+    .qValid   (qreq_counter_qvalid),
+    .qRetry   (qreq_counter_qretry)
+    );
+
+    /*
+    //A.4 write pointer for request queue
+    logic   qreq_wrpointer_next_dvalid;
+    logic   qreq_wrpointer_next_dretry;
+    logic   [4:0]   qreq_wrpointer_next_d;
+    logic   qreq_wrpointer_qvalid;
+    logic   qreq_wrpointer_qretry;
+    logic   [4:0]   qreq_wrpointer_q;
+
+    fflop #(.Size(5)) ff_qreq_wrpointer (
+    .clk      (clk),
+    .reset    (reset),
+
+    .din      (qreq_wrpointer_next_d),
+    .dinValid (qreq_wrpointer_next_dvalid),
+    .dinRetry (qreq_wrpointer_next_dretry),
+
+    .q        (qreq_wrpointer_q),
+    .qValid   (qreq_wrpointer_qvalid),
+    .qRetry   (qreq_wrpointer_qretry)
+    );
+    */
+
+    // S2->:
+    // S2 fflop
+    // TODO
+    typedef struct packed {
+        logic   [4:0]   winner_for_tag;
+        I_l1tol2_req_type   l1tol2_req;
+        TLB_hpaddr_type hpaddr;
+        SC_paddr_type paddr;
+    } s2_t;
+    s2_t    s2_next_d, s2_q;
+    fflop #(.Size($bits(s2_t))) ff_s2 (
+    .clk      (clk),
+    .reset    (reset),
+
+    .din      (s2_next_d),
+    .dinValid (s2_next_dvalid),
+    .dinRetry (s2_next_dretry),
+
+    .q        (s2_q),
+    .qValid   (s2_qvalid),
+    .qRetry   (s2_qretry)
+    );
+
+    // S3->:
+    typedef struct packed {
+        logic   [4:0]   winner_for_tag;
+        I_l1tol2_req_type   l1tol2_req;
+        logic   l1_match_l2tlb_l1id;
+        logic   l1_match_l2tlb_ppaddr;
+        TLB_hpaddr_type hpaddr;
+        SC_paddr_type   paddr;
+    } s3_t;
+    s3_t    s3_next_d, s3_q;
+    fflop #(.Size($bits(s3_t))) ff_s3 (
+    .clk      (clk),
+    .reset    (reset),
+
+    .din      (s3_next_d),
+    .dinValid (s3_next_dvalid),
+    .dinRetry (s3_next_dretry),
+
+    .q        (s3_q),
+    .qValid   (s3_qvalid),
+    .qRetry   (s3_qretry)
+    );
+
+    // S4->:
+    typedef struct packed {
+        logic   [4:0]   winner_for_tag;
+        I_l1tol2_req_type   l1tol2_req;
+        logic [3:0]    hit_way;
+        logic   tag_hit;
+        logic   tag_miss;
+        SC_paddr_type   paddr;
+    } s4_t;
+    s4_t    s4_next_d, s4_q;
+    fflop #(.Size($bits(s4_t))) ff_s4 (
+    .clk      (clk),
+    .reset    (reset),
+
+    .din      (s4_next_d),
+    .dinValid (s4_next_dvalid),
+    .dinRetry (s4_next_dretry),
+
+    .q        (s4_q),
+    .qValid   (s4_qvalid),
+    .qRetry   (s4_qretry)
+    );
+
+    // S5->:
+    typedef struct packed {
+        logic   [4:0]   winner_for_tag;
+        I_l1tol2_req_type   l1tol2_req;
+        logic [3:0]    hit_way;
+        SC_paddr_type   paddr;
+    } s5_t;
+    s5_t    s5_next_d, s5_q;
+    fflop #(.Size($bits(s5_t))) ff_s5 (
+    .clk      (clk),
+    .reset    (reset),
+
+    .din      (s5_next_d),
+    .dinValid (s5_next_dvalid),
+    .dinRetry (s5_next_dretry),
+
+    .q        (s5_q),
+    .qValid   (s5_qvalid),
+    .qRetry   (s5_qretry)
+    );
+
+    // S6->:
+    typedef struct packed {
+        logic   [4:0]   winner_for_tag;
+        I_l1tol2_req_type   l1tol2_req;
+        logic [3:0]    hit_way;
+        SC_paddr_type   paddr;
+    } s6_t;
+    s6_t    s6_next_d, s6_q;
+    fflop #(.Size($bits(s6_t))) ff_s6 (
+    .clk      (clk),
+    .reset    (reset),
+
+    .din      (s6_next_d),
+    .dinValid (s6_next_dvalid),
+    .dinRetry (s6_next_dretry),
+
+    .q        (s6_q),
+    .qValid   (s6_qvalid),
+    .qRetry   (s6_qretry)
+    );
+
+
+
+    // Combinational Logic
+    // S0: Handle new requests
+    // S0.A Read llht
+    assign req_rd_llht_next_valid = l1tol2_req_valid;
+    assign req_rd_llht_next_addr = l1tol2_req.poffset[11:6]; // This range is part of the paddr
+    // S0.B Save regs for S1
+    assign s1_next_dvalid = l1tol2_req_valid;
+    assign s1_next_d.l1tol2_req = l1tol2_req;
+    assign s1_next_d.llht_addr = req_rd_llht_next_addr;
+
+    // S1:
+    // S1.A Enqueue prep
+    logic   write_qreq;
+    logic   read_qreq;
+    assign ishead = (ack_rd_llht_data.valid==0);
+    assign qreq_full = (qreq_counter_q >= 16);
+    assign  write_qreq = (~qreq_full) && s1_qvalid;
+    always_comb begin
+        for (integer index=0; index<=15; index=index+1) begin
+            qreq_next_dvalid[index] = 0;
+            qreq_next_d[index] = 0;
+        end
+    //S1.B Enqueue to q_req
+    /*
+        qreq_next_dvalid[qreq_wrpointer_q[3:0]] = write_qreq;
+        qreq_next_d[qreq_wrpointer_q[3:0]].valid = 1;
+        qreq_next_d[qreq_wrpointer_q[3:0]].req_type = 4'b1;
+        qreq_next_d[qreq_wrpointer_q[3:0]].l1tol2_req = s1_q.l1tol2_req;
+        if (ack_rd_llht_data.valid) begin
+            qreq_next_d[ack_rd_llht_data.tail[3:0]].next = qreq_wrpointer_q[3:0];
+        end
+        else begin
+            qreq_next_d[qreq_wrpointer_q[3:0]].next = qreq_wrpointer_q[3:0];
+        end
+    */
+        qreq_next_dvalid[s1_q.l1tol2_req.l1id[3:0]] = write_qreq; //assume only the low 4 bits of l1id are used
+        qreq_next_d[s1_q.l1tol2_req.l1id[3:0]].valid = 1;
+        qreq_next_d[s1_q.l1tol2_req.l1id[3:0]].req_type = 4'b1;
+        qreq_next_d[s1_q.l1tol2_req.l1id[3:0]].l1tol2_req = s1_q.l1tol2_req;
+        if (ack_rd_llht_data.valid) begin
+            qreq_next_d[ack_rd_llht_data.tail[3:0]].next = s1_q.l1tol2_req.l1id[3:0];
+        end
+        else begin
+            qreq_next_d[s1_q.l1tol2_req.l1id[3:0]].next = s1_q.l1tol2_req.l1id[3:0];
+        end
+        // l2tlb updates; not a part of S1
+        // Update ppaddr, hpaddr and paddr
+        qreq_next_dvalid[l2tlbtol2_fwd.l1id[3:0]] = l2tlbtol2_fwd_valid && qreq_next_d[l2tlbtol2_fwd.l1id[3:0]].valid; //assume only the low 4 bits of l1id are used
+        qreq_next_d[l2tlbtol2_fwd.l1id[3:0]].l1tol2_req.ppaddr = l2tlbtol2_fwd.paddr[12:10]; // correct ppaddr
+        qreq_next_d[l2tlbtol2_fwd.l1id[3:0]].paddr = l2tlbtol2_fwd.paddr;
+        qreq_next_d[l2tlbtol2_fwd.l1id[3:0]].hpaddr = l2tlbtol2_fwd.hpaddr;
+    end
+    //S1.C Update llht
+    logic   [4:0] new_tail_llht;
+    //assign new_tail_llht = qreq_wrpointer_q;
+    assign new_tail_llht = s1_q.l1tol2_req.l1id;
+    assign req_wr_llht_next_valid = s1_qvalid;
+    assign req_wr_llht_next_addr = s1_q.llht_addr;
+    assign req_wr_llht_next_data.head = ishead ? new_tail_llht : ack_rd_llht_data.head;
+    assign  req_wr_llht_next_data.tail  =  new_tail_llht;
+    assign  req_wr_llht_next_data.valid = 1;
+
+    /*
+    //S1.D Update write pointer
+    assign  qreq_wrpointer_next_dvalid = s1_qvalid;
+    assign  qreq_wrpointer_next_d = write_qreq ? ( (qreq_wrpointer_q<15) ? 
+        (qreq_wrpointer_q + 1) : 0 )
+        : qreq_wrpointer_q;
+    */
+
+    //S1.E Update counter
+    logic   [1:0]   read_vs_write_qreq;
+    assign  read_vs_write_qreq = {read_qreq, write_qreq};
+    assign  qreq_counter_next_dvalid = s1_qvalid;
+    assign  qreq_counter_next_d = (read_vs_write_qreq==2'b01) ? ( qreq_counter_q + 1) :
+        ((read_vs_write_qreq==2'b10) ? (qreq_counter_q - 1) : qreq_counter_q);
+    assign error1 = qreq_counter_q > 16;
+
+    //S1.F Check ready request in the q_req
+    logic   [3:0]   winner_in_qreq;
+    logic           has_winner_in_qreq;
+    always_comb begin
+        winner_in_qreq = 4'bx;
+        has_winner_in_qreq = 0;
+        for (int j=0; j<=15; j=j+1) begin
+            if (qreq_q[j].valid && qreq_q[j].ready && qreq_q[j].ishead) begin
+                winner_in_qreq = j[3:0]; // TODO: might be buggy
+                has_winner_in_qreq = 1;
+            end
+        end
+    end
+   
+    //S1.G Choose a winner for accessing tag
+    localparam NEW_L1TOL2_REQ = 5'b00001;
+    localparam QREQ = 5'b00010;
+    logic [4:0] winner_for_tag;
+    always_comb begin
+        winner_for_tag = 0;
+        predicted_index = 7'bx;
+        case (1'b1)
+            has_winner_in_qreq : begin
+                winner_for_tag = QREQ;
+                predicted_index = {qreq_q[winner_in_qreq].l1tol2_req.ppaddr[2], qreq_q[winner_in_qreq].l1tol2_req.poffset[11:6]};
+            end
+            s1_qvalid: begin // new l1tol2 req
+                winner_for_tag = NEW_L1TOL2_REQ;
+                predicted_index = {s1_q.l1tol2_req.ppaddr[2], s1_q.l1tol2_req.poffset[11:6]};
+            end
+            default: begin
+                winner_for_tag = 0;
+                predicted_index = 7'bx;
+            end
+        endcase
+    end
+    //assign  new_l1tol2_req_may_go = (~tag_bank0_busy && (tag_bank_id_s0==2'b00)) || (~tag_bank1_busy && (tag_bank_id_s0==2'b01)) 
+    //        || (~tag_bank2_busy && (tag_bank_id_s0==2'b10)) || (~tag_bank3_busy && (tag_bank_id_s0==2'b11));
+    assign  tag_bank_id = predicted_index[1:0];    
+    //S1.H Access tag
+    //S1.H.a Access bank0
+    assign  tag_req_valid_bank0_ways = (winner_for_tag>0) && (tag_bank_id == 2'b00);
+    assign  tag_req_we_bank0_ways = tag_req_valid_bank0_ways ? 0 : 0;// Read tag
+    assign  tag_req_pos_bank0_ways = predicted_index;
+    // Set busy when access tag
+    // Reset busy in next state (state2)
+    //assign  tag_bank0_busy_next = tag_req_valid_bank0_ways ? 1'b1 : ( (reg_new_l1tol2_req_tag_access_1 ? 1'b0 : tag_bank0_busy ));
+
+
+    //S1.H.b Access Bank1
+    assign  tag_req_valid_bank1_ways = (winner_for_tag>0) && (tag_bank_id == 2'b01);
+    assign  tag_req_we_bank1_ways = tag_req_valid_bank1_ways ? 0 : 0;// Read tag
+    assign  tag_req_pos_bank1_ways = predicted_index;
+    // Set busy when access tag
+    // Reset busy in next state (state2)
+    //assign  tag_bank1_busy_next = tag_req_valid_bank1_ways ? 1'b1 : ( (reg_new_l1tol2_req_tag_access_1 ? 1'b0 : tag_bank1_busy ));
+
+    //S1.H.c Access Bank2
+    assign  tag_req_valid_bank2_ways = (winner_for_tag>0) && (tag_bank_id == 2'b10);
+    assign  tag_req_we_bank2_ways = tag_req_valid_bank2_ways ? 0 : 0;// Read tag
+    assign  tag_req_pos_bank2_ways = predicted_index;
+    // Set busy when access tag
+    // Reset busy in next state (state2)
+    //assign  tag_bank2_busy_next = tag_req_valid_bank2_ways ? 1'b1 : ( (reg_new_l1tol2_req_tag_access_1 ? 1'b0 : tag_bank2_busy ));
+
+    //S1.H.d Access Bank3
+    assign  tag_req_valid_bank3_ways = (winner_for_tag>0)  && (tag_bank_id == 2'b11);
+    assign  tag_req_we_bank3_ways = tag_req_valid_bank3_ways ? 0 : 0;// Read tag
+    assign  tag_req_pos_bank3_ways = predicted_index;
+    // Set busy when access tag
+    // Reset busy in next state (state2)
+    //assign  tag_bank3_busy_next = tag_req_valid_bank3_ways ? 1'b1 : ( (reg_new_l1tol2_req_tag_access_1 ? 1'b0 : tag_bank3_busy ));
+
+    //S1.I register fflop for s2
+    assign  s2_next_dvalid = winner_for_tag>0;
+    assign  s2_next_d.l1tol2_req = s1_q.l1tol2_req;
+    assign  s2_next_d.hpaddr = qreq_q[winner_in_qreq].hpaddr;
+    assign  s2_next_d.winner_for_tag = winner_for_tag;
+    // TODO assign s2_next_d.paddr = ready req's paddr
+
+       // Data bank stage
+    //
+    /*
+    flop #(.Bits()) f_reg_ (
+    .clk      (clk),
+    .reset    (reset),
+    .d        (),
+    .q        ()
+    );
+    */
+    
+    logic   l1_match_l2tlb_l1id;
+    logic   l1_match_l2tlb_ppaddr;
+    
+    logic   tag_hit;
+
+    logic [3:0]    hit_way;
+
+    /*
+    fflop #(.Size($bits(I_l2tlbtol2_fwd_type))) f_l2tlbtol2_fwd_reg1 (
+    .clk      (clk),
+    .reset    (reset),
+
+    .din      (),
+    .dinValid (),
+    .dinRetry (),
+
+    .q        (),
+    .qValid   (),
+    .qRetry   ()
+    );
+    */
+    
     // Signals for Data Bank
     typedef struct packed {
         SC_line_type    line;
@@ -756,6 +1005,7 @@ module l2cache_pipe(
         .ack_data       (tag_ack_data_bank3_ways)
     );
 
+    /*
     // Tag bank busy indicator
     // Bank0
     logic   [0:0]  tag_bank0_busy_next;
@@ -796,9 +1046,9 @@ module l2cache_pipe(
     .d        (tag_bank3_busy_next),
     .q        (tag_bank3_busy)
     );
+    */
 
-
-    // Instantiate Bank RAM
+    // Instantiate DATA Bank RAM
     ram_1port_dense #(DATA_BANK_WIDTH, DATA_BANK_SIZE, 0) data_bank0_way (
         .clk            (clk),
         .reset          (reset),
@@ -973,53 +1223,6 @@ module l2cache_pipe(
     );
     // qzhang33 
 
-    // read & write pointer and counter for the q_l1tol2_req
-    logic   [`log2(Q_L1TOL2_REQ_SIZE)-1 : 0] q_l1tol2_req_rd_pointer;
-    logic   [`log2(Q_L1TOL2_REQ_SIZE)-1 : 0] q_l1tol2_req_wr_pointer;
-    logic   [`log2(Q_L1TOL2_REQ_SIZE)-1 : 0] q_l1tol2_req_rd_pointer_next;
-    logic   [`log2(Q_L1TOL2_REQ_SIZE)-1 : 0] q_l1tol2_req_wr_pointer_next;
-    logic   [`log2(Q_L1TOL2_REQ_SIZE)-1 : 0] q_l1tol2_req_counter_next;
-    logic   [`log2(Q_L1TOL2_REQ_SIZE)-1 : 0] q_l1tol2_req_counter;
-    logic   [1:0]   q_l1tol2_req_rd_vs_wr;
-
-    // Increment pointers and Adjust counter
-    assign  q_l1tol2_req_rd_pointer_next = (req_rd_q_l1tol2_req_valid) ? (q_l1tol2_req_rd_pointer + 1) : q_l1tol2_req_rd_pointer;
-    //assign  q_l1tol2_req_rd_pointer_next = (req_rd_q_l1tol2_req_valid && req_rd_q_l1tol2_req_retry) ? (q_l1tol2_req_rd_pointer + 1) : q_l1tol2_req_rd_pointer;
-    assign  q_l1tol2_req_wr_pointer_next = (req_wr_q_l1tol2_req_valid) ? (q_l1tol2_req_wr_pointer + 1) : q_l1tol2_req_wr_pointer;
-    //assign  q_l1tol2_req_wr_pointer_next = (req_wr_q_l1tol2_req_valid && req_wr_q_l1tol2_req_retry) ? (q_l1tol2_req_wr_pointer + 1) : q_l1tol2_req_wr_pointer;
-    assign  q_l1tol2_req_rd_vs_wr = {req_rd_q_l1tol2_req_valid, req_wr_q_l1tol2_req_valid};
-    //assign  q_l1tol2_req_rd_vs_wr = {(req_rd_q_l1tol2_req_valid && req_rd_q_l1tol2_req_retry),
-    //    (req_wr_q_l1tol2_req_valid && req_wr_q_l1tol2_req_retry) };
-    assign  q_l1tol2_req_counter_next = (q_l1tol2_req_rd_vs_wr==2'b01) ? (q_l1tol2_req_counter + 1) :
-        ((q_l1tol2_req_rd_vs_wr==2'b10) ? (q_l1tol2_req_counter - 1) : q_l1tol2_req_counter);
-    
-    // The pointers are the addresses for read and write
-    assign  req_rd_q_l1tol2_req_addr = q_l1tol2_req_rd_pointer;
-    assign  req_wr_q_l1tol2_req_addr = q_l1tol2_req_wr_pointer;
-
-
-    flop #(.Bits(`log2(Q_L1TOL2_REQ_SIZE))) f_reg_q_l1tol2_req_rd_pointer (
-    .clk      (clk),
-    .reset    (reset),
-    .d        (q_l1tol2_req_rd_pointer_next),
-    .q        (q_l1tol2_req_rd_pointer)
-    );
-
-    flop #(.Bits(`log2(Q_L1TOL2_REQ_SIZE))) f_reg_q_l1tol2_req_wr_pointer (
-    .clk      (clk),
-    .reset    (reset),
-    .d        (q_l1tol2_req_wr_pointer_next),
-    .q        (q_l1tol2_req_wr_pointer)
-    );
-
-    flop #(.Bits(`log2(Q_L1TOL2_REQ_SIZE))) f_reg_q_l1tol2_req_counter (
-    .clk      (clk),
-    .reset    (reset),
-    .d        (q_l1tol2_req_counter_next),
-    .q        (q_l1tol2_req_counter)
-    );
-
-
     /*
     ram_2port_fast #(.Width(), .Size(), .Forward()) (
         .clk            (),
@@ -1040,72 +1243,7 @@ module l2cache_pipe(
     ); 
 
     */
-    localparam NEW_L1TOL2_REQ = 5'b00001;
-    logic [4:0] winner_for_tag;
-    // Initial stage
-    // Handle new l1tol2_req
-    // Check if the new l1tol2_req has the highest priority
-    // TODO
-    assign  predicted_index_s0 =  l1tol2_req_valid ? ({l1tol2_req.ppaddr[2], l1tol2_req.poffset[11:6]}) : 0;
-    assign  tag_bank_id_s0 = l1tol2_req_valid?  predicted_index_s0[1:0] : 0;
-    assign  new_l1tol2_req_may_go = (~tag_bank0_busy && (tag_bank_id_s0==2'b00)) || (~tag_bank1_busy && (tag_bank_id_s0==2'b01)) 
-            || (~tag_bank2_busy && (tag_bank_id_s0==2'b10)) || (~tag_bank3_busy && (tag_bank_id_s0==2'b11));
-    assign  winner_for_tag = new_l1tol2_req_may_go ? NEW_L1TOL2_REQ : 0;
-    // TODO
-    // // If the new l1tol2_req is not the winner for tag,
-        // it enters l1tol2_req_q, set reg_enqueue_l1tol2_req_1
     
-    // If it has the highest priority then will access tag in next stage
-    // set reg_new_l1tol2_req_tag_access_0
-    assign  reg_new_l1tol2_req_tag_access_0_next = read_tag_for_sure;
-    assign  reg_new_l1tol2_req_tag_access_0_next_valid = read_tag_for_sure;
-    assign  read_tag_for_sure = l1tol2_req_valid && (winner_for_tag == NEW_L1TOL2_REQ);
-
-    // Access tag
-    // @ state1: reg_new_l1tol2_req_tag_access_0
-    assign  predicted_index_s1 = reg_new_l1tol2_req_tag_access_0 ? ({l1tol2_req_reg1.ppaddr[2], l1tol2_req_reg1.poffset[11:6]})
-    : 0; // For 128
-    assign  tag_bank_id_s1 = reg_new_l1tol2_req_tag_access_0 ?  predicted_index_s1[1:0] : 0;
-    
-    
-    // Access bank0
-    assign  tag_req_valid_bank0_ways = reg_new_l1tol2_req_tag_access_0 && (tag_bank_id_s1 == 2'b00);
-    assign  tag_req_we_bank0_ways = tag_req_valid_bank0_ways ? 0 : 0;// Read tag
-    assign  tag_req_pos_bank0_ways = reg_new_l1tol2_req_tag_access_0 ? predicted_index_s1 : 'b0;
-    // Set busy when access tag
-    // Reset busy in next state (state2)
-    assign  tag_bank0_busy_next = tag_req_valid_bank0_ways ? 1'b1 : ( (reg_new_l1tol2_req_tag_access_1 ? 1'b0 : tag_bank0_busy ));
-
-
-    // Access Bank1
-    assign  tag_req_valid_bank1_ways = reg_new_l1tol2_req_tag_access_0 && (tag_bank_id_s1 == 2'b01);
-    assign  tag_req_we_bank1_ways = tag_req_valid_bank1_ways ? 0 : 0;// Read tag
-    assign  tag_req_pos_bank1_ways = reg_new_l1tol2_req_tag_access_0 ? predicted_index_s1 : 'b0;
-    // Set busy when access tag
-    // Reset busy in next state (state2)
-    assign  tag_bank1_busy_next = tag_req_valid_bank1_ways ? 1'b1 : ( (reg_new_l1tol2_req_tag_access_1 ? 1'b0 : tag_bank1_busy ));
-
-
-
-    // Access Bank2
-    assign  tag_req_valid_bank2_ways = reg_new_l1tol2_req_tag_access_0 && (tag_bank_id_s1 == 2'b10);
-    assign  tag_req_we_bank2_ways = tag_req_valid_bank2_ways ? 0 : 0;// Read tag
-    assign  tag_req_pos_bank2_ways = reg_new_l1tol2_req_tag_access_0 ? predicted_index_s1 : 'b0;
-    // Set busy when access tag
-    // Reset busy in next state (state2)
-    assign  tag_bank2_busy_next = tag_req_valid_bank2_ways ? 1'b1 : ( (reg_new_l1tol2_req_tag_access_1 ? 1'b0 : tag_bank2_busy ));
-
-
-
-    // Access Bank3
-    assign  tag_req_valid_bank3_ways = reg_new_l1tol2_req_tag_access_0 && (tag_bank_id_s1 == 2'b11);
-    assign  tag_req_we_bank3_ways = tag_req_valid_bank3_ways ? 0 : 0;// Read tag
-    assign  tag_req_pos_bank3_ways = reg_new_l1tol2_req_tag_access_0 ? predicted_index_s1 : 'b0;
-    // Set busy when access tag
-    // Reset busy in next state (state2)
-    assign  tag_bank3_busy_next = tag_req_valid_bank3_ways ? 1'b1 : ( (reg_new_l1tol2_req_tag_access_1 ? 1'b0 : tag_bank3_busy ));
-
-
     //&& (!l1tol2_req_retry);
 
     /*
@@ -1119,44 +1257,43 @@ module l2cache_pipe(
     */
 
 
-    // Handle input from l2tlb
-    // state2: @ reg_new_l1tol2_req_tag_access_1
+    // S2:  Access Tag 1
+    //      And Handle input from l2tlb; *could arrive at any time
+    // S2.A: Check if arrive on time
     always_comb begin
-        l1_match_l2tlb_l1id_next = 0;
-        l1_match_l2tlb_ppaddr_next = 0;
-        req_wr_q_l1tol2_req_valid = 0;
+        l1_match_l2tlb_l1id = 0;
+        l1_match_l2tlb_ppaddr = 0;
         if (l2tlbtol2_fwd_valid) begin
-            if (reg_new_l1tol2_req_tag_access_1) begin
-                // l2tlb send a packet on time
-                if (l1tol2_req_reg1_valid) begin
+            if (s2_qvalid) begin
+                // If l2tlb send a packet on time
+                if (s2_q.winner_for_tag == NEW_L1TOL2_REQ) begin
                     // Compare l1_id
-                    if (l1tol2_req_reg1.l1id == l2tlbtol2_fwd.l1id) begin
+                    if (s2_q.l1tol2_req.l1id == l2tlbtol2_fwd.l1id) begin
                         // l1id match
-                        l1_match_l2tlb_l1id_next = 1;
+                        l1_match_l2tlb_l1id = 1;
                     end
                     // verify ppaddr
-                    if (l2tlbtol2_fwd.paddr[12] == l1tol2_req_reg1.ppaddr[2]) begin// For 128
+                    if (l2tlbtol2_fwd.paddr[12] == s2_q.l1tol2_req.ppaddr[2]) begin// For 128
                         // ppaddr is correct
-                        l1_match_l2tlb_ppaddr_next = 1;
+                        l1_match_l2tlb_ppaddr = 1;
                     end
-                    else begin
-                        // ppaddr is incorrect
-                        // Enqueue l1tol2_req to q_l1tol2_req with corrected ppaddr
-                        req_wr_q_l1tol2_req_data.l1tol2_req = l1tol2_req_reg1;
-                        // Correct ppaddr
-                        req_wr_q_l1tol2_req_data.
-                          l1tol2_req.ppaddr = l2tlbtol2_fwd.paddr[14:12];
-                        req_wr_q_l1tol2_req_data.ppaddr_corrected = 1;
-                        req_wr_q_l1tol2_req_valid = 1;
-                    end
+                    //else ppaddr is incorrect
                 end
-            end // end of if (reg_new_l1tol2_req_tag_access_1) 
-            else begin
-                // l2tlb send a delayed packet
-            end
+            end 
         end
     end
-    
+
+    // S2.B: register fflop for s3
+    assign  s3_next_dvalid = s2_qvalid;
+    assign  s3_next_d.winner_for_tag = s2_q.winner_for_tag;
+    assign  s3_next_d.l1tol2_req = s2_q.l1tol2_req;
+    assign  s3_next_d.l1_match_l2tlb_l1id = l1_match_l2tlb_l1id;
+    assign  s3_next_d.l1_match_l2tlb_ppaddr = l1_match_l2tlb_ppaddr;
+    assign  s3_next_d.paddr = (l1_match_l2tlb_l1id && l1_match_l2tlb_ppaddr) ? l2tlbtol2_fwd.paddr : s2_q.paddr;
+    assign  s3_next_d.hpaddr = (l1_match_l2tlb_l1id && l1_match_l2tlb_ppaddr) ? l2tlbtol2_fwd.hpaddr : s2_q.hpaddr;
+
+    // S3: Tag Access_2
+    // S3.A: extract hpaddr from tag read
     TLB_hpaddr_type  hpaddr_from_tag[16];
     assign {hpaddr_from_tag[0], hpaddr_from_tag[1], hpaddr_from_tag[2], hpaddr_from_tag[3],
             hpaddr_from_tag[4], hpaddr_from_tag[5], hpaddr_from_tag[6], hpaddr_from_tag[7],
@@ -1169,330 +1306,179 @@ module l2cache_pipe(
               ))));    // TODO extract hpaddr
     assign  tag_ack_valid_banks_ways = tag_ack_valid_bank0_ways | tag_ack_valid_bank1_ways | tag_ack_valid_bank2_ways | tag_ack_valid_bank3_ways;
 
-    // Handle tag result
-    // state3: @ reg_new_l1tol2_req_tag_access_2
+    // S3.B: Handle tag result
     always_comb begin
-        tag_hit_next = 0;
-        if (reg_new_l1tol2_req_tag_access_2) begin
-            // Tag access result is ready
-            if (l2tlbtol2_fwd_reg1_valid && l1_match_l2tlb_l1id && l1_match_l2tlb_ppaddr && tag_ack_valid_banks_ways) begin
-                // l1id matched and ppaddr is correct
+        tag_hit = 0;
+        hit_way = 4'bx;
+        if (s3_qvalid) begin
+        // Tag access result is ready
+            if (s3_q.l1_match_l2tlb_l1id && s3_q.l1_match_l2tlb_ppaddr && tag_ack_valid_banks_ways) begin
+            // l1id matched and ppaddr is correct
                 case (1'b1)
                     // Check way0
-                    ((hpaddr_from_tag[0] == l2tlbtol2_fwd_reg1.hpaddr)) : begin
+                    ((hpaddr_from_tag[0] == s3_q.hpaddr)) : begin
                         // (hpaddr) Tag hit
-                        tag_hit_next = 1;
-                        hit_way_next = 4'b0000;
+                        tag_hit = 1;
+                        hit_way = 4'b0000;
                     end
                     // Check way1
-                    ((hpaddr_from_tag[1] == l2tlbtol2_fwd_reg1.hpaddr)) : begin
+                    ((hpaddr_from_tag[1] == s3_q.hpaddr)) : begin
                         // (hpaddr) Tag hit
-                        tag_hit_next = 1;
-                        hit_way_next = 4'b0001;
+                        tag_hit = 1;
+                        hit_way = 4'b0001;
                     end
                     // Check way2
-                    ((hpaddr_from_tag[2] == l2tlbtol2_fwd_reg1.hpaddr)) : begin
+                    ((hpaddr_from_tag[2] == s3_q.hpaddr)) : begin
                         // (hpaddr) Tag hit
-                        tag_hit_next = 1;
-                        hit_way_next = 4'b0010;
+                        tag_hit = 1;
+                        hit_way = 4'b0010;
                     end
                     // Check way3
-                    ((hpaddr_from_tag[3] == l2tlbtol2_fwd_reg1.hpaddr)) : begin
+                    ((hpaddr_from_tag[3] == s3_q.hpaddr)) : begin
                         // (hpaddr) Tag hit
-                        tag_hit_next = 1;
-                        hit_way_next = 4'b0011;
+                        tag_hit = 1;
+                        hit_way = 4'b0011;
                     end
                     // Check way4
-                    ((hpaddr_from_tag[4] == l2tlbtol2_fwd_reg1.hpaddr)) : begin
+                    ((hpaddr_from_tag[4] == s3_q.hpaddr)) : begin
                         // (hpaddr) Tag hit
-                        tag_hit_next = 1;
-                        hit_way_next = 4'b0100;
+                        tag_hit = 1;
+                        hit_way = 4'b0100;
                     end
                     // Check way5
-                    ((hpaddr_from_tag[5] == l2tlbtol2_fwd_reg1.hpaddr)) : begin
+                    ((hpaddr_from_tag[5] == s3_q.hpaddr)) : begin
                         // (hpaddr) Tag hit
-                        tag_hit_next = 1;
-                        hit_way_next = 4'b0101;
+                        tag_hit = 1;
+                        hit_way = 4'b0101;
                     end
                     // Check way6
-                    ((hpaddr_from_tag[6] == l2tlbtol2_fwd_reg1.hpaddr)) : begin
+                    ((hpaddr_from_tag[6] == s3_q.hpaddr)) : begin
                         // (hpaddr) Tag hit
-                        tag_hit_next = 1;
-                        hit_way_next = 4'b0110;
+                        tag_hit = 1;
+                        hit_way = 4'b0110;
                     end
                     // Check way7
-                    ((hpaddr_from_tag[7] == l2tlbtol2_fwd_reg1.hpaddr)) : begin
+                    ((hpaddr_from_tag[7] == s3_q.hpaddr)) : begin
                         // (hpaddr) Tag hit
-                        tag_hit_next = 1;
-                        hit_way_next = 4'b0111;
+                        tag_hit = 1;
+                        hit_way = 4'b0111;
                     end
                     // Check way8
-                    ((hpaddr_from_tag[8] == l2tlbtol2_fwd_reg1.hpaddr)) : begin
+                    ((hpaddr_from_tag[8] == s3_q.hpaddr)) : begin
                         // (hpaddr) Tag hit
-                        tag_hit_next = 1;
-                        hit_way_next = 4'b1000;
+                        tag_hit = 1;
+                        hit_way = 4'b1000;
                     end
                     // Check way9
-                    ((hpaddr_from_tag[9] == l2tlbtol2_fwd_reg1.hpaddr)) : begin
+                    ((hpaddr_from_tag[9] == s3_q.hpaddr)) : begin
                         // (hpaddr) Tag hit
-                        tag_hit_next = 1;
-                        hit_way_next = 4'b1001;
+                        tag_hit = 1;
+                        hit_way = 4'b1001;
                     end
                     // Check way10
-                    ((hpaddr_from_tag[10] == l2tlbtol2_fwd_reg1.hpaddr)) : begin
+                    ((hpaddr_from_tag[10] == s3_q.hpaddr)) : begin
                         // (hpaddr) Tag hit
-                        tag_hit_next = 1;
-                        hit_way_next = 4'b1010;
+                        tag_hit = 1;
+                        hit_way = 4'b1010;
                     end
                     // Check way11
-                    ((hpaddr_from_tag[11] == l2tlbtol2_fwd_reg1.hpaddr)) : begin
+                    ((hpaddr_from_tag[11] == s3_q.hpaddr)) : begin
                         // (hpaddr) Tag hit
-                        tag_hit_next = 1;
-                        hit_way_next = 4'b1011;
+                        tag_hit = 1;
+                        hit_way = 4'b1011;
                     end
                     // Check way12
-                    ((hpaddr_from_tag[12] == l2tlbtol2_fwd_reg1.hpaddr)) : begin
+                    ((hpaddr_from_tag[12] == s3_q.hpaddr)) : begin
                         // (hpaddr) Tag hit
-                        tag_hit_next = 1;
-                        hit_way_next = 4'b1100;
+                        tag_hit = 1;
+                        hit_way = 4'b1100;
                     end
                     // Check way13
-                    ((hpaddr_from_tag[13] == l2tlbtol2_fwd_reg1.hpaddr)) : begin
+                    ((hpaddr_from_tag[13] == s3_q.hpaddr)) : begin
                         // (hpaddr) Tag hit
-                        tag_hit_next = 1;
-                        hit_way_next = 4'b1101;
+                        tag_hit = 1;
+                        hit_way = 4'b1101;
                     end
                     // Check way14
-                    ((hpaddr_from_tag[14] == l2tlbtol2_fwd_reg1.hpaddr)) : begin
+                    ((hpaddr_from_tag[14] == s3_q.hpaddr)) : begin
                         // (hpaddr) Tag hit
-                        tag_hit_next = 1;
-                        hit_way_next = 4'b1110;
+                        tag_hit = 1;
+                        hit_way = 4'b1110;
                     end
                     // Check way15
-                    ((hpaddr_from_tag[15] == l2tlbtol2_fwd_reg1.hpaddr)) : begin
+                    ((hpaddr_from_tag[15] == s3_q.hpaddr)) : begin
                         // (hpaddr) Tag hit
-                        tag_hit_next = 1;
-                        hit_way_next = 4'b1111;
+                        tag_hit = 1;
+                        hit_way = 4'b1111;
                     end
                 endcase
             end
         end
     end
 
-    // Handle tag miss
-    assign  tag_miss = (~tag_hit_next) && tag_ack_valid_banks_ways;
-    // Enqueue linked list
-    // qzhang33
+    // S3.C: Handle tag miss
+    assign  tag_miss = (~tag_hit) && tag_ack_valid_banks_ways;
+    // Send l2todr_req if miss
     always_comb begin
-      if (reg_new_l1tol2_req_tag_access_2) begin 
         if (tag_miss) begin
-
           
         end
-      end
     end
     // qzhang33
 
-    // Enter next pipe stage: reg_new_l1tol2_req_data_access_0 when tag hit
-    assign  reg_new_l1tol2_req_data_access_0_next = tag_hit_next && reg_new_l1tol2_req_tag_access_2;
+    // S3->S4
+    assign  s4_next_dvalid = s3_qvalid && tag_hit;
+    assign  s4_next_d.winner_for_tag = s3_q.winner_for_tag;
+    assign  s4_next_d.l1tol2_req = s3_q.l1tol2_req;
+    assign  s4_next_d.tag_hit = tag_hit;
+    assign  s4_next_d.tag_miss = tag_miss;
+    assign  s4_next_d.hit_way = hit_way;
+    assign  s4_next_d.paddr = s3_q.paddr;
+
+    // Enter next pipe stage: s4_qvalid when tag hit
 
     // Access data bank under tag hit
-    // state4: @ reg_new_l1tol2_req_data_access_0
-    // TODO Verify: Pass retry to previous stages:
-    // should be from l2tlbtol2_fwd_reg1_retry to  l2tlbtol2_fwd_retry and
-    // from l1tol2_req_reg3_retry to l1tol2_req_reg2_retry
-    //assign  l2tlbtol2_fwd_reg1_retry = (data_req_back_press);
-    //assign  l1tol2_req_reg3_retry = (data_req_back_press);
-    //assign  data_req_back_press = data_req_retry_bank0_way || data_req_retry_bank1_way || data_req_retry_bank2_way || data_req_retry_bank3_way;
+    // S4: Data Access 0
+    // S4.A: Initiate data access
     assign  data_req_valid = data_req_valid_bank0_way || data_req_valid_bank1_way || data_req_valid_bank2_way || data_req_valid_bank3_way;
-    assign  data_req_valid_bank0_way = (l1tol2_req_reg4.poffset[7:6]==2'b00) && reg_new_l1tol2_req_data_access_0 && tag_hit;
-    assign  data_req_we_bank0_way = (l1tol2_req_reg4.poffset[7:6]==2'b00) && reg_new_l1tol2_req_data_access_0 ? 0 : 0; // read
-    assign  data_req_pos_bank0_way = {hit_way, l1tol2_req_reg4.ppaddr[2], l1tol2_req_reg4.poffset[11:6]};
+    assign  data_req_valid_bank0_way = (s4_q.l1tol2_req.poffset[7:6]==2'b00) && s4_qvalid && s4_q.tag_hit;
+    assign  data_req_we_bank0_way = (s4_q.l1tol2_req.poffset[7:6]==2'b00) && s4_qvalid ? 0 : 0; // read
+    assign  data_req_pos_bank0_way = {s4_q.hit_way, s4_q.l1tol2_req.ppaddr[2], s4_q.l1tol2_req.poffset[11:6]};
    
-    assign  data_req_valid_bank1_way = (l1tol2_req_reg4.poffset[7:6]==2'b00) && reg_new_l1tol2_req_data_access_0 && tag_hit;
-    assign  data_req_we_bank1_way = (l1tol2_req_reg4.poffset[7:6]==2'b01) && reg_new_l1tol2_req_data_access_0 ? 0 : 0; // read
-    assign  data_req_pos_bank1_way = {hit_way, l1tol2_req_reg4.ppaddr[2], l1tol2_req_reg4.poffset[11:6]};
+    assign  data_req_valid_bank1_way = (s4_q.l1tol2_req.poffset[7:6]==2'b00) && s4_qvalid && s4_q.tag_hit;
+    assign  data_req_we_bank1_way = (s4_q.l1tol2_req.poffset[7:6]==2'b01) && s4_qvalid ? 0 : 0; // read
+    assign  data_req_pos_bank1_way = {s4_q.hit_way, s4_q.l1tol2_req.ppaddr[2], s4_q.l1tol2_req.poffset[11:6]};
    
-    assign  data_req_valid_bank2_way = (l1tol2_req_reg4.poffset[7:6]==2'b10) && reg_new_l1tol2_req_data_access_0 && tag_hit;
-    assign  data_req_we_bank2_way = (l1tol2_req_reg4.poffset[7:6]==2'b10) && reg_new_l1tol2_req_data_access_0 ? 0 : 0; // read
-    assign  data_req_pos_bank2_way = {hit_way, l1tol2_req_reg4.ppaddr[2], l1tol2_req_reg4.poffset[11:6]};
+    assign  data_req_valid_bank2_way = (s4_q.l1tol2_req.poffset[7:6]==2'b10) && s4_qvalid && s4_q.tag_hit;
+    assign  data_req_we_bank2_way = (s4_q.l1tol2_req.poffset[7:6]==2'b10) && s4_qvalid ? 0 : 0; // read
+    assign  data_req_pos_bank2_way = {s4_q.hit_way, s4_q.l1tol2_req.ppaddr[2], s4_q.l1tol2_req.poffset[11:6]};
    
-    assign  data_req_valid_bank3_way = (l1tol2_req_reg4.poffset[7:6]==2'b00) && reg_new_l1tol2_req_data_access_0 && tag_hit;
-    assign  data_req_we_bank3_way = (l1tol2_req_reg4.poffset[7:6]==2'b11) && reg_new_l1tol2_req_data_access_0 ? 0 : 0; // read
-    assign  data_req_pos_bank3_way = {hit_way, l1tol2_req_reg4.ppaddr[2], l1tol2_req_reg4.poffset[11:6]};
+    assign  data_req_valid_bank3_way = (s4_q.l1tol2_req.poffset[7:6]==2'b00) && s4_qvalid && s4_q.tag_hit;
+    assign  data_req_we_bank3_way = (s4_q.l1tol2_req.poffset[7:6]==2'b11) && s4_qvalid ? 0 : 0; // read
+    assign  data_req_pos_bank3_way = {s4_q.hit_way, s4_q.l1tol2_req.ppaddr[2], s4_q.l1tol2_req.poffset[11:6]};
   
-    // Enter next pipe stage: reg_new_l1tol2_req_data_access_1
-    assign  reg_new_l1tol2_req_data_access_1_next = reg_new_l1tol2_req_data_access_0 && data_req_valid;
+    // S4->S5
+    assign  s5_next_d.winner_for_tag = s4_q.winner_for_tag;
+    assign  s5_next_dvalid = s4_qvalid && data_req_valid;
+    assign  s5_next_d.paddr = s4_q.paddr;
+    assign  s5_next_d.hit_way = s4_q.hit_way;
+    assign  s5_next_d.l1tol2_req = s4_q.l1tol2_req;
 
-    // Enter next pipe stage: reg_new_l1tol2_req_data_access_2
-    assign  reg_new_l1tol2_req_data_access_2_next = reg_new_l1tol2_req_data_access_1;
+    // S5->S6
+    assign  s6_next_d.winner_for_tag = s5_q.winner_for_tag;
+    assign  s6_next_dvalid = s5_qvalid && data_req_valid;
+    assign  s6_next_d.paddr = s5_q.paddr;
+    assign  s6_next_d.hit_way = s5_q.hit_way;
+    assign  s6_next_d.l1tol2_req = s5_q.l1tol2_req;
+
+    // S6: Handle data access result
 
     // @ state5: reg_new_l1tol2_req_data_access_2
     // Verify full tag was correct:
     //      yes:    Send l2tol1_snack
     //      no:     reflow
-    
-
-    //========================================Directory to L2 snack=======================================
-    // qzhang33
-    
-    typedef logic [35:0] SC_tag_type;
-
-    SC_line_type  [7:0]  data; // drtol2_snack_line, l2tol1_snack_line
-    logic         [15:0] index;
-    SC_tag_type   tag_from_index[16];
-    logic         we;
-    logic         [3:0]  hit_way;
-
-    assign drtol2_snack.nid  = l2todr_req.nid;
-    assign drtol2_snack.l2id = l2todr_req.l2id;
-    assign index = l2todr_req.paddr[13:6];
-
-    always_comb begin
-      we = 0;
-      if (drtol2_snack.drid == 0 && drtol2_snack.l2id != 0 && drtol2_snack.snack == 5'b0xxxx) begin // make sure it is an ack not snoop
-        if (data == 0) begin
-          case (1'b1) 
-            // check way0 
-            ((tag_from_index[0] == drtol2_snack.paddr[49:14])) : begin
-              we = 1;
-              data[hit_way] = 
-                {drtol2_snack.line7, drtol2_snack.line6, drtol2_snack.line5, drtol2_snack.line4, drtol2_snack.line3, drtol2_snack.l2, drtol2_snack.l1, drtol2_snack.line0};
-              hit_way = 4'b0000;
-              // erase request from linked list
-            end
-            // check way1 
-            ((tag_from_index[1] == drtol2_snack.paddr[49:14])) : begin
-              we = 1;
-              data[hit_way] = 
-                {drtol2_snack.line7, drtol2_snack.line6, drtol2_snack.line5, drtol2_snack.line4, drtol2_snack.line3, drtol2_snack.l2, drtol2_snack.l1, drtol2_snack.line0};
-              hit_way = 4'b0001;
-              // erase request from linked list
-            end
-            // check way3
-            ((tag_from_index[2] == drtol2_snack.paddr[49:14])) : begin
-              we = 1;
-              data[hit_way] = 
-                {drtol2_snack.line7, drtol2_snack.line6, drtol2_snack.line5, drtol2_snack.line4, drtol2_snack.line3, drtol2_snack.l2, drtol2_snack.l1, drtol2_snack.line0};
-              hit_way = 4'b0010;
-              // erase request from linked list
-            end
-            // check way4 
-            ((tag_from_index[3] == drtol2_snack.paddr[49:14])) : begin
-              we = 1;
-              data[hit_way] = 
-                {drtol2_snack.line7, drtol2_snack.line6, drtol2_snack.line5, drtol2_snack.line4, drtol2_snack.line3, drtol2_snack.l2, drtol2_snack.l1, drtol2_snack.line0};
-              hit_way = 4'b0011;
-              // erase request from linked list
-            end
-            // check way5 
-            ((tag_from_index[4] == drtol2_snack.paddr[49:14])) : begin
-              we = 1;
-              data[hit_way] = 
-                {drtol2_snack.line7, drtol2_snack.line6, drtol2_snack.line5, drtol2_snack.line4, drtol2_snack.line3, drtol2_snack.l2, drtol2_snack.l1, drtol2_snack.line0};
-              hit_way = 4'b0100;
-              // erase request from linked list
-            end
-            // check way6 
-            ((tag_from_index[5] == drtol2_snack.paddr[49:14])) : begin
-              we = 1;
-              data[hit_way] = 
-                {drtol2_snack.line7, drtol2_snack.line6, drtol2_snack.line5, drtol2_snack.line4, drtol2_snack.line3, drtol2_snack.l2, drtol2_snack.l1, drtol2_snack.line0};
-              hit_way = 4'b0101;
-              // erase request from linked list
-            end
-            // check way7 
-            ((tag_from_index[6] == drtol2_snack.paddr[49:14])) : begin
-              we = 1;
-              data[hit_way] = 
-                {drtol2_snack.line7, drtol2_snack.line6, drtol2_snack.line5, drtol2_snack.line4, drtol2_snack.line3, drtol2_snack.l2, drtol2_snack.l1, drtol2_snack.line0};
-              hit_way = 4'b0110;
-              // erase request from linked list
-            end
-            // check way8 
-            ((tag_from_index[7] == drtol2_snack.paddr[49:14])) : begin
-              we = 1;
-              data[hit_way] = 
-                {drtol2_snack.line7, drtol2_snack.line6, drtol2_snack.line5, drtol2_snack.line4, drtol2_snack.line3, drtol2_snack.l2, drtol2_snack.l1, drtol2_snack.line0};
-              hit_way = 4'b0111;
-              // erase request from linked list
-            end
-            // check way9 
-            ((tag_from_index[8] == drtol2_snack.paddr[49:14])) : begin
-              we = 1;
-              data[hit_way] = 
-                {drtol2_snack.line7, drtol2_snack.line6, drtol2_snack.line5, drtol2_snack.line4, drtol2_snack.line3, drtol2_snack.l2, drtol2_snack.l1, drtol2_snack.line0};
-              hit_way = 4'b1000;
-              // erase request from linked list
-            end
-            // check way10 
-            ((tag_from_index[9] == drtol2_snack.paddr[49:14])) : begin
-              we = 1;
-              data[hit_way] = 
-                {drtol2_snack.line7, drtol2_snack.line6, drtol2_snack.line5, drtol2_snack.line4, drtol2_snack.line3, drtol2_snack.l2, drtol2_snack.l1, drtol2_snack.line0};
-              hit_way = 4'b1001;
-              // erase request from linked list
-            end
-            // check way11 
-            ((tag_from_index[10] == drtol2_snack.paddr[49:14])) : begin
-              we = 1;
-              data[hit_way] = 
-                {drtol2_snack.line7, drtol2_snack.line6, drtol2_snack.line5, drtol2_snack.line4, drtol2_snack.line3, drtol2_snack.l2, drtol2_snack.l1, drtol2_snack.line0};
-              hit_way = 4'b1010;
-              // erase request from linked list
-            end
-            // check way12 
-            ((tag_from_index[11] == drtol2_snack.paddr[49:14])) : begin
-              we = 1;
-              data[hit_way] = 
-                {drtol2_snack.line7, drtol2_snack.line6, drtol2_snack.line5, drtol2_snack.line4, drtol2_snack.line3, drtol2_snack.l2, drtol2_snack.l1, drtol2_snack.line0};
-              hit_way = 4'b1011;
-              // erase request from linked list
-            end
-            // check way13
-            ((tag_from_index[12] == drtol2_snack.paddr[49:14])) : begin
-              we = 1;
-              data[hit_way] = 
-                {drtol2_snack.line7, drtol2_snack.line6, drtol2_snack.line5, drtol2_snack.line4, drtol2_snack.line3, drtol2_snack.l2, drtol2_snack.l1, drtol2_snack.line0};
-              hit_way = 4'b1100;
-              // erase request from linked list
-            end
-            // check way14
-            ((tag_from_index[13] == drtol2_snack.paddr[49:14])) : begin
-              we = 1;
-              data[hit_way] = 
-                {drtol2_snack.line7, drtol2_snack.line6, drtol2_snack.line5, drtol2_snack.line4, drtol2_snack.line3, drtol2_snack.l2, drtol2_snack.l1, drtol2_snack.line0};
-              hit_way = 4'b1101;
-              // erase request from linked list
-            end
-            // check way15 
-            ((tag_from_index[14] == drtol2_snack.paddr[49:14])) : begin
-              we = 1;
-              data[hit_way] = 
-                {drtol2_snack.line7, drtol2_snack.line6, drtol2_snack.line5, drtol2_snack.line4, drtol2_snack.line3, drtol2_snack.l2, drtol2_snack.l1, drtol2_snack.line0};
-              hit_way = 4'b1110;
-              // erase request from linked list
-            end
-            // check way016
-            ((tag_from_index[15] == drtol2_snack.paddr[49:14])) : begin
-              we = 1;
-              data[hit_way] = 
-                {drtol2_snack.line7, drtol2_snack.line6, drtol2_snack.line5, drtol2_snack.line4, drtol2_snack.line3, drtol2_snack.l2, drtol2_snack.l1, drtol2_snack.line0};
-              hit_way = 4'b1111;
-              // erase request from linked list
-            end
-            default: 
-          endcase
-        end else begin // data != 0 -> no empty cacheline, need evict old one
-          hit_way = rand()%16;
-          tag_from_index[hit_way] = drtol2_snack.paddr[49:14];
-          data[hit_way] = 
-            {drtol2_snack.line7, drtol2_snack.line6, drtol2_snack.line5, drtol2_snack.line4, drtol2_snack.line3, drtol2_snack.l2, drtol2_snack.l1, drtol2_snack.line0};
-        end
-      end else //TODO // it is snoop
-    end
-    //qzhang33
- 
 `endif
 endmodule
+
+
 

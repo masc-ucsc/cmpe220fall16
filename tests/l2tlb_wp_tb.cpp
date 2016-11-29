@@ -62,7 +62,7 @@ struct In_l1tlbtol2tlb_req {
 	uint8_t		rid;
 	uint8_t		disp_req;
 	uint8_t		disp_A;
-	uint8_t		disp_B;
+	uint8_t		disp_D;
 	uint16_t	disp_hpaddr;
 	uint64_t	laddr;
 	uint64_t	sptbr;
@@ -171,29 +171,28 @@ void try_send_packet(Vl2tlb_wp *top) {
   if (set_retry_for) {
 	set_retry_for--;
 	top->l2tlbtol2_fwd_retry	= 1;
-	/*top->l2tlbtol1tlb_snoop_retry = 1;
+	//top->l2tlbtol1tlb_snoop_retry = 1;
 	top->l2tlbtol1tlb_ack_retry 	= 1;
-	top->l2todr_req_retry 		= 1;
+	/*top->l2todr_req_retry 		= 1;
 	top->l2todr_snoop_ack_retry 	= 1;
 	top->l2todr_disp_retry 		= 1;*/
   }
-  else{
-    top->l2tlbtol2_fwd_retry 	= 0; // randomly, one every 8 packets
-	/*top->l2tlbtol1tlb_snoop_retry	= (rand()&0xF)==0; // randomly, one every 8 packets
-	top->l2tlbtol1tlb_ack_retry 	= (rand()&0xF)==0; // randomly, one every 8 packets
-	top->l2todr_req_retry 		= (rand()&0xF)==0; // randomly, one every 8 packets
-	top->l2todr_snoop_ack_retry 	= (rand()&0xF)==0; // randomly, one every 8 packets
-	top->l2todr_disp_retry 		= (rand()&0xF)==0; // randomly, one every 8 packets*/
+  else {
+    top->l2tlbtol2_fwd_retry 		= 0; 
+	//top->l2tlbtol1tlb_snoop_retry	= 0; 
+	top->l2tlbtol1tlb_ack_retry 	= 0;
+	/*top->l2todr_req_retry 		= 0; 
+	top->l2todr_snoop_ack_retry 	= 0;
+	top->l2todr_disp_retry 			= 0;*/
   }
 
   if (!top->l1tol2tlb_req_retry) {
 	if(l1_l2tlb_req_list.empty() || (rand() & 0x3)) {
-		top->l1tol2tlb_req_valid = 0;
+		top->l1tol2tlb_req_valid 	= 0;
 
 	  	top->l1tol2tlb_req_l1id 	= (uint8_t)rand() & 0x1F;
 		top->l1tol2tlb_req_prefetch	= (uint8_t)rand() & 0x01;
 		top->l1tol2tlb_req_hpaddr 	= (uint16_t)rand() & 0x07FF;
-		//printf("\nSendingRand: %X\n", top->l1tol2tlb_req_hpaddr);	
     }
   	else {
 		top->l1tol2tlb_req_valid = 1;
@@ -202,7 +201,6 @@ void try_send_packet(Vl2tlb_wp *top) {
 		top->l1tol2tlb_req_l1id 	= inp.l1id;
 		top->l1tol2tlb_req_prefetch = inp.prefetch;
 		top->l1tol2tlb_req_hpaddr 	= inp.hpaddr;
-		//printf("\nSendingList: %X\n", top->l1tol2tlb_req_hpaddr);
 #ifdef DEBUG_TRACE
     printf("@%lld in l1id=%X\n",global_time, inp.l1id);
     printf("@%lld in prefetch=%X\n",global_time, inp.prefetch);
@@ -212,18 +210,43 @@ void try_send_packet(Vl2tlb_wp *top) {
     }
   }
   
-  /*if (!top->l1tlbtol2tlb_req_retry) {
-	top->l1tlbtol2tlb_req_rid	= rand() & 0x03;
-	top->l1tlbtol2tlb_req_hpaddr 	= rand() & 0x07ff;
-	top->l1tlbtol2tlb_req_laddr 	= rand() & 0x0000007fffffffff;	
-    if (l1tlb_l2tlb_req_list.empty() || (rand() & 0x3)) { // Once every 4
-    	top->l1tlbtol2tlb_req_valid = 0;
-    }else{
+  if (!top->l1tlbtol2tlb_req_retry) {
+	if(l1tlb_l2tlb_req_list.empty() || (rand() & 0x3)) {
+		top->l1tlbtol2tlb_req_valid = 0;
+
+		top->l1tlbtol2tlb_req_rid			= rand() & 0x03;
+		top->l1tlbtol2tlb_req_disp_req		= 0;
+		top->l1tlbtol2tlb_req_disp_A		= 0;
+		top->l1tlbtol2tlb_req_disp_D		= 0;
+		top->l1tlbtol2tlb_req_disp_hpaddr 	= rand() & 0x07FF;
+		top->l1tlbtol2tlb_req_laddr 		= rand() & 0x0000007FFFFFFFFF;
+		top->l1tlbtol2tlb_req_sptbr			= 0;
+	}	
+	else {
     	top->l1tlbtol2tlb_req_valid = 1;
+
+		In_l1tlbtol2tlb_req inp1 = l1tlb_l2tlb_req_list.back();
+		top->l1tlbtol2tlb_req_rid			= inp1.rid;
+		top->l1tlbtol2tlb_req_disp_req		= inp1.disp_req;
+		top->l1tlbtol2tlb_req_disp_A		= inp1.disp_A;
+		top->l1tlbtol2tlb_req_disp_D		= inp1.disp_D;
+		top->l1tlbtol2tlb_req_disp_hpaddr 	= inp1.disp_hpaddr;
+		top->l1tlbtol2tlb_req_laddr 		= inp1.laddr;
+		top->l1tlbtol2tlb_req_sptbr			= inp1.sptbr;
+#ifdef DEBUG_TRACE
+    printf("@%lld in rid=%X\n",global_time, inp1.rid);
+    printf("@%lld in disp_req=%X\n",global_time, inp1.disp_req);
+    printf("@%lld in disp_A=%X\n",global_time, inp1.disp_A);
+	printf("@%lld in disp_D=%X\n",global_time, inp1.disp_D);
+    printf("@%lld in disp_hpaddr=%X\n",global_time, inp1.disp_hpaddr);
+    printf("@%lld in laddrr=%X\n",global_time, inp1.laddr);
+	printf("@%lld in sptbr=%X\n\n",global_time, inp1.sptbr);
+#endif
+    	l1tlb_l2tlb_req_list.pop_back();
     }
   }
   
-  if (!top->l1tlbtol2tlb_sack_retry) {
+  /*if (!top->l1tlbtol2tlb_sack_retry) {
     top->l1tlbtol2tlb_sack_rid = rand() & 0x03;	
     if (l1tlb_l2tlb_sack_list.empty() || (rand() & 0x3)) { // Once every 4
     	top->l1tlbtol2tlb_sack_valid = 0;
@@ -293,16 +316,14 @@ void try_recv_packet(Vl2tlb_wp *top) {
     return;
   }
 
-  if (top->l2tlbtol2_fwd_retry)
+  if (/*top->l2tlbtol2_fwd_retry) || */top->l2tlbtol1tlb_ack_retry)
     return;
 
-  if (!top->l2tlbtol2_fwd_valid)
+  if (/*!top->l2tlbtol2_fwd_valid) || */!top->l2tlbtol1tlb_ack_valid)
     return;
 
-  if (l2tlb_l2_fwd_list.empty())
+  if (/*l2tlb_l2_fwd_list.empty()) || */l2tlb_l1tlb_ack_list.empty())
     return;
-
-  //printf("\Recieving: %X\n", top->l2tlbtol2_fwd_hpaddr);
 
 #ifdef DEBUG_TRACE
     printf("@%lld out l1id=%X\n",global_time, top->l2tlbtol2_fwd_l1id);
@@ -310,14 +331,34 @@ void try_recv_packet(Vl2tlb_wp *top) {
 	printf("@%lld out fault=%X\n",global_time, top->l2tlbtol2_fwd_fault);
 	printf("@%lld out hpaddr=%X\n",global_time, top->l2tlbtol2_fwd_hpaddr);
 	printf("@%lld out paddr=%X\n\n",global_time, top->l2tlbtol2_fwd_paddr);
+
+	printf("@%lld out rid=%X\n",global_time, top->l2tlbtol1tlb_ack_rid);
+	printf("@%lld out hpaddr=%X\n",global_time, top->l2tlbtol1tlb_ack_hpaddr);
+	printf("@%lld out ppaddr=%X\n",global_time, top->l2tlbtol1tlb_ack_ppaddr);
+	printf("@%lld out dctlbe=%X\n\n",global_time, top->l2tlbtol1tlb_ack_dctlbe);
 #endif
-  Out_l2tlbtol2_fwd o = l2tlb_l2_fwd_list.back();
+  //Out_l2tlbtol2_fwd o = l2tlb_l2_fwd_list.back();
+  Out_l2tlbtol1tlb_ack o1 = l2tlb_l1tlb_ack_list.back();
+
+  /*if (top->l2tlbtol2_fwd_hpaddr != o.hpaddr) {
+    printf("ERROR: expected %X but hpaddr is %X\n",o.hpaddr, top->l2tlbtol2_fwd_hpaddr);
+    error_found(top);
+  }
   if (top->l2tlbtol2_fwd_paddr != o.paddr) {
     printf("ERROR: expected %X but paddr is %X\n",o.paddr, top->l2tlbtol2_fwd_paddr);
     error_found(top);
+  }*/
+  if (top->l2tlbtol1tlb_ack_hpaddr != o1.hpaddr) {
+    printf("ERROR: expected %X but hpaddr is %X\n",o1.hpaddr, top->l2tlbtol1tlb_ack_hpaddr);
+    error_found(top);
+  }
+  if (top->l2tlbtol1tlb_ack_ppaddr != o1.ppaddr) {
+    printf("ERROR: expected %X but ppaddr is %X\n",o1.ppaddr, top->l2tlbtol1tlb_ack_ppaddr);
+    error_found(top);
   }
 
-  l2tlb_l2_fwd_list.pop_back();
+  //l2tlb_l2_fwd_list.pop_back();
+  l2tlb_l1tlb_ack_list.pop_back();
   ntests++;
 }
 
@@ -403,8 +444,8 @@ int main(int argc, char **argv, char **env) {
 
     if (((rand() & 0x3)==0) && l1_l2tlb_req_list.size() < 3) {
 	  In_l1tol2tlb_req		l1_l2tlb_req_o;
-	  /*In_l1tlbtol2tlb_req	l1tlb_l2tlb_req_o;
-	  In_l1tlbtol2tlb_sack 	l1tlb_l2tlb_sack_o;
+	  In_l1tlbtol2tlb_req	l1tlb_l2tlb_req_o;
+	  /*In_l1tlbtol2tlb_sack 	l1tlb_l2tlb_sack_o;
 	  In_drtol2_snack 		dr_l2_snack_o;
 	  In_drtol2_dack  		dr_l2_dack_o;*/
       
@@ -413,12 +454,17 @@ int main(int argc, char **argv, char **env) {
 	  l1_l2tlb_req_o.hpaddr   = (uint16_t)rand() & 0x07FF;
 	  l1_l2tlb_req_list.push_front(l1_l2tlb_req_o);
 	  
-	  /*l1tlb_l2tlb_req_o.rid 	= rand() & 0x03;
-	  l1tlb_l2tlb_req_o.hpaddr  = rand() & 0x07ff;
-	  l1tlb_l2tlb_req_o.laddr   = rand() & 0x0000007fffffffff;
+	  l1tlb_l2tlb_req_o.rid 		= rand() & 0x03;
+	  l1tlb_l2tlb_req_o.disp_req 	= 0;
+	  l1tlb_l2tlb_req_o.disp_A 		= 0;
+	  l1tlb_l2tlb_req_o.disp_D 		= 0;
+	  l1tlb_l2tlb_req_o.disp_hpaddr = rand() & 0x07FF;
+	  l1tlb_l2tlb_req_o.laddr   	= rand() & 0x0000007FFFFFFFFF;
+	  l1tlb_l2tlb_req_o.sptbr 		= 0;
+
 	  l1tlb_l2tlb_req_list.push_front(l1tlb_l2tlb_req_o);
 	  
-	  l1tlb_l2tlb_sack_o.rid = rand() & 0x03;
+	  /*l1tlb_l2tlb_sack_o.rid = rand() & 0x03;
 	  l1tlb_l2tlb_sack_list.push_front(l1tlb_l2tlb_sack_o);
 	  
 	  dr_l2_snack_o.nid	  = rand() & 0x1f;
@@ -441,9 +487,9 @@ int main(int argc, char **argv, char **env) {
 
 	  
 	  Out_l2tlbtol2_fwd 		l2tlb_l2_fwd_o;
-	  /*Out_l2tlbtol1tlb_snoop	l2tlb_l1tlb_snoop_o;
+	  //Out_l2tlbtol1tlb_snoop	l2tlb_l1tlb_snoop_o;
 	  Out_l2tlbtol1tlb_ack		l2tlb_l1tlb_ack_o;
-	  Out_l2todr_req 			l2_dr_req_o;
+	  /*Out_l2todr_req 			l2_dr_req_o;
 	  Out_l2todr_snoop_ack 		l2_dr_snoop_o;
 	  Out_l2todr_disp 			l2_dr_disp_o;*/
 	  
@@ -455,14 +501,15 @@ int main(int argc, char **argv, char **env) {
 	  
 	  /*l2tlb_l1tlb_snoop_o.rid	 = l1tlb_l2tlb_req_o.rid;
 	  l2tlb_l1tlb_snoop_o.hpaddr = l1tlb_l2tlb_req_o.disp_hpaddr;
-	  l2tlb_l1tlb_snoop_list.push_front(l2tlb_l1tlb_snoop_o);
+	  l2tlb_l1tlb_snoop_list.push_front(l2tlb_l1tlb_snoop_o);*/
 	  
 	  l2tlb_l1tlb_ack_o.rid 	= l1tlb_l2tlb_req_o.rid;
-	  l2tlb_l1tlb_ack_o.hpaddr  = l1tlb_l2tlb_req_o.disp_hpaddr;
-	  l2tlb_l1tlb_ack_o.ppaddr  = l1tlb_l2tlb_req_o.disp_hpaddr & 0x03;
+	  l2tlb_l1tlb_ack_o.hpaddr  = (l1tlb_l2tlb_req_o.laddr >> 12) & 0x07FF;
+	  l2tlb_l1tlb_ack_o.ppaddr  = (l1tlb_l2tlb_req_o.laddr >> 12) & 0x07;
+	  l2tlb_l1tlb_ack_o.dctlbe	= 0;
 	  l2tlb_l1tlb_ack_list.push_front(l2tlb_l1tlb_ack_o);
 	  
-	  l2_dr_req_o.nid 	= dr_l2_snack_o.nid;
+	  /*l2_dr_req_o.nid 	= dr_l2_snack_o.nid;
 	  l2_dr_req_o.l2id	= dr_l2_snack_o.l2id;
 	  l2_dr_req_o.paddr = dr_l2_snack_o.paddr;
 	  l2_dr_req_list.push_front(l2_dr_req_o);
