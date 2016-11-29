@@ -10,8 +10,8 @@
 
 import sys
 
-modulename = 'ictlb'
-instancename = 'ictlb_dut'
+modulename = 'top_2core2dr'
+instancename = 'top'
 
 dict = {'I_drtol2_snack_type': [
             ('SC_nodeid_type\t', 'nid'),
@@ -160,6 +160,27 @@ dict = {'I_drtol2_snack_type': [
             ('CORE_reqid_type\t', 'coreid'),
             ('SC_laddr_type\t', 'laddr'),
             ('SC_sptbr_type\t', 'sptbr')],
+        'I_coretoic_pc_type':[
+            ('CORE_reqid_type\t', 'coreid'),
+            ('SC_poffset_type\t', 'poffset')],
+        'I_coretodctlb_ld_type':[
+            ('DC_ckpid_type\t', 'ckpid'),
+            ('CORE_reqid_type\t', 'coreid'),
+            ('CORE_lop_type\t', 'lop'),
+            ('logic\t\t\t', 'pnr'),
+            ('SC_laddr_type\t', 'laddr'),
+            ('SC_imm_type\t\t', 'imm'),
+            ('SC_sptbr_type\t', 'sptbr'),
+            ('logic\t\t\t', 'user')],
+        'I_coretodctlb_st_type':[
+            ('DC_ckpid_type\t', 'ckpid'),
+            ('CORE_reqid_type\t', 'coreid'),
+            ('CORE_mop_type\t', 'mop'),
+            ('logic\t\t\t', 'pnr'),
+            ('SC_laddr_type\t', 'laddr'),
+            ('SC_imm_type\t', 'imm'),
+            ('SC_sptbr_type\t', 'sptbr'),
+            ('logic\t\t\t', 'user')],
         }
 
 content = []
