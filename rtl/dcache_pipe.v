@@ -2,8 +2,8 @@
 `include "logfunc.h"
 `define     DC_PASSTHROUGH
 `define     FFLOP_HANDLE
- 
 //`define    COMPLETE
+
 `ifdef COMPLETE
 // define states for the state machine
 `define       IDLE                   0
@@ -24,6 +24,26 @@ state_type  stage2_next_state;
 state_type  stage3_current_state;
 state_type  stage3_next_state;
 // end define states
+
+///////////////////////////////////////////////////////////
+// 2 to 1 MUX
+///////////////////////////////////////////////////////////
+module mux (
+  a,
+  sel,
+  b
+);
+
+parameter Value = 0;
+parameter Width = 1;
+
+input [Width-1:0]  a;
+input              sel;
+output [Width-1:0] b;
+
+assign b = (sel)?Value:a;
+
+endmodule
 ///////////////////////////////////////////////////////////
 // FIFO BUFFER
 ///////////////////////////////////////////////////////////
@@ -156,30 +176,6 @@ storage (
 );
 
 
-endmodule
-
-
-///////////////////////////////////////////////////////////
-// L1_REQID MUX
-///////////////////////////////////////////////////////////
-module mux2to1 (
-  a,
-  sel,
-  c
-);
-parameter WIDTH = 1;
-parameter VALUE = 0;
-input [WIDTH-1:0]     a;
-input                 sel;
-output [WIDTH-1:0]    c;
-
-always_comb begin
-  if (!sel) begin
-    c = VALUE;
-  end else begin
-    c = a;
-  end
-end
 endmodule
 
 ///////////////////////////////////////////////////////////
@@ -1484,7 +1480,7 @@ l1_req_buffer (
   .req_valid  (stage2_input_valid),
   .req_retry  (l1_req_buffer_retry),
   .req_we     (l1_req_buffer_write),
-  .pos        (available_l1id),
+  .pos        (l1_req_buffer_pos),
   .req_data   (l1_req_buffer_data_write),
 
   .ack_valid  (l1_req_buffer_data_read_valid),
@@ -1493,11 +1489,31 @@ l1_req_buffer (
 );
 
 // define a bitmap to keep track of available spots in the buffer
-logic [L1_REQIDS-1:0]   bitmap;
-logic [L1_REQIDS-2:0]   c;
-mux2to1 #(.WIDTH(L1_REQIDBITS), .VALUE(1))(
-  .a    (c[0])
-);
+logic [`L1_REQIDS-1:0]       bitmap;
+logic [`L1_REQIDBITS-1:0]    c[`L1_REQIDS-2:0];
+
+always_comb begin
+  
+end
+
+always_comb begin
+  if (!bitmap[0]) begin
+    available_l1id = 0;
+  end else begin
+    available_l1id = c[0];
+  end
+end
+
+genvar i;
+generate
+  for (i=1;i<`L1_REQIDS; i=i+1) begin
+    mux #(.Value(i), .Width(`L1_REQIDBITS)) muxes (
+      .a      (c[i]),
+      .sel    (bitmap[i]),
+      .b      (c[i-1])
+    );
+  end
+endgenerate
 ///////////////////////////////////////////////////////////
 // DCTOCORE INTERFACE
 ///////////////////////////////////////////////////////////
@@ -1709,7 +1725,13 @@ always_comb begin
     end
     `LOAD_MISS: begin
       stage2_input_valid = (hit_valid_stage2)&&(databank_en_valid_stage2);
-      stage2_common_retry = (missq_retry);
+      stage2_common_retry = (missq_retry) || (l1_req_buffer_retry);
+      if (available_l1id == (`L1_REQIDS-1) && bitmap[`L1_REQIDS]) begin
+        l1_req_buffer_retry = 1; // buffer is full, send retry
+      end else begin
+        l1_req_buffer_retry = 0; // buffer is full, send retry
+        
+      end
     end
     `LOAD_HIT: begin
 
