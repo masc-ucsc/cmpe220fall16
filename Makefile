@@ -43,7 +43,7 @@ l2:
 	make -C obj_dir/ -f Vl2cache_pipe_wp.mk Vl2cache_pipe_wp
 
 yzhu29l2:
-	verilator --assert --debug-check -I./rtl --Wall --cc --trace -Wno-UNDRIVEN -Wno-UNUSED -Wno-UNOPTFLAT  -Wno-CASEINCOMPLETE -Wno-IMPLICIT +define+L2_COMPLETE +define+YZHU29 --top-module l2cache_pipe_wp ./tests/l2cache_pipe_wp.v ./rtl/fflop.v --exe ./tests/l2cache_pipe_wp_tb.cpp -CFLAGS "-DTRACE=1 -DNO_RETRY"
+	verilator --assert --debug-check -I./rtl --Wall --cc --trace -Wno-UNDRIVEN -Wno-UNUSED -Wno-UNOPTFLAT  -Wno-CASEINCOMPLETE -Wno-IMPLICIT +define+L2_COMPLETE +define+YZHU29 --top-module l2cache_pipe_wp ./tests/l2cache_pipe_wp.v ./rtl/fflop.v --exe ./tests/l2cache_pipe_wp_tb.cpp -CFLAGS "-DTRACE=1 -DNO_RETRY -DDEBUG_PRINT -DL2_COMPLETE"
 	make -C obj_dir/ -f Vl2cache_pipe_wp.mk Vl2cache_pipe_wp
 
 l2_pass_through:

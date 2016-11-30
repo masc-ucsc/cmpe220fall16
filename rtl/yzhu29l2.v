@@ -133,7 +133,18 @@ module yzhu29l2(
         logic   l2todr_req_next_valid;
         logic   l2todr_req_next_retry;
         I_l2todr_req_type   l2todr_req_next;
+        fflop #(.Size($bits(I_l2todr_req_type))) fl2todr_req (
+            .clk      (clk),
+            .reset    (reset),
 
+            .din      (l2todr_req_next),
+            .dinValid (l2todr_req_next_valid),
+            .dinRetry (l2todr_req_next_retry),
+
+            .q        (l2todr_req),
+            .qValid   (l2todr_req_valid),
+            .qRetry   (l2todr_req_retry)
+            );
     `ifdef L2_PASSTHROUGH
         `ifndef L2_COMPLETE
         assign l2todr_req_next_valid = l1tol2_req_valid;
@@ -164,18 +175,7 @@ module yzhu29l2(
         end
     end
 
-    fflop #(.Size($bits(I_l2todr_req_type))) fl2todr_req (
-    .clk      (clk),
-    .reset    (reset),
-
-    .din      (l2todr_req_next),
-    .dinValid (l2todr_req_next_valid),
-    .dinRetry (l2todr_req_next_retry),
-
-    .q        (l2todr_req),
-    .qValid   (l2todr_req_valid),
-    .qRetry   (l2todr_req_retry)
-    );
+    
     `endif
 `endif
 
@@ -390,7 +390,14 @@ module yzhu29l2(
 
 // Signals for tag
     // Each tag "line" contains all 16 ways 
-    localparam  TAG_WIDTH = (16 * `TLB_HPADDRBITS);
+    typedef struct packed {
+        logic   [15:0]  valid;
+        TLB_hpaddr_type     hpaddr_way0, hpaddr_way1, hpaddr_way2, hpaddr_way3,
+                            hpaddr_way4, hpaddr_way5, hpaddr_way6, hpaddr_way7,
+                            hpaddr_way8, hpaddr_way9, hpaddr_way10, hpaddr_way11,
+                            hpaddr_way12, hpaddr_way13, hpaddr_way14, hpaddr_way15;
+    } tag_t;
+    localparam  TAG_WIDTH = $bits(tag_t);
     localparam  TAG_SIZE = 128;
     logic   [1:0]   tag_bank_id;
     logic   [6:0]  predicted_index;
@@ -400,10 +407,10 @@ module yzhu29l2(
     logic tag_req_retry_bank[4];
     logic tag_req_we_bank[4];
     logic   [`log2(TAG_SIZE)-1:0]  tag_req_pos_bank[4];
-    logic   [TAG_WIDTH-1 : 0]  tag_req_data_bank[4];
+    tag_t   tag_req_data_bank[4];
     logic   tag_ack_valid_bank[4];
     logic   tag_ack_retry_bank[4];
-    logic   [TAG_WIDTH-1 : 0]  tag_ack_data_bank[4];
+    tag_t   tag_ack_data_bank[4];
 
     // Signals for Data Bank
     logic   final_tag_hit;
@@ -559,6 +566,7 @@ module yzhu29l2(
         TLB_hpaddr_type hpaddr;
         SC_paddr_type paddr;
         logic [1:0] which_bank;
+        I_drtol2_snack_type drtol2_snack;
     } s2_t;
     s2_t    s2_next_d, s2_q;
     fflop #(.Size($bits(s2_t))) ff_s2 (
@@ -583,6 +591,7 @@ module yzhu29l2(
         TLB_hpaddr_type hpaddr;
         SC_paddr_type   paddr;
         logic [1:0] which_bank;
+        I_drtol2_snack_type drtol2_snack;        
     } s3_t;
     s3_t    s3_next_d, s3_q;
     fflop #(.Size($bits(s3_t))) ff_s3 (
@@ -689,6 +698,25 @@ module yzhu29l2(
     .qRetry   (s7_qretry)
     );
 
+    // t2->:
+    typedef struct packed {
+        logic   [4:0]   winner_for_tag;
+        I_drtol2_snack_type      drtol2_snack;
+        tag_t   old_tag_content;
+    } t2_t;
+    t2_t    t2_next_d, t2_q;
+    fflop #(.Size($bits(t2_t))) ff_t2 (
+    .clk      (clk),
+    .reset    (reset),
+
+    .din      (t2_next_d),
+    .dinValid (t2_next_dvalid),
+    .dinRetry (t2_next_dretry),
+
+    .q        (t2_q),
+    .qValid   (t2_qvalid),
+    .qRetry   (t2_qretry)
+    );
 
     // Combinational Logic
     // S0: Handle new requests
@@ -701,6 +729,9 @@ module yzhu29l2(
     assign s1_next_dvalid = l1tol2_req_valid;
     assign s1_next_d.l1tol2_req = l1tol2_req;
     assign s1_next_d.llht_addr = req_rd_llht_next_addr;
+
+    // T1: drtol2 ack read tag
+    assign  drtol2_ack = drtol2_snack_valid && (drtol2_snack.l2id != 0);
 
     // S1:
     // S1.A Enqueue prep
@@ -766,7 +797,7 @@ module yzhu29l2(
     //S1.C Update llht
     // VS S7 update llht
     // TODO: send retry to s1 before
-    //TODO: assign  s1_after_qvalid = s1_qvalid && (~s7_qvalid);
+    assign  s1_retry_1 = s1_qvalid && s7_qvalid;
     logic   [4:0] new_tail_llht;
     //assign new_tail_llht = qreq_wrpointer_q;
     assign new_tail_llht = s1_q.l1tol2_req.l1id;
@@ -809,13 +840,25 @@ module yzhu29l2(
     end
    
     //S1.G Choose a winner for accessing tag
+    // common resource: tag
     localparam NEW_L1TOL2_REQ = 5'b00001;
     localparam QREQ = 5'b00010;
+    localparam DRTOL2_ACK = 5'b00100;
+    localparam DRTOL2_ACK_WRITE = 5'b01000;
     logic [4:0] winner_for_tag;
     always_comb begin
         winner_for_tag = 0;
         predicted_index = 7'bx;
+        // TODO: Any loser should retry
         case (1'b1)
+            t2_qvalid: begin // VS T2: drtol2 ack write tag
+                winner_for_tag = DRTOL2_ACK_WRITE;
+                predicted_index = t2_q.drtol2_snack.paddr[12:6]; // this is not predictted actually
+            end
+            drtol2_ack: begin //VS T1: drtol2 ack read tag
+                winner_for_tag = DRTOL2_ACK;
+                predicted_index = drtol2_snack.paddr[12:6]; // this is not predictted actually
+            end
             has_winner_in_qreq : begin
                 winner_for_tag = QREQ;
                 predicted_index = {qreq_q[winner_in_qreq].l1tol2_req.ppaddr[2], qreq_q[winner_in_qreq].l1tol2_req.poffset[11:6]};
@@ -834,10 +877,31 @@ module yzhu29l2(
     //        || (~tag_bank2_busy && (tag_bank_id_s0==2'b10)) || (~tag_bank3_busy && (tag_bank_id_s0==2'b11));
     assign  tag_bank_id = predicted_index[1:0];    
     //S1.H Access tag
+    //S1.H.e update and evict tag
+    tag_t new_tag;
+    logic   found_empty_way;
+    logic   [3:0]   empty_way;
+    always_comb begin
+        new_tag = t2_q.old_tag_content;
+        found_empty_way = 0;
+        for (int p=0; p<=15; p=p+1) begin
+            if ((~t2_q.old_tag_content.valid[p]) && (~found_empty_way)) begin
+                found_empty_way = 1;
+                empty_way = p[3:0];
+            end
+        end
+        for (int q=0; q<=3; q=q+1) begin
+            case (empty_way)
+                4'b0: begin tag_req_data_bank[q].valid[0] = 1; tag_req_data_bank[q].hpaddr_way0 = t2_q.drtol2_snack.hpaddr_hash; end
+                //TODO: expand all the 16 ways
+            endcase
+        end
+    end
     //S1.H.a Access bank0
     assign  tag_req_valid_bank[0] = (winner_for_tag>0) && (tag_bank_id == 2'b00);
-    assign  tag_req_we_bank[0] = tag_req_valid_bank[0] ? 0 : 0;// Read tag
+    assign  tag_req_we_bank[0] = (winner_for_tag == DRTOL2_ACK_WRITE) ? 1 : 0;// write or Read tag
     assign  tag_req_pos_bank[0] = predicted_index;
+    assign  tag_req_data_bank[0] = t2_q.old_tag_content;
     // Set busy when access tag
     // Reset busy in next state (state2)
     //assign  tag_bank0_busy_next = tag_req_valid_bank[0] ? 1'b1 : ( (reg_new_l1tol2_req_tag_access_1 ? 1'b0 : tag_bank0_busy ));
@@ -845,7 +909,7 @@ module yzhu29l2(
 
     //S1.H.b Access Bank1
     assign  tag_req_valid_bank[1] = (winner_for_tag>0) && (tag_bank_id == 2'b01);
-    assign  tag_req_we_bank[1] = tag_req_valid_bank[1] ? 0 : 0;// Read tag
+    assign  tag_req_we_bank[1] = (winner_for_tag == DRTOL2_ACK_WRITE) ? 1 : 0;// write or Read tag
     assign  tag_req_pos_bank[1] = predicted_index;
     // Set busy when access tag
     // Reset busy in next state (state2)
@@ -853,7 +917,7 @@ module yzhu29l2(
 
     //S1.H.c Access Bank2
     assign  tag_req_valid_bank[2] = (winner_for_tag>0) && (tag_bank_id == 2'b10);
-    assign  tag_req_we_bank[2] = tag_req_valid_bank[2] ? 0 : 0;// Read tag
+    assign  tag_req_we_bank[2] = (winner_for_tag == DRTOL2_ACK_WRITE) ? 1 : 0;// write or Read tag
     assign  tag_req_pos_bank[2] = predicted_index;
     // Set busy when access tag
     // Reset busy in next state (state2)
@@ -861,18 +925,21 @@ module yzhu29l2(
 
     //S1.H.d Access Bank3
     assign  tag_req_valid_bank[3] = (winner_for_tag>0)  && (tag_bank_id == 2'b11);
-    assign  tag_req_we_bank[3] = tag_req_valid_bank[3] ? 0 : 0;// Read tag
+    assign  tag_req_we_bank[3] = (winner_for_tag == DRTOL2_ACK_WRITE) ? 1 : 0;// write or Read tag
     assign  tag_req_pos_bank[3] = predicted_index;
     // Set busy when access tag
     // Reset busy in next state (state2)
     //assign  tag_bank3_busy_next = tag_req_valid_bank[3] ? 1'b1 : ( (reg_new_l1tol2_req_tag_access_1 ? 1'b0 : tag_bank3_busy ));
 
     //S1.I register fflop for s2
+    // S1->S2
     assign  s2_next_dvalid = winner_for_tag>0;
     assign  s2_next_d.l1tol2_req = s1_q.l1tol2_req;
     assign  s2_next_d.hpaddr = qreq_q[winner_in_qreq].hpaddr;
     assign  s2_next_d.winner_for_tag = winner_for_tag;
     assign  s2_next_d.which_bank = tag_bank_id;
+    // for drtol2 ack
+    assign  s2_next_d.drtol2_snack = drtol2_snack;
     // TODO assign s2_next_d.paddr = ready req's paddr
 
        // Data bank stage
@@ -1190,6 +1257,7 @@ module yzhu29l2(
     end
 
     // S2.B: register fflop for s3
+    // S2->S3
     assign  s3_next_dvalid = s2_qvalid;
     assign  s3_next_d.winner_for_tag = s2_q.winner_for_tag;
     assign  s3_next_d.l1tol2_req = s2_q.l1tol2_req;
@@ -1198,19 +1266,19 @@ module yzhu29l2(
     assign  s3_next_d.paddr = (l1_match_l2tlb_l1id && l1_match_l2tlb_ppaddr) ? l2tlbtol2_fwd.paddr : s2_q.paddr;
     assign  s3_next_d.hpaddr = (l1_match_l2tlb_l1id && l1_match_l2tlb_ppaddr) ? l2tlbtol2_fwd.hpaddr : s2_q.hpaddr;
     assign  s3_next_d.which_bank = s2_q.which_bank;
+    // for drtol2 ack
+    assign  s3_next_d.drtol2_snack = drtol2_snack;
 
     // S3: Tag Access_2
     // S3.A: extract hpaddr from tag read
+    /*
     TLB_hpaddr_type  hpaddr_from_tag[16];
     assign {hpaddr_from_tag[0], hpaddr_from_tag[1], hpaddr_from_tag[2], hpaddr_from_tag[3],
             hpaddr_from_tag[4], hpaddr_from_tag[5], hpaddr_from_tag[6], hpaddr_from_tag[7],
             hpaddr_from_tag[8], hpaddr_from_tag[9], hpaddr_from_tag[10], hpaddr_from_tag[11],
             hpaddr_from_tag[12], hpaddr_from_tag[13], hpaddr_from_tag[14], hpaddr_from_tag[15]
-            } = tag_ack_valid_bank[0] ? tag_ack_data_bank[0] : ( 
-                (tag_ack_valid_bank[1] ? tag_ack_data_bank[1] : 
-                (tag_ack_valid_bank[2] ? tag_ack_data_bank[2] :
-                (tag_ack_valid_bank[3] ? tag_ack_data_bank[3] : 'b0
-              ))));    // TODO extract hpaddr
+            } = tag_ack_data_bank[s3_q.which_bank];// TODO extract hpaddr
+    */
     assign  tag_ack_valid_banks_ways = tag_ack_valid_bank[0] | tag_ack_valid_bank[1] | tag_ack_valid_bank[2] | tag_ack_valid_bank[3];
 
     // S3.B: Handle tag result
@@ -1219,101 +1287,102 @@ module yzhu29l2(
         hit_way = 4'bx;
         if (s3_qvalid) begin
         // Tag access result is ready
-            if (s3_q.l1_match_l2tlb_l1id && s3_q.l1_match_l2tlb_ppaddr && tag_ack_valid_banks_ways) begin
+        // Could be l1tol2 access or DRTOL2_ACK
+            if (((s3_q.l1_match_l2tlb_l1id && s3_q.l1_match_l2tlb_ppaddr) || (s3_q.winner_for_tag==DRTOL2_ACK)) && tag_ack_valid_banks_ways) begin
             // l1id matched and ppaddr is correct
                 case (1'b1)
                     // Check way0
-                    ((hpaddr_from_tag[0] == s3_q.hpaddr)) : begin
+                    ((tag_ack_data_bank[s3_q.which_bank].hpaddr_way0 == s3_q.hpaddr)) : begin
                         // (hpaddr) Tag hit
                         tag_hit = 1;
                         hit_way = 4'b0000;
                     end
                     // Check way1
-                    ((hpaddr_from_tag[1] == s3_q.hpaddr)) : begin
+                    ((tag_ack_data_bank[s3_q.which_bank].hpaddr_way1 == s3_q.hpaddr)) : begin
                         // (hpaddr) Tag hit
                         tag_hit = 1;
                         hit_way = 4'b0001;
                     end
                     // Check way2
-                    ((hpaddr_from_tag[2] == s3_q.hpaddr)) : begin
+                    ((tag_ack_data_bank[s3_q.which_bank].hpaddr_way2 == s3_q.hpaddr)) : begin
                         // (hpaddr) Tag hit
                         tag_hit = 1;
                         hit_way = 4'b0010;
                     end
                     // Check way3
-                    ((hpaddr_from_tag[3] == s3_q.hpaddr)) : begin
+                    ((tag_ack_data_bank[s3_q.which_bank].hpaddr_way3 == s3_q.hpaddr)) : begin
                         // (hpaddr) Tag hit
                         tag_hit = 1;
                         hit_way = 4'b0011;
                     end
                     // Check way4
-                    ((hpaddr_from_tag[4] == s3_q.hpaddr)) : begin
+                    ((tag_ack_data_bank[s3_q.which_bank].hpaddr_way4 == s3_q.hpaddr)) : begin
                         // (hpaddr) Tag hit
                         tag_hit = 1;
                         hit_way = 4'b0100;
                     end
                     // Check way5
-                    ((hpaddr_from_tag[5] == s3_q.hpaddr)) : begin
+                    ((tag_ack_data_bank[s3_q.which_bank].hpaddr_way5 == s3_q.hpaddr)) : begin
                         // (hpaddr) Tag hit
                         tag_hit = 1;
                         hit_way = 4'b0101;
                     end
                     // Check way6
-                    ((hpaddr_from_tag[6] == s3_q.hpaddr)) : begin
+                    ((tag_ack_data_bank[s3_q.which_bank].hpaddr_way6 == s3_q.hpaddr)) : begin
                         // (hpaddr) Tag hit
                         tag_hit = 1;
                         hit_way = 4'b0110;
                     end
                     // Check way7
-                    ((hpaddr_from_tag[7] == s3_q.hpaddr)) : begin
+                    ((tag_ack_data_bank[s3_q.which_bank].hpaddr_way7 == s3_q.hpaddr)) : begin
                         // (hpaddr) Tag hit
                         tag_hit = 1;
                         hit_way = 4'b0111;
                     end
                     // Check way8
-                    ((hpaddr_from_tag[8] == s3_q.hpaddr)) : begin
+                    ((tag_ack_data_bank[s3_q.which_bank].hpaddr_way8 == s3_q.hpaddr)) : begin
                         // (hpaddr) Tag hit
                         tag_hit = 1;
                         hit_way = 4'b1000;
                     end
                     // Check way9
-                    ((hpaddr_from_tag[9] == s3_q.hpaddr)) : begin
+                    ((tag_ack_data_bank[s3_q.which_bank].hpaddr_way9 == s3_q.hpaddr)) : begin
                         // (hpaddr) Tag hit
                         tag_hit = 1;
                         hit_way = 4'b1001;
                     end
                     // Check way10
-                    ((hpaddr_from_tag[10] == s3_q.hpaddr)) : begin
+                    ((tag_ack_data_bank[s3_q.which_bank].hpaddr_way10 == s3_q.hpaddr)) : begin
                         // (hpaddr) Tag hit
                         tag_hit = 1;
                         hit_way = 4'b1010;
                     end
                     // Check way11
-                    ((hpaddr_from_tag[11] == s3_q.hpaddr)) : begin
+                    ((tag_ack_data_bank[s3_q.which_bank].hpaddr_way11 == s3_q.hpaddr)) : begin
                         // (hpaddr) Tag hit
                         tag_hit = 1;
                         hit_way = 4'b1011;
                     end
                     // Check way12
-                    ((hpaddr_from_tag[12] == s3_q.hpaddr)) : begin
+                    ((tag_ack_data_bank[s3_q.which_bank].hpaddr_way12 == s3_q.hpaddr)) : begin
                         // (hpaddr) Tag hit
                         tag_hit = 1;
                         hit_way = 4'b1100;
                     end
                     // Check way13
-                    ((hpaddr_from_tag[13] == s3_q.hpaddr)) : begin
+                    ((tag_ack_data_bank[s3_q.which_bank].hpaddr_way13 == s3_q.hpaddr)) : begin
                         // (hpaddr) Tag hit
                         tag_hit = 1;
                         hit_way = 4'b1101;
                     end
                     // Check way14
-                    ((hpaddr_from_tag[14] == s3_q.hpaddr)) : begin
+                    ((tag_ack_data_bank[s3_q.which_bank].hpaddr_way14 == s3_q.hpaddr)) : begin
                         // (hpaddr) Tag hit
                         tag_hit = 1;
                         hit_way = 4'b1110;
                     end
                     // Check way15
-                    ((hpaddr_from_tag[15] == s3_q.hpaddr)) : begin
+                    ((tag_ack_data_bank[s3_q.which_bank].hpaddr_way15 == s3_q.hpaddr)) : begin
                         // (hpaddr) Tag hit
                         tag_hit = 1;
                         hit_way = 4'b1111;
@@ -1325,16 +1394,12 @@ module yzhu29l2(
 
     // S3.C: Handle tag miss
     assign  tag_miss = (~tag_hit) && tag_ack_valid_banks_ways;
-    // Send l2todr_req if miss
-    always_comb begin
-        if (tag_miss) begin
-          
-        end
-    end
+    // S3.C+: Send l2todr_req if miss
+    
     // qzhang33
 
     // S3->S4
-    assign  s4_next_dvalid = s3_qvalid && tag_hit;
+    assign  s4_next_dvalid = s3_qvalid && tag_hit && (s3_q.winner_for_tag==NEW_L1TOL2_REQ || s3_q.winner_for_tag==QREQ);
     assign  s4_next_d.winner_for_tag = s3_q.winner_for_tag;
     assign  s4_next_d.l1tol2_req = s3_q.l1tol2_req;
     assign  s4_next_d.tag_hit = tag_hit;
@@ -1343,6 +1408,13 @@ module yzhu29l2(
     assign  s4_next_d.paddr = s3_q.paddr;
     assign  s4_next_d.which_bank = s3_q.which_bank;
     assign  s4_next_d.hpaddr = s3_q.hpaddr;
+
+    // S3->T2
+    assign  t2_next_dvalid = s3_qvalid && (s3_q.winner_for_tag==DRTOL2_ACK) &&
+            tag_ack_valid_bank[s3_q.which_bank];
+    assign  t2_next_d.winner_for_tag = s3_q.winner_for_tag;
+    assign  t2_next_d.drtol2_snack = s3_q.drtol2_snack;
+    assign  t2_next_d.old_tag_content = tag_ack_data_bank[s3_q.which_bank];
 
     // Enter next pipe stage: s4_qvalid when tag hit
 
@@ -1415,21 +1487,28 @@ module yzhu29l2(
 
     // S6.C: Send l2todr_req on a miss
     // (S6.c+: update qreq, mark the req as not ready)
-    assign  l2todr_req_next_valid = final_tag_miss;
+    // VS S3.C+: Handle tag miss
+    // If S6 conflict with S3, S3 needs to retry
+    assign   s3_qretry_1 = final_tag_miss && (tag_miss && s3_qvalid);
+    assign  l2todr_req_next_valid = final_tag_miss || (tag_miss && s3_qvalid);
     always_comb begin
         if (l2todr_req_next_valid) begin
             l2todr_req_next.nid = 5'b00000; // TODO: Could be wrong
-            l2todr_req_next.l2id = {1'b0, s6_q.l1tol2_req.l1id}; // Don't use the msb
-            l2todr_req_next.cmd = s6_q.l1tol2_req.cmd; // TODO: double check with Jose
-            l2todr_req_next.paddr = s6_q.paddr;
+            l2todr_req_next.l2id = final_tag_miss ? {1'b0, s6_q.l1tol2_req.l1id} : {1'b0 , s3_q.l1tol2_req.l1id}; // Don't use the msb
+            l2todr_req_next.cmd = final_tag_miss? s6_q.l1tol2_req.cmd : s3_q.l1tol2_req.cmd ; // TODO: double check with Jose
+            l2todr_req_next.paddr = final_tag_miss ? s6_q.paddr : s3_q.paddr;
         end
     end
+
 
     // S6->S7
     assign  s7_next_dvalid = final_tag_hit;
     assign  s7_next_d.l1tol2_req = s6_q.l1tol2_req;
 
     //S7 update llht
+
+    // T1: drtol2 ack read tag
+    
 
 `endif
 endmodule
