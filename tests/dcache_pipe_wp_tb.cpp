@@ -358,6 +358,7 @@ l1tlbtol1_fwd_packet generateRand_l1tlbtol1_fwd_packet() {
 // try send
 void try_send_coretodc_ld(Vdcache_pipe_wp *top) {
   //randomize validity of the packet
+  //printf("coretodc_ld_retry:%x\n", top->coretodc_ld_retry);
   if (!top->coretodc_ld_retry && !top->l1tlbtol1_fwd0_retry) {
     coretodc_ld_packet randPack0 = generateRand_coretodc_ld_packet();
     l1tlbtol1_fwd_packet randPack1 = generateRand_l1tlbtol1_fwd_packet();
@@ -385,8 +386,7 @@ void try_send_coretodc_ld(Vdcache_pipe_wp *top) {
   }
 
   // try to send packet 
-  if (top->coretodc_ld_valid && !top->coretodc_ld_retry
-        && top->l1tlbtol1_fwd0_valid && !top->l1tlbtol1_fwd0_retry) {
+  if ((top->coretodc_ld_valid) && (!top->coretodc_ld_retry) && (top->l1tlbtol1_fwd0_valid) && (!top->l1tlbtol1_fwd0_retry)) {
     if (coretodc_ld_list.empty()) {
       fprintf(stderr,"ERROR: Internal error, could not be empty inp\n");
     }
@@ -409,7 +409,7 @@ void try_send_coretodc_ld(Vdcache_pipe_wp *top) {
     top->l1tlbtol1_fwd0_ppaddr = inpPack1.ppaddr;
 #ifdef DEBUG_TRACE
     printf("@%lld ",global_time);
-    printf("ckpid:%x ", inpPack0.ckpid);
+    printf("SENDING--> ");
     printf("coreid:%x ", inpPack0.coreid);
     printf("lop:%x ", inpPack0.lop);
     printf("pcsign:%x ", inpPack0.pcsign);
@@ -464,6 +464,7 @@ void try_recv_l1tol2_req(Vdcache_pipe_wp *top) {
 
 #ifdef DEBUG_TRACE
     printf("@%lld ",global_time);
+    printf("RECVING--> ");
     printf("l1id:%x ", top->l1tol2_req_l1id);
     printf("cmd:%x ", top->l1tol2_req_cmd);
     printf("pcsign:%x ", top->l1tol2_req_pcsign);
@@ -533,6 +534,7 @@ void try_recv_l1tol2tlb_req(Vdcache_pipe_wp *top) {
            
 #ifdef DEBUG_TRACE
     printf("@%lld ",global_time);
+    printf("RECVING--> ");
     printf("l1id:%x ", top->l1tol2tlb_req_l1id);
     printf("prefetch:%x ", top->l1tol2tlb_req_prefetch);
     printf("hpaddr:%x\n", top->l1tol2tlb_req_hpaddr);
@@ -600,7 +602,6 @@ int main(int argc, char **argv, char **env) {
     try_send_l2tol1_snack(top);
     advance_clock(top,4);
     try_recv_dctocore_ld(top);
-    advance_clock(top,2);
 
     if (((rand() & 0x3)==0) && l2tol1_snack_list.size() < 3 ) {
       l2tol1_snack_packet in;
@@ -623,10 +624,9 @@ int main(int argc, char **argv, char **env) {
 #if TEST_CORE_TO_DC
   for (int i=0; i<1024; i++) {
     try_send_coretodc_ld(top);
-    advance_clock(top, 2);
+    advance_clock(top,2);
     try_recv_l1tol2_req(top);
     try_recv_l1tol2tlb_req(top);
-    advance_clock(top, 1);
 
     if (((rand() & 0x3)==0) && coretodc_ld_list.size()<3) {
       coretodc_ld_packet in0 = generateRand_coretodc_ld_packet();
