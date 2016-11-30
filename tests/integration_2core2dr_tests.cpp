@@ -623,7 +623,9 @@ void run_single_core(int coreid) {
 
         request.imm     = rand() & mask(sizeof(top->core0_slice0_coretodc_ld_imm));
         request.laddr   = rand() & mask(sizeof(top->c0_s0_coretodctlb_ld_laddr));
-        request.poffset = (request.laddr >> 27) & mask(sizeof(top->core0_slice0_coretodc_ld_poffset));
+
+        // poffset = laddr[11:0]
+        request.poffset = request.laddr & mask(sizeof(top->core0_slice0_coretodc_ld_poffset));
 
         c0s0_ld_req_queue.push_front(request);
 

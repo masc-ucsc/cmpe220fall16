@@ -26,7 +26,7 @@ dcache_pipe_wp:
 run_dcache_pipe_wp: dcache_pipe_wp
 	./obj_dir/Vdcache_pipe_wp
 
-REGLIST+=dcache_pipe_wp
+#REGLIST+=dcache_pipe_wp
 ###########################
 
 fork_fflop:
