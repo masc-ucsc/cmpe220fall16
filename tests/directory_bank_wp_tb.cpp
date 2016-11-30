@@ -939,6 +939,8 @@ int main(int argc, char **argv, char **env) {
         //i.paddr = rand() & 0x00000000FFFFFFFF;
       else
         i.paddr = rand() & 0x00000000FFFFFFFF;
+      
+      i.paddr = 0x0000001234567890;
 
       inp_list_req.push_front(i);
       
