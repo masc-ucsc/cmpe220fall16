@@ -1179,12 +1179,15 @@ end
 
 // break down the core request and TLB to construct L2 request
 I_l1tol2_req_type l1tol2_req_ld_current;
+logic common_valid_ld;
 always_comb begin
-  l1tol2_req_ld_current.l1id = 5'b00000;
-  l1tol2_req_ld_current.cmd = `SC_CMD_REQ_S;
-  l1tol2_req_ld_current.pcsign = coretodc_ld.pcsign;
-  l1tol2_req_ld_current.poffset = coretodc_ld.poffset;
-  l1tol2_req_ld_current.ppaddr = l1tlbtol1_fwd0.ppaddr;
+  if (common_valid_ld) begin
+    l1tol2_req_ld_current.l1id = 5'b00000;
+    l1tol2_req_ld_current.cmd = `SC_CMD_REQ_S;
+    l1tol2_req_ld_current.pcsign = coretodc_ld.pcsign;
+    l1tol2_req_ld_current.poffset = coretodc_ld.poffset;
+    l1tol2_req_ld_current.ppaddr = l1tlbtol1_fwd0.ppaddr;
+  end
 end
 
 // construct L1 to L2 TLB store request
@@ -1192,9 +1195,11 @@ end
 I_l1tol2tlb_req_type l1tol2tlb_req_ld_current;
 /* verilator lint_on UNDRIVEN */
 always_comb begin
-  l1tol2tlb_req_ld_current.l1id = 5'b00000;
-  l1tol2tlb_req_ld_current.prefetch = 0;
-  l1tol2tlb_req_ld_current.hpaddr = l1tlbtol1_fwd0_current.hpaddr;
+  if (common_valid_ld) begin
+    l1tol2tlb_req_ld_current.l1id = 5'b00000;
+    l1tol2tlb_req_ld_current.prefetch = 0;
+    l1tol2tlb_req_ld_current.hpaddr = l1tlbtol1_fwd0_current.hpaddr;
+  end
 end
 
 // PASSTHROUGH #3
@@ -1209,32 +1214,35 @@ end
 // pass miss request to L2 and send ack to core
 
 // construct L1 to L2 store request
+logic process_stores;
 I_l1tol2_req_type l1tol2_req_std_current;
+logic common_valid_std;
 always_comb begin
-  l1tol2_req_std_current.l1id     = 5'b00000;
-  l1tol2_req_std_current.cmd      = `SC_CMD_REQ_S;
-  l1tol2_req_std_current.pcsign   = coretodc_std.pcsign;
-  l1tol2_req_std_current.poffset  = coretodc_std.poffset;
-  l1tol2_req_std_current.ppaddr   = l1tlbtol1_fwd1.ppaddr;
+  if (common_valid_std) begin
+    l1tol2_req_std_current.l1id     = 5'b00000;
+    l1tol2_req_std_current.cmd      = `SC_CMD_REQ_S;
+    l1tol2_req_std_current.pcsign   = coretodc_std.pcsign;
+    l1tol2_req_std_current.poffset  = coretodc_std.poffset;
+    l1tol2_req_std_current.ppaddr   = l1tlbtol1_fwd1.ppaddr;
+  end
 end
 
 // construct L1 to L2 TLB store request
 I_l1tol2tlb_req_type l1tol2tlb_req_std_current;
 always_comb begin
-  l1tol2tlb_req_std_current.l1id = 5'b00000;
-  l1tol2tlb_req_std_current.prefetch = 0;
-  l1tol2tlb_req_std_current.hpaddr = l1tlbtol1_fwd1_current.hpaddr;
+  if (common_valid_std) begin
+    l1tol2tlb_req_std_current.l1id = 5'b00000;
+    l1tol2tlb_req_std_current.prefetch = 0;
+    l1tol2tlb_req_std_current.hpaddr = l1tlbtol1_fwd1_current.hpaddr;
+  end
 end
 
 // construct L1 to CORE store ack
 always_comb begin
   dctocore_std_ack_current.fault  = 0;
   dctocore_std_ack_current.coreid = 0;
-end
-
-// calculate valid and retry signals associated with the previous stage
-always_comb begin
-  ff_dctocore_std_ack_valid_in = 1;
+ 
+  ff_dctocore_std_ack_valid_in = (process_stores)&&(ff_l1tlbtol1_fwd1_valid_out)&&(ff_coretodc_std_valid_out);
 end
 
 // select between coretodc_ld and coretodc_std
@@ -1251,30 +1259,40 @@ end
 //               | /
 //               |/
 //
+
 logic [2:0] counter;
 always @(posedge clk) begin
   counter <= counter+1;
 end
 
+assign process_stores = counter[2];
+
+//handle valids
 always_comb begin
-  if (1 == 0) begin//(counter[2] == 1 && ff_coretodc_std_valid_out == 1) begin
+  common_valid_std = ff_coretodc_std_valid_out && ff_l1tlbtol1_fwd1_valid_out;
+  common_valid_ld  = ff_coretodc_ld_valid_out && ff_l1tlbtol1_fwd0_valid_out;
+end
+
+//handle retries
+always_comb begin
+  ff_coretodc_std_retry_in   = !(ff_coretodc_std_valid_out && ff_l1tlbtol1_fwd1_valid_out) || !(process_stores);
+  ff_l1tlbtol1_fwd1_retry_in = !(ff_coretodc_std_valid_out && ff_l1tlbtol1_fwd1_valid_out) || !(process_stores);
+
+  ff_coretodc_ld_retry_in    = !(ff_coretodc_ld_valid_out && ff_l1tlbtol1_fwd0_valid_out) || (process_stores);
+  ff_l1tlbtol1_fwd0_retry_in = !(ff_coretodc_ld_valid_out && ff_l1tlbtol1_fwd0_valid_out) || (process_stores);
+end
+
+always_comb begin
+  if (process_stores) begin//(counter[2] == 1 && ff_coretodc_std_valid_out == 1) begin
     l1tol2_req_current = l1tol2_req_std_current;
     l1tol2tlb_req_current = l1tol2tlb_req_std_current;
-    ff_l1tol2_req_valid_in = ff_coretodc_std_valid_out&ff_l1tlbtol1_fwd1_valid_out;
-    ff_l1tol2tlb_req_valid_in = ff_l1tlbtol1_fwd1_valid_out;
-    ff_coretodc_std_retry_in = ff_l1tol2_req_retry_out&ff_l1tol2tlb_req_retry_out;
-    ff_coretodc_ld_retry_in = 1;
-    ff_l1tlbtol1_fwd0_retry_in = 1;
-    ff_l1tlbtol1_fwd1_retry_in = ff_l1tol2_req_retry_out&ff_l1tol2tlb_req_retry_out;
+    ff_l1tol2_req_valid_in = ff_coretodc_std_valid_out && ff_l1tlbtol1_fwd1_valid_out;
+    ff_l1tol2tlb_req_valid_in = ff_coretodc_std_valid_out && ff_l1tlbtol1_fwd1_valid_out;
   end else begin
     l1tol2_req_current = l1tol2_req_ld_current;
     l1tol2tlb_req_current = l1tol2tlb_req_ld_current;
-    ff_l1tol2_req_valid_in = ff_coretodc_ld_valid_out&ff_l1tlbtol1_fwd0_valid_out;
-    ff_l1tol2tlb_req_valid_in = ff_l1tlbtol1_fwd0_valid_out;
-    ff_coretodc_std_retry_in = 0;
-    ff_coretodc_ld_retry_in = ff_l1tol2_req_retry_out&ff_l1tol2tlb_req_retry_out;
-    ff_l1tlbtol1_fwd0_retry_in = ff_l1tol2_req_retry_out&ff_l1tol2tlb_req_retry_out;
-    ff_l1tlbtol1_fwd1_retry_in = 0;
+    ff_l1tol2_req_valid_in = ff_coretodc_ld_valid_out && ff_l1tlbtol1_fwd0_valid_out;
+    ff_l1tol2tlb_req_valid_in = ff_coretodc_ld_valid_out && ff_l1tlbtol1_fwd0_valid_out;
   end
 end
 `endif
