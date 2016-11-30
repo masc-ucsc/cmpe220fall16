@@ -468,7 +468,7 @@ void try_recv_packet(Vintegration_2core2dr *top) {
     printf("@%lld paddr=%d\n",global_time, top->dr0_drtomem_req_paddr);
 #endif
     MemReq o = dr0_reqs.back();
-    if (top->dr0_drtomem_req_paddr == o.paddr) {
+    if (top->dr0_drtomem_req_paddr != o.paddr) {
       printf("ERROR: expected %X but paddr is %X\n",o.paddr,top->dr0_drtomem_req_paddr);
       error_found(top);
     }
@@ -482,7 +482,7 @@ void try_recv_packet(Vintegration_2core2dr *top) {
     printf("@%lld paddr=%d\n",global_time, top->dr1_drtomem_req_paddr);
 #endif
     MemReq o = dr1_reqs.back();
-    if (top->dr1_drtomem_req_paddr == o.paddr) {
+    if (top->dr1_drtomem_req_paddr != o.paddr) {
       printf("ERROR: expected %X but paddr is %X\n",o.paddr,top->dr1_drtomem_req_paddr);
       error_found(top);
     }
@@ -490,6 +490,8 @@ void try_recv_packet(Vintegration_2core2dr *top) {
     dr1_reqs.pop_back();
     ntests++;
   }
+
+
 }
 
 void try_send_packet(Vintegration_2core2dr *top) {
@@ -571,9 +573,10 @@ void run_single_core(int coreid) {
   top->reset = 0;
 
   //for(int niters=0 ; niters < 50; niters++) {
-  for(int niters=0 ; niters < 2; niters++) {
+  for(int niters=0 ; niters < 1; niters++) {
     //-------------------------------------------------------;
 
+  /*
 #ifdef DEBUG_TRACE
     printf("reset\n");
 #endif
@@ -594,7 +597,7 @@ void run_single_core(int coreid) {
       set_handshake(top,-1);
       advance_clock(top,1);
     }
-
+   */
 #ifdef DEBUG_TRACE
     printf("no reset\n");
 #endif
@@ -604,7 +607,7 @@ void run_single_core(int coreid) {
     advance_clock(top,1);
 
     //for(int i =0;i<1024;i++) {
-    for(int i =0;i<10;i++) {
+    for(int i =0;i<100;i++) {
       try_send_packet(top);
       advance_half_clock(top);
       try_recv_packet(top);
@@ -636,6 +639,15 @@ void run_single_core(int coreid) {
       }
       //advance_clock(top,1);
     }
+
+    for(int i =0;i<1000;i++) {
+      try_recv_packet(top);
+      advance_clock(top,1);
+    }
+  }
+  if(!dr1_reqs.empty() || !dr0_reqs.empty()) {
+    printf("ERROR: expecting outputs but got nothing\n"); 
+    error_found(top);
   }
 }
 
