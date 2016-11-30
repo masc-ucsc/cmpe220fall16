@@ -62,7 +62,7 @@ struct MemResp {
   int nid;
   int paddr;
   int ack;
-  unsigned int* line;
+  unsigned int line[16];
 };
 
 std::list<DCacheLDReq> c0s0_ld_req_queue;
