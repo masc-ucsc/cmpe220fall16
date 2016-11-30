@@ -92,6 +92,42 @@ struct l1tol2tlb_req_packet { //output of DUT
 };
 
 ///////////////////////////////////////////////////////////
+// pair #3
+// coretodc_std+l1tlbtol1_fwd1 --> l1tol2_disp
+///////////////////////////////////////////////////////////
+struct coretodc_std_packet {
+  uint8_t   ckpid;
+  uint8_t   coreid;
+  uint8_t   mop;
+  uint8_t   pnr;
+  uint16_t  pcsign;
+  uint16_t  poffset;
+  uint16_t  imm;
+  uint64_t  data7;
+  uint64_t  data6;
+  uint64_t  data5;
+  uint64_t  data4;
+  uint64_t  data3;
+  uint64_t  data2;
+  uint64_t  data1;
+  uint64_t  data0;
+};
+
+struct l1tol2_disp_packet {
+  uint8_t   l1id;
+  uint8_t   l2id;
+  uint8_t   dcmd;
+  uint64_t  mask;
+  uint64_t  line7;
+  uint64_t  line6;
+  uint64_t  line5;
+  uint64_t  line4;
+  uint64_t  line3;
+  uint64_t  line2;
+  uint64_t  line1;
+  uint64_t  line0;
+};
+///////////////////////////////////////////////////////////
 // TESTBENCH AUX FUNCTIONS
 ///////////////////////////////////////////////////////////
 void advance_half_clock(Vdcache_pipe_wp *top) {
@@ -567,6 +603,153 @@ void try_recv_l1tol2tlb_req(Vdcache_pipe_wp *top) {
   l1tol2tlb_req_list.pop_back();
 }
 
+///////////////////////////////////////////////////////////
+// PAIR #3 SEND-RECV FUNCTIONS
+///////////////////////////////////////////////////////////
+std::list<coretodc_std_packet>  coretodc_std_list_in;
+std::list<coretodc_std_packet>  coretodc_std_list_out;
+// try send coretodc_std
+void try_send_coretodc_std(Vdcache_pipe_wp *top) {
+  if (!top->coretodc_std_retry) {
+    top->coretodc_std_ckpid = rand(); 
+    top->coretodc_std_coreid = 0;
+    top->coretodc_std_mop = 0;
+    top->coretodc_std_pnr = rand();
+    top->coretodc_std_pcsign = rand();
+    top->coretodc_std_poffset = rand();
+    top->coretodc_std_imm = rand();
+    top->coretodc_std_data_7 = rand();
+    top->coretodc_std_data_6 = rand();
+    top->coretodc_std_data_5 = rand();
+    top->coretodc_std_data_4 = rand();
+    top->coretodc_std_data_3 = rand();
+    top->coretodc_std_data_2 = rand();
+    top->coretodc_std_data_1 = rand();
+    top->coretodc_std_data_0 = rand();
+    if (coretodc_std_list_in.empty() || (rand() & 0x3)) { // Once every 4
+      top->coretodc_std_valid = 0;
+    }else{
+      top->coretodc_std_valid = 1;
+    }
+  }
+
+  if (top->coretodc_std_valid && !top->coretodc_std_retry) {
+    if (coretodc_std_list_in.empty()) {
+      fprintf(stderr,"ERROR: Internal error, could not be empty inpa\n");
+    }
+
+    coretodc_std_packet inp = coretodc_std_list_in.back();
+    top->coretodc_std_ckpid = inp.ckpid; 
+    top->coretodc_std_coreid = inp.coreid;
+    top->coretodc_std_mop = inp.mop;
+    top->coretodc_std_pnr = inp.pnr;
+    top->coretodc_std_pcsign = inp.pcsign;
+    top->coretodc_std_poffset = inp.poffset;
+    top->coretodc_std_imm = inp.imm;
+    top->coretodc_std_data_7 = inp.data7;
+    top->coretodc_std_data_6 = inp.data6;
+    top->coretodc_std_data_5 = inp.data5;
+    top->coretodc_std_data_4 = inp.data4;
+    top->coretodc_std_data_3 = inp.data3;
+    top->coretodc_std_data_2 = inp.data2;
+    top->coretodc_std_data_1 = inp.data1;
+    top->coretodc_std_data_0 = inp.data0;
+#ifdef DEBUG_TRACE
+    printf("@%lld ",global_time);
+    printf("SENDING-->");
+    printf("ckpid: %x ", inp.ckpid);
+    printf("coreid: %x ", inp.coreid);
+    printf("mop: %x ", inp.mop);
+    printf("pnr: %x ", inp.pnr);
+    printf("pcsign: %x ", inp.pcsign);
+    printf("poffset: ", inp.poffset);
+    printf("imm: %x ", inp.imm);
+    printf("data7: %x ", inp.data7);
+    printf("data6: %x ", inp.data6);
+    printf("data5: %x ", inp.data5);
+    printf("data4: %x ", inp.data4);
+    printf("data3: %x ", inp.data3);
+    printf("data2: %x ", inp.data2);
+    printf("data1: %x ", inp.data1);
+    printf("data0: %x\n", inp.data0);
+#endif
+    // generate expected output
+    coretodc_std_packet out;
+    out.ckpid = inp.ckpid; 
+    out.coreid = inp.coreid;
+    out.mop = inp.mop;
+    out.pnr = inp.pnr;
+    out.pcsign = inp.pcsign;
+    out.poffset = inp.poffset;
+    out.imm = inp.imm;
+    out.data7 = inp.data7;
+    out.data6 = inp.data6;
+    out.data5 = inp.data5;
+    out.data4 = inp.data4;
+    out.data3 = inp.data3;
+    out.data2 = inp.data2;
+    out.data1 = inp.data1;
+    out.data0 = inp.data0;
+    coretodc_std_list_out.push_front(out);
+    coretodc_std_list_in.pop_back();
+  }
+}
+
+//try send l1tlbtol1_fwd1
+std::list<l1tlbtol1_fwd_packet> l1tlbtol1_fwd1_list_in;
+std::list<l1tlbtol1_fwd_packet> l1tlbtol1_fwd1_list_out;
+void try_send_l1tlbtol1_fwd1(Vdcache_pipe_wp *top) {
+  if (!top->l1tlbtol1_fwd1_retry) {
+    top->l1tlbtol1_fwd1_coreid = rand(); 
+    top->l1tlbtol1_fwd1_prefetch = rand(); 
+    top->l1tlbtol1_fwd1_l2_prefetch = rand(); 
+    top->l1tlbtol1_fwd1_fault = rand(); 
+    top->l1tlbtol1_fwd1_hpaddr = rand(); 
+    top->l1tlbtol1_fwd1_ppaddr = rand(); 
+    if (l1tlbtol1_fwd1_list_in.empty() || (rand() & 0x3)) { // Once every 4
+      top->l1tlbtol1_fwd1_valid = 0;
+    }else{
+      top->l1tlbtol1_fwd1_valid = 1;
+    }
+  }
+
+  if (top->l1tlbtol1_fwd1_valid && !top->l1tlbtol1_fwd1_retry) {
+    if (l1tlbtol1_fwd1_list_in.empty()) {
+      fprintf(stderr,"ERROR: Internal error, could not be empty inpa\n");
+    }
+
+    l1tlbtol1_fwd_packet inp = l1tlbtol1_fwd1_list_in.back();
+    top->l1tlbtol1_fwd1_coreid = inp.coreid;
+    top->l1tlbtol1_fwd1_prefetch = inp.prefetch;
+    top->l1tlbtol1_fwd1_l2_prefetch = inp.l2_prefetch;
+    top->l1tlbtol1_fwd1_fault = inp.fault;
+    top->l1tlbtol1_fwd1_hpaddr = inp.hpaddr;
+    top->l1tlbtol1_fwd1_ppaddr = inp.ppaddr;
+#ifdef DEBUG_TRACE
+    printf("@%lld ",global_time);
+    printf("SENDING-->");
+    printf("coreid: %x ", inp.coreid);
+    printf("prefetch: %x ", inp.prefetch);
+    printf("l2_prefetch: %x ", inp.l2_prefetch);
+    printf("fault: %x ", inp.fault);
+    printf("hpaddr: %x ", inp.hpaddr);
+    printf("ppaddr: %x ", inp.ppaddr);
+#endif
+    // generate expected output
+    l1tlbtol1_fwd_packet out;
+    out.coreid = inp.coreid;
+    out.prefetch = inp.prefetch;
+    out.l2_prefetch = inp.l2_prefetch;
+    out.fault = inp.fault;
+    out.hpaddr = inp.hpaddr;
+    out.ppaddr = inp.ppaddr;
+    l1tlbtol1_fwd1_list_out.push_front(out);
+    l1tlbtol1_fwd1_list_in.pop_back();
+  }
+}
+///////////////////////////////////////////////////////////
+// MAIN SIMULATION
+///////////////////////////////////////////////////////////
 int main(int argc, char **argv, char **env) {
   int i;
   int clk;

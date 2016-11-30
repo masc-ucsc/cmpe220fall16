@@ -1178,27 +1178,25 @@ end
 // pass core load request to L2
 
 // break down the core request and TLB to construct L2 request
-I_l1tol2_req_type l1tol2_req_ld_current;
 logic common_valid_ld;
 always_comb begin
   if (common_valid_ld) begin
-    l1tol2_req_ld_current.l1id = 5'b00000;
-    l1tol2_req_ld_current.cmd = `SC_CMD_REQ_S;
-    l1tol2_req_ld_current.pcsign = coretodc_ld.pcsign;
-    l1tol2_req_ld_current.poffset = coretodc_ld.poffset;
-    l1tol2_req_ld_current.ppaddr = l1tlbtol1_fwd0.ppaddr;
+    l1tol2_req_current.l1id = 5'b00000;
+    l1tol2_req_current.cmd = `SC_CMD_REQ_S;
+    l1tol2_req_current.pcsign = coretodc_ld.pcsign;
+    l1tol2_req_current.poffset = coretodc_ld.poffset;
+    l1tol2_req_current.ppaddr = l1tlbtol1_fwd0.ppaddr;
   end
 end
 
 // construct L1 to L2 TLB store request
 /* verilator lint_off UNDRIVEN */
-I_l1tol2tlb_req_type l1tol2tlb_req_ld_current;
 /* verilator lint_on UNDRIVEN */
 always_comb begin
   if (common_valid_ld) begin
-    l1tol2tlb_req_ld_current.l1id = 5'b00000;
-    l1tol2tlb_req_ld_current.prefetch = 0;
-    l1tol2tlb_req_ld_current.hpaddr = l1tlbtol1_fwd0_current.hpaddr;
+    l1tol2tlb_req_current.l1id = 5'b00000;
+    l1tol2tlb_req_current.prefetch = 0;
+    l1tol2tlb_req_current.hpaddr = l1tlbtol1_fwd0_current.hpaddr;
   end
 end
 
@@ -1212,28 +1210,26 @@ end
 //                    ----------
 // OUTPUT: core load--->L2
 // pass miss request to L2 and send ack to core
-
-// construct L1 to L2 store request
-logic process_stores;
-I_l1tol2_req_type l1tol2_req_std_current;
+// construct L1 to L2 displacement package
 logic common_valid_std;
-always_comb begin
-  if (common_valid_std) begin
-    l1tol2_req_std_current.l1id     = 5'b00000;
-    l1tol2_req_std_current.cmd      = `SC_CMD_REQ_S;
-    l1tol2_req_std_current.pcsign   = coretodc_std.pcsign;
-    l1tol2_req_std_current.poffset  = coretodc_std.poffset;
-    l1tol2_req_std_current.ppaddr   = l1tlbtol1_fwd1.ppaddr;
-  end
-end
 
-// construct L1 to L2 TLB store request
-I_l1tol2tlb_req_type l1tol2tlb_req_std_current;
 always_comb begin
   if (common_valid_std) begin
-    l1tol2tlb_req_std_current.l1id = 5'b00000;
-    l1tol2tlb_req_std_current.prefetch = 0;
-    l1tol2tlb_req_std_current.hpaddr = l1tlbtol1_fwd1_current.hpaddr;
+    l1tol2_disp_current.l1id   = 0;
+    l1tol2_disp_current.l2id   = 0;
+    l1tol2_disp_current.line   = coretodc_std.data;
+    l1tol2_disp_current.ppaddr = l1tlbtol1_fwd1.ppaddr;
+    l1tol2_disp_current.dcmd   = `SC_DCMD_NC;
+    case (coretodc_std.mop) 
+      `CORE_MOP_S08:  l1tol2_disp_current.mask = 64'h1;
+      `CORE_MOP_S16:  l1tol2_disp_current.mask = 64'h3;
+      `CORE_MOP_S32:  l1tol2_disp_current.mask = 64'hF;
+      `CORE_MOP_S64:  l1tol2_disp_current.mask = 64'hFF;
+      `CORE_MOP_S128: l1tol2_disp_current.mask = 64'hFFFF;
+      `CORE_MOP_S256: l1tol2_disp_current.mask = 64'hFFFFFFFF;
+      `CORE_MOP_S512: l1tol2_disp_current.mask = 64'hFFFFFFFFFFFFFFFF;
+      default:        l1tol2_disp_current.mask = 64'h0;
+    endcase
   end
 end
 
@@ -1242,30 +1238,8 @@ always_comb begin
   dctocore_std_ack_current.fault  = 0;
   dctocore_std_ack_current.coreid = 0;
  
-  ff_dctocore_std_ack_valid_in = (process_stores)&&(ff_l1tlbtol1_fwd1_valid_out)&&(ff_coretodc_std_valid_out);
+  ff_dctocore_std_ack_valid_in = (ff_l1tlbtol1_fwd1_valid_out)&&(ff_coretodc_std_valid_out);
 end
-
-// select between coretodc_ld and coretodc_std
-// change every 4 cycles, later signals will be passed
-// accorging to priority list. i.e. loads are #1 priority
-// 
-// also valid and retry signals calculated accordingly
-//
-//               |\
-//               | \
-//  coretodc_ld->|  |--->l1tol2tlb_req
-//               |  |--->l1tol2_req
-// coretodc_std->|  |
-//               | /
-//               |/
-//
-
-logic [2:0] counter;
-always @(posedge clk) begin
-  counter <= counter+1;
-end
-
-assign process_stores = counter[2];
 
 //handle valids
 always_comb begin
@@ -1273,28 +1247,23 @@ always_comb begin
   common_valid_ld  = ff_coretodc_ld_valid_out && ff_l1tlbtol1_fwd0_valid_out;
 end
 
+always_comb begin
+  ff_l1tol2_req_valid_in = ff_coretodc_ld_valid_out && ff_l1tlbtol1_fwd0_valid_out;
+  ff_l1tol2tlb_req_valid_in = ff_coretodc_ld_valid_out && ff_l1tlbtol1_fwd0_valid_out;
+
+  ff_l1tol2_disp_valid_in = ff_coretodc_std_valid_out && ff_l1tlbtol1_fwd1_valid_out;
+end
+
 //handle retries
 always_comb begin
-  ff_coretodc_std_retry_in   = !(ff_coretodc_std_valid_out && ff_l1tlbtol1_fwd1_valid_out) || !(process_stores);
-  ff_l1tlbtol1_fwd1_retry_in = !(ff_coretodc_std_valid_out && ff_l1tlbtol1_fwd1_valid_out) || !(process_stores);
+  ff_coretodc_std_retry_in   = !(ff_coretodc_std_valid_out && ff_l1tlbtol1_fwd1_valid_out) || ff_l1tol2_disp_retry_out;
+  ff_l1tlbtol1_fwd1_retry_in = !(ff_coretodc_std_valid_out && ff_l1tlbtol1_fwd1_valid_out) || ff_l1tol2_disp_retry_out;
 
-  ff_coretodc_ld_retry_in    = !(ff_coretodc_ld_valid_out && ff_l1tlbtol1_fwd0_valid_out) || (process_stores);
-  ff_l1tlbtol1_fwd0_retry_in = !(ff_coretodc_ld_valid_out && ff_l1tlbtol1_fwd0_valid_out) || (process_stores);
+  ff_coretodc_ld_retry_in    = !(ff_coretodc_ld_valid_out && ff_l1tlbtol1_fwd0_valid_out) || (ff_l1tol2_req_retry_out) || (ff_l1tol2tlb_req_retry_out);
+  ff_l1tlbtol1_fwd0_retry_in = !(ff_coretodc_ld_valid_out && ff_l1tlbtol1_fwd0_valid_out) || (ff_l1tol2_req_retry_out) || (ff_l1tol2tlb_req_retry_out);
 end
 
-always_comb begin
-  if (process_stores) begin//(counter[2] == 1 && ff_coretodc_std_valid_out == 1) begin
-    l1tol2_req_current = l1tol2_req_std_current;
-    l1tol2tlb_req_current = l1tol2tlb_req_std_current;
-    ff_l1tol2_req_valid_in = ff_coretodc_std_valid_out && ff_l1tlbtol1_fwd1_valid_out;
-    ff_l1tol2tlb_req_valid_in = ff_coretodc_std_valid_out && ff_l1tlbtol1_fwd1_valid_out;
-  end else begin
-    l1tol2_req_current = l1tol2_req_ld_current;
-    l1tol2tlb_req_current = l1tol2tlb_req_ld_current;
-    ff_l1tol2_req_valid_in = ff_coretodc_ld_valid_out && ff_l1tlbtol1_fwd0_valid_out;
-    ff_l1tol2tlb_req_valid_in = ff_coretodc_ld_valid_out && ff_l1tlbtol1_fwd0_valid_out;
-  end
-end
+
 `endif
 
 `ifdef COMPLETE
