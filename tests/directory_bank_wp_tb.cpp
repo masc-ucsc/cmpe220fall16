@@ -303,7 +303,7 @@ void try_send_packet(Vdirectory_bank_wp *top) {
     top->l2todr_req_nid = inp2.nid;
     top->l2todr_req_l2id = inp2.l2id;
 #ifdef DEBUG_TRACE
-    printf("@%lu l2todr req paddr:%lu, nid: %u, l2id: %u, cmd: %u\n",global_time, inp2.paddr,inp2.cmd, inp2.nid, inp2.l2id);
+    printf("@%lu l2todr req paddr:%lu, nid: %u, l2id: %u, cmd: %u\n",global_time, inp2.paddr, inp2.nid, inp2.l2id, inp2.cmd);
 #endif
    
     OutputPacket_drtomem_req out2;
