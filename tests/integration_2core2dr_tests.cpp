@@ -11,8 +11,8 @@
 #define DEBUG_TRACE 1
 
 //#define TEST_TOP_LD
-#define TEST_TOP_ST
-//#define TEST_MEM_LD
+//#define TEST_TOP_ST
+#define TEST_MEM_LD
 
 vluint64_t global_time = 0;
 VerilatedVcdC* tfp = 0;

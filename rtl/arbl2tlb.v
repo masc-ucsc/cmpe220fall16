@@ -142,34 +142,41 @@ module arbl2tlb(
             l2todr_req_next = l2d_0todr_req;
             l2todr_req_valid_next = l2d_0todr_req_valid;
             l2d_0todr_req_retry = l2todr_req_retry_next;
-            l2d_1todr_req_retry = 1'b1;
+
+            l2d_1todr_req_retry = l2d_1todr_req_valid;
 `ifdef SC_4PIPE
-            l2d_2todr_req_retry = 1'b1;
-            l2d_3todr_req_retry = 1'b1;
+            l2d_2todr_req_retry = l2d_2todr_req_valid;
+            l2d_3todr_req_retry = l2d_3todr_req_valid;
 `endif
         end else if (l2d_1todr_req_valid) begin
             l2todr_req_next = l2d_1todr_req;
             l2todr_req_valid_next = l2d_1todr_req_valid;
-            l2d_0todr_req_retry = 1'b1;
+            l2d_0todr_req_retry = 1'b0;
             l2d_1todr_req_retry = l2todr_req_retry_next;
 `ifdef SC_4PIPE
-            l2d_2todr_req_retry = 1'b1;
-            l2d_3todr_req_retry = 1'b1;
+            l2d_2todr_req_retry = l2d_2todr_req_valid;
+            l2d_3todr_req_retry = l2d_3todr_req_valid;
         end else if (l2d_2todr_req_valid) begin
             l2todr_req_next = l2d_2todr_req;
             l2todr_req_valid_next = l2d_2todr_req_valid;
-            l2d_0todr_req_retry = 1'b1;
-            l2d_1todr_req_retry = 1'b1;
+            l2d_0todr_req_retry = 1'b0;
+            l2d_1todr_req_retry = 1'b0;
             l2d_2todr_req_retry = l2todr_req_retry_next;
-            l2d_3todr_req_retry = 1'b1;
+            l2d_3todr_req_retry = l2d_3todr_req_valid;
         end else if (l2d_3todr_req_valid) begin
             l2todr_req_next = l2d_3todr_req;
             l2todr_req_valid_next = l2d_3todr_req_valid;
-            l2d_0todr_req_retry = 1'b1;
-            l2d_1todr_req_retry = 1'b1;
-            l2d_2todr_req_retry = 1'b1;
+            l2d_0todr_req_retry = 1'b0;
+            l2d_1todr_req_retry = 1'b0;
+            l2d_2todr_req_retry = 1'b0;
             l2d_3todr_req_retry = l2todr_req_retry_next;
 `endif
+        end else begin
+            l2todr_req_valid_next = 1'b0;
+            l2d_0todr_req_retry = 1'b0;
+            l2d_1todr_req_retry = 1'b0;
+            l2d_2todr_req_retry = 1'b0;
+            l2d_3todr_req_retry = 1'b0;
         end
     end
 
@@ -198,27 +205,67 @@ module arbl2tlb(
 `endif
 
     always_comb begin
-        if (drtol2_snack_valid) begin
-            if(drtol2_snack.l2id == 6'b000000) begin
-                drtol2d_0_snack_valid_next = drtol2_snack_valid;
-                drtol2_snack_retry = drtol2d_0_snack_retry_next;
-                drtol2d_0_snack_next = drtol2_snack;
-            end else if (drtol2_snack.l2id == 6'b000001) begin
-                drtol2d_1_snack_valid_next = drtol2_snack_valid;
-                drtol2_snack_retry = drtol2d_1_snack_retry_next;
-                drtol2d_1_snack_next = drtol2_snack;
-`ifdef SC_4PIPE
-            end else if (drtol2_snack.l2id == 6'b000010) begin
-                drtol2d_2_snack_valid_next = drtol2_snack_valid;
-                drtol2_snack_retry = drtol2d_2_snack_retry_next;
-                drtol2d_2_snack_next = drtol2_snack;
-            end else if (drtol2_snack.l2id == 6'b000011) begin
-                drtol2d_3_snack_valid_next = drtol2_snack_valid;
-                drtol2_snack_retry = drtol2d_3_snack_retry_next;
-                drtol2d_3_snack_next = drtol2_snack;
-`endif
-            end
+      if (drtol2_snack_valid) begin
+        //FIXME: this routing is not supposed to be based on l2id.
+        if(drtol2_snack.l2id == 6'b000000) begin
+          drtol2d_0_snack_valid_next = drtol2_snack_valid;
+          drtol2_snack_retry = drtol2d_0_snack_retry_next;
+          drtol2d_0_snack_next = drtol2_snack;
+
+          drtol2d_1_snack_valid_next = 1'b0;
+
+          `ifdef SC_4PIPE
+            drtol2d_2_snack_valid_next = 1'b0;
+            drtol2d_3_snack_valid_next = 1'b0;
+          `endif
+
+        end else if (drtol2_snack.l2id == 6'b000001) begin
+          drtol2d_1_snack_valid_next = drtol2_snack_valid;
+          drtol2_snack_retry = drtol2d_1_snack_retry_next;
+          drtol2d_1_snack_next = drtol2_snack;
+
+          drtol2d_1_snack_valid_next = 1'b0;
+          `ifdef SC_4PIPE
+            drtol2d_2_snack_valid_next = 1'b0;
+            drtol2d_3_snack_valid_next = 1'b0;
+
+          end else if (drtol2_snack.l2id == 6'b000010) begin
+            drtol2d_2_snack_valid_next = drtol2_snack_valid;
+            drtol2_snack_retry = drtol2d_2_snack_retry_next;
+            drtol2d_2_snack_next = drtol2_snack;
+
+            drtol2d_0_snack_valid_next = 1'b0;
+            drtol2d_1_snack_valid_next = 1'b0;
+            drtol2d_3_snack_valid_next = 1'b0;
+          end else if (drtol2_snack.l2id == 6'b000011) begin
+            drtol2d_3_snack_valid_next = drtol2_snack_valid;
+            drtol2_snack_retry = drtol2d_3_snack_retry_next;
+            drtol2d_3_snack_next = drtol2_snack;
+
+            drtol2d_0_snack_valid_next = 1'b0;
+            drtol2d_1_snack_valid_next = 1'b0;
+            drtol2d_2_snack_valid_next = 1'b0;
+          `endif
+        end else begin
+          drtol2d_0_snack_valid_next = 1'b0;
+          drtol2d_1_snack_valid_next = 1'b0;
+          `ifdef SC_4PIPE
+            drtol2d_2_snack_valid_next = 1'b0;
+            drtol2d_3_snack_valid_next = 1'b0;
+          `endif
+          drtol2_snack_retry = 1'b0;
         end
+
+      end else begin
+        drtol2d_0_snack_valid_next = 1'b0;
+        drtol2d_1_snack_valid_next = 1'b0;
+        `ifdef SC_4PIPE
+          drtol2d_2_snack_valid_next = 1'b0;
+          drtol2d_3_snack_valid_next = 1'b0;
+        `endif
+        drtol2_snack_retry = 1'b0;
+      end
+
     end
     
     fflop #(.Size($bits(I_drtol2_snack_type))) drtol2_0_snack_ff(
@@ -276,6 +323,7 @@ module arbl2tlb(
         ,.q(drtol2d_3_snack)
     );
 `endif
+
 
 `endif
 
