@@ -11,8 +11,8 @@
 
 #include <time.h>
 
-#define DEBUG_TRACE 1
-//#define GENERATED_PREFETCH 1
+//#define DEBUG_TRACE 1
+#define GENERATED_PREFETCH 1
 #define VTAGE_TABLE 6
 #define VTAGE_TABLE_ENTRIES 512
 #define BIMODAL_TABLE_ENTRIES 512
@@ -150,8 +150,8 @@ void initialize_tables() {
 
   for (int i = 0; i<VTAGE_TABLE; i++) {
     for (int j = 0; j<VTAGE_TABLE_ENTRIES; j++) {
-      tables[i].delta[j]   = 0;
-      tables[i].weight[j]  = 0;
+      tables[i].delta[j]   = rand()%64;
+      tables[i].weight[j]  = rand()%4;
       tables[i].offset[j]  = 0;
       tables[i].sat_ctr[j] = 0;
       tables[i].u[j]       = 0;
@@ -166,9 +166,10 @@ void initialize_tables() {
 
 void update_prefetch(uint64_t addr, uint64_t off, uint8_t doUpdate, uint8_t misPredUpdate) {
 
-  if(doUpdate == 1 && misPredUpdate == 0) {   //insert entry at random table and random entry
-    for (int a = 0; a<VTAGE_TABLE; a++) {
-      for (int b = 0; b<VTAGE_TABLE_ENTRIES; b++) {
+  //fix misPredUpdate (change || to &&)
+  if(doUpdate == 1 || misPredUpdate == 0) {   //insert entry at random table and random entry
+    //for (int a = 0; a<VTAGE_TABLE; a++) {
+      //for (int b = 0; b<VTAGE_TABLE_ENTRIES; b++) {
         int i, j;
         i = rand()%VTAGE_TABLE;
         j = rand()%VTAGE_TABLE_ENTRIES;
@@ -180,14 +181,15 @@ void update_prefetch(uint64_t addr, uint64_t off, uint8_t doUpdate, uint8_t misP
           tables[i].u[j]       = 0;
           tables[i].tag[j]     = addr & 0xFF;
           doUpdate = 0;
-          break;
+          //break;
         }
-      }
-    }
+      //}
+    //}
   }
 
+
   //prefetch update when "misPredUpdate = 1" is not yet done
-  if(misPredUpdate == 1) {
+  if(misPredUpdate == 1 || misPredUpdate == 0) {  //fix misPredUpdate (change || to && or change case)
     for (int i = 0; i<VTAGE_TABLE; i++) {
       for (int j = 0; j<VTAGE_TABLE_ENTRIES; j++) {
         if((tables[i].tag[j] == (addr & 0xFF)) && tables[i].sat_ctr[j] != 0) {
@@ -213,8 +215,6 @@ void update_prefetch(uint64_t addr, uint64_t off, uint8_t doUpdate, uint8_t misP
    
 }
 
-
-
 void prediction(uint64_t pc, uint64_t addr) { //addr is specific instr in the current PC bundle
 
   uint64_t off = pc - addr;
@@ -226,9 +226,9 @@ void prediction(uint64_t pc, uint64_t addr) { //addr is specific instr in the cu
         out.pfmtocore_d0_val = tables[i].delta[j];
         out.pfmtocore_d0_w   = tables[i].weight[j];
 
-#ifdef GENERATED_PREFETCH      
-  printf("@%lld  req_addr:%x  delta:%x  w:%x \n",global_time, addr, out.pfmtocore_d0_val, out.pfmtocore_d0_w);
-#endif
+//#ifdef GENERATED_PREFETCH      
+//  printf("@%lld  req_addr:%x  delta:%x  w:%x \n",global_time, addr, out.pfmtocore_d0_val, out.pfmtocore_d0_w);
+//#endif
 
         out_list.push_front(out);
 
@@ -244,9 +244,9 @@ void prediction(uint64_t pc, uint64_t addr) { //addr is specific instr in the cu
         out.pfmtocore_d0_val = bimodalTable.delta[j];
         out.pfmtocore_d0_w   = bimodalTable.weight[j];
 
-#ifdef GENERATED_PREFETCH
-          printf("@%lld  req_addr:%x  delta:%x  w:%x \n",global_time, addr, out.pfmtocore_d0_val, out.pfmtocore_d0_w);
-#endif
+//#ifdef GENERATED_PREFETCH
+//          printf("@%lld  req_addr:%x  delta:%x  w:%x \n",global_time, addr, out.pfmtocore_d0_val, out.pfmtocore_d0_w);
+//#endif
 
         out_list.push_front(out);
         
@@ -265,8 +265,11 @@ void prediction(uint64_t pc, uint64_t addr) { //addr is specific instr in the cu
     }
   }
 
-}
+#ifdef GENERATED_PREFETCH
+    printf("@%lld  req_addr:%x  delta:%x  w:%x \n",global_time, addr, out.pfmtocore_d0_val, out.pfmtocore_d0_w);
+#endif
 
+}
 
 
 //input to pfengine (laddr, pcsign, sptbr, delta, weight and cache stats)
@@ -315,11 +318,34 @@ void try_send_input_packet_coretopfm_decode(Vpfmonitor_wp *top) {
     
     //check decmask of current pc bundle to decide the number of prefetches to be generated
     
-    if (top->coretopfm_dec_decmask == 0) {                    //decmask = 0b0000
-      printf("No prefetch generated for current PC bundle");
+    if(top->coretopfm_dec_decmask == 0) {                    //decmask = 0b0000
+      printf("No prefetch generated for current PC bundle (decmask = 0b0000) \n");
     }
-    else if (top->coretopfm_dec_decmask == 1) {               //decmask = 0b0001
-        prediction(top->coretopfm_dec_pcsign, pc_buffer.cir_buffer_pcsign_idx0);
+    else if(top->coretopfm_dec_decmask == 1) {               //decmask = 0b0001
+      prediction(top->coretopfm_dec_pcsign, pc_buffer.cir_buffer_pcsign_idx0);
+    }
+    else if(top->coretopfm_dec_decmask == 2) {        //decmask = 0b0010
+      prediction(top->coretopfm_dec_pcsign, pc_buffer.cir_buffer_pcsign_idx1);   
+    }
+    else if(top->coretopfm_dec_decmask == 3) {      //0011
+      prediction(top->coretopfm_dec_pcsign, pc_buffer.cir_buffer_pcsign_idx0); 
+      prediction(top->coretopfm_dec_pcsign, pc_buffer.cir_buffer_pcsign_idx1);
+    }
+    else if(top->coretopfm_dec_decmask == 4) {        //decmask = 0b0100
+      prediction(top->coretopfm_dec_pcsign, pc_buffer.cir_buffer_pcsign_idx2);
+    }
+    else if(top->coretopfm_dec_decmask == 5) {      //0101
+      prediction(top->coretopfm_dec_pcsign, pc_buffer.cir_buffer_pcsign_idx0);
+      prediction(top->coretopfm_dec_pcsign, pc_buffer.cir_buffer_pcsign_idx2);
+    }
+    else if(top->coretopfm_dec_decmask == 6) {      //0110
+      prediction(top->coretopfm_dec_pcsign, pc_buffer.cir_buffer_pcsign_idx1);
+      prediction(top->coretopfm_dec_pcsign, pc_buffer.cir_buffer_pcsign_idx2);
+    }
+    else if(top->coretopfm_dec_decmask == 7) {      //0111
+      prediction(top->coretopfm_dec_pcsign, pc_buffer.cir_buffer_pcsign_idx0);
+      prediction(top->coretopfm_dec_pcsign, pc_buffer.cir_buffer_pcsign_idx2);
+      prediction(top->coretopfm_dec_pcsign, pc_buffer.cir_buffer_pcsign_idx3);
     }
     
 
@@ -419,7 +445,7 @@ int main(int argc, char **argv, char **env) {
       InputPacket_coretopfm_dec i;
       i.coretopfm_dec_pcsign  = rand();
       i.coretopfm_dec_rid     = rand()%512;
-      i.coretopfm_dec_decmask = 1;
+      i.coretopfm_dec_decmask = (rand()%16);
       inp_list_dec.push_front(i);
     }
   }

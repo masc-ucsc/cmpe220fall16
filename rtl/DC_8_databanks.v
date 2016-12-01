@@ -11,7 +11,9 @@ input                            clk
 ,input [2:0]                       bank_sel
 ,input                            ack_retry
 ,input 	[2:0]			   way
-,input [21:0]                     req_addr//22 bit address:Search Only for 10 bit tags+5 bit index+1 bit slice L1( not pipe)
+
+,input                             row_even_odd
+,input[4:0]                       req_Index
 ,input [35:0]                      req_data //32 bit data+4 bit valid bit
 ,input [4:0] 			   Load_req
 ,input 			           Load_req_valid
@@ -27,18 +29,22 @@ input                            clk
 );
 
 logic  [4:0] req_Index_add_to_1_bank;
+assign  req_Index_add_to_1_bank= req_Index;
+
+
 logic  [35:0] req_data_bank=req_data;
-assign  req_Index_add_to_1_bank= req_addr[11:7];//index 5 bits
+
 logic bank_sel0,write_bank;
 logic bank_sel1,bank_sel2,bank_sel3,bank_sel4,bank_sel5,bank_sel6,bank_sel7;
 logic [2:0] bank_sel_8bank;
 assign bank_sel_8bank=bank_sel;
 assign write_bank=write;
-always@(req_addr) begin
-bank_sel_8bank=req_addr[4:2];//3 bit select for 8 banks in a bank;VA[1:0] byte selection 
+
+always@(bank_sel) begin
+bank_sel_8bank=bank_sel;//3 bit select for 8 banks in a bank;VA[1:0] byte selection 
 end 
 
-logic row_even_odd =req_Index_add_to_1_bank[4];
+
 
 always@(bank_sel_8bank) begin
 
