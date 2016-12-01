@@ -2,6 +2,9 @@
 #include "Vpfmonitor_wp.h"
 #include "verilated.h"
 #include "verilated_vcd_c.h"
+
+#if 0
+
 #include "DOLC.h"
 
 #include <list>
@@ -427,4 +430,4 @@ int main(int argc, char **argv, char **env) {
 
 }
 
-
+#endif
