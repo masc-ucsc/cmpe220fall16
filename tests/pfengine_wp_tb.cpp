@@ -8,6 +8,7 @@
 
 #include <time.h>
 
+//#define GENERATED_PREFETCH 1
 #define DEBUG_TRACE 1
 
 vluint64_t global_time = 0;
@@ -272,10 +273,25 @@ void try_send_input_packet_to_pfe(Vpfengine_wp *top) {
     OutputPacket out;
     for (int k = 0; k < l1_generated_prefetch.size(); k++) {
       //odd pref addr are sent to dc1; even addr sent to dc0
-      if (l1_generated_prefetch[k]%2 == 0)
+      if (l1_generated_prefetch[k]%2 == 0) {
         out.pf_dcreq0_laddr = l1_generated_prefetch[k];
-      else
+        out.pf_dcreq0_l2    = 0;              //0 -> prefetch sent only to L1 DC
+      }
+      else {
         out.pf_dcreq1_laddr = l1_generated_prefetch[k];
+        out.pf_dcreq1_l2    = 0;
+      }
+    }
+
+    for (int l = 0; l < l2_generated_prefetch.size(); l++) {
+      if (l2_generated_prefetch[l]%2 == 0) {
+        out.pf_dcreq0_laddr = l2_generated_prefetch[l];
+        out.pf_dcreq0_l2    = 1;    //1 -> prefetch forwareded to L2
+      }
+      else {
+        out.pf_dcreq1_laddr = l2_generated_prefetch[l];
+        out.pf_dcreq1_l2    = 1;
+      }
     }
 
     //aggregated cache stats for dc and l2
@@ -297,6 +313,11 @@ void try_send_input_packet_to_pfe(Vpfengine_wp *top) {
     out.pf_agg_l2stats_nreqs     = inp.pf0_l2stats_nreqs + inp.pf1_l2stats_nreqs;
     out.pf_agg_l2stats_nsnoops   = inp.pf0_l2stats_nsnoops + inp.pf1_l2stats_nsnoops;
     out.pf_agg_l2stats_ndisp     = inp.pf0_l2stats_ndisp + inp.pf1_l2stats_ndisp;
+
+//#ifdef GENERATED_PREFETCH
+//    printf("@%lld delta:%x w1:%x w2:%x laddr:%x prefetch_bank1:%x prefetch_bank2:%x L2_bank1?:%x L2_bank2?:%x \n",global_time, inp.pf_delta, inp.pf_w1, inp.pf_w2, inp.pf_laddr, out.pf_dcreq0_laddr, out.pf_dcreq1_laddr, out.pf_dcreq0_l2, out.pf_dcreq1_l2), ;
+//#endif
+
 
     out_list.push_front(out);
 
