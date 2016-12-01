@@ -66,9 +66,12 @@
 `include "logfunc.h"
 `define L2_PASSTHROUGH
 //`define L2_COMPLETE
+//
+`ifndef L2_BACKUP
 
 module l2cache_pipe(
   /* verilator lint_off UNUSED */
+  /* verilator lint_off UNDRIVEN */
    input                           clk
   ,input                           reset
 
@@ -128,7 +131,7 @@ module l2cache_pipe(
       ,input  logic                    l2todr_pfreq_retry
       ,output I_l2todr_pfreq_type      l2todr_pfreq
 
-      /* verilator lint_on UNUSED */
+      /* verilator lint_off UNUSED */
     );
         logic   l2todr_req_next_valid;
         logic   l2todr_req_next_retry;
@@ -2100,5 +2103,4 @@ module l2cache_pipe(
 `endif
 endmodule
 
-
-
+`endif

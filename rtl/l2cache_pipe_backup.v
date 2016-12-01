@@ -67,6 +67,9 @@
 `define L2_PASSTHROUGH
 //`define L2_COMPLETE
 
+
+`ifdef L2_BACKUP
+
 module l2cache_pipe(
   /* verilator lint_off UNUSED */
    input                           clk
@@ -1496,3 +1499,4 @@ module l2cache_pipe(
 `endif
 endmodule
 
+`endif
