@@ -1178,13 +1178,15 @@ end
 // pass core load request to L2
 
 // break down the core request and TLB to construct L2 request
-logic common_valid_ld;
 always_comb begin
-  if (common_valid_ld) begin
+  if (ff_coretodc_ld_valid_out) begin
     l1tol2_req_current.l1id = 5'b00000;
     l1tol2_req_current.cmd = `SC_CMD_REQ_S;
     l1tol2_req_current.pcsign = coretodc_ld.pcsign;
     l1tol2_req_current.poffset = coretodc_ld.poffset;
+  end
+
+  if (ff_l1tlbtol1_fwd0_valid_out) begin
     l1tol2_req_current.ppaddr = l1tlbtol1_fwd0.ppaddr;
   end
 end
@@ -1193,7 +1195,7 @@ end
 /* verilator lint_off UNDRIVEN */
 /* verilator lint_on UNDRIVEN */
 always_comb begin
-  if (common_valid_ld) begin
+  if (ff_l1tlbtol1_fwd0_valid_out) begin
     l1tol2tlb_req_current.l1id = 5'b00000;
     l1tol2tlb_req_current.prefetch = 0;
     l1tol2tlb_req_current.hpaddr = l1tlbtol1_fwd0_current.hpaddr;
@@ -1211,16 +1213,15 @@ end
 // OUTPUT: core load--->L2
 // pass miss request to L2 and send ack to core
 // construct L1 to L2 displacement package
-logic common_valid_std;
-
+logic [6:0] mop;
+assign mop = coretodc_std_current.mop;
 always_comb begin
-  if (common_valid_std) begin
+  if (ff_coretodc_std_valid_out) begin
     l1tol2_disp_current.l1id   = 0;
     l1tol2_disp_current.l2id   = 0;
     l1tol2_disp_current.line   = coretodc_std.data;
-    l1tol2_disp_current.ppaddr = l1tlbtol1_fwd1.ppaddr;
     l1tol2_disp_current.dcmd   = `SC_DCMD_NC;
-    case (coretodc_std.mop) 
+    case (mop) 
       `CORE_MOP_S08:  l1tol2_disp_current.mask = 64'h1;
       `CORE_MOP_S16:  l1tol2_disp_current.mask = 64'h3;
       `CORE_MOP_S32:  l1tol2_disp_current.mask = 64'hF;
@@ -1230,6 +1231,10 @@ always_comb begin
       `CORE_MOP_S512: l1tol2_disp_current.mask = 64'hFFFFFFFFFFFFFFFF;
       default:        l1tol2_disp_current.mask = 64'h0;
     endcase
+  end
+
+  if (ff_l1tlbtol1_fwd1_valid_out) begin
+    l1tol2_disp_current.ppaddr = l1tlbtol1_fwd1.ppaddr;
   end
 end
 
@@ -1242,11 +1247,6 @@ always_comb begin
 end
 
 //handle valids
-always_comb begin
-  common_valid_std = ff_coretodc_std_valid_out && ff_l1tlbtol1_fwd1_valid_out;
-  common_valid_ld  = ff_coretodc_ld_valid_out && ff_l1tlbtol1_fwd0_valid_out;
-end
-
 always_comb begin
   ff_l1tol2_req_valid_in = ff_coretodc_ld_valid_out && ff_l1tlbtol1_fwd0_valid_out;
   ff_l1tol2tlb_req_valid_in = ff_coretodc_ld_valid_out && ff_l1tlbtol1_fwd0_valid_out;

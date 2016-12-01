@@ -12,15 +12,46 @@
 #define DEBUG_TRACE 1
 
 // turn on/off testbench
-#define TEST_L2_TO_L1_SNACK   1
-#define TEST_CORE_TO_DC       1
+#define TEST_L2_TO_L1_SNACK   0
+#define TEST_CORETODC_LD      0
+#define TEST_CORETODC_STD     1
 vluint64_t global_time = 0;
 VerilatedVcdC* tfp = 0;
 
-#define SC_CMD_REQ_S    0
-#define SC_CMD_REQ_M    1
-#define SC_CMD_REQ_NC   2
-#define SC_CMD_DRAINI   6 
+#define SC_CMD_REQ_S        0
+#define SC_CMD_REQ_M        1
+#define SC_CMD_REQ_NC       2
+#define SC_CMD_DRAINI       6
+ 
+#define CORE_MOP_S08        0
+#define CORE_MOP_S16        2
+#define CORE_MOP_S32        4
+#define CORE_MOP_S64        6
+#define CORE_MOP_S128       8
+#define CORE_MOP_S256       10
+#define CORE_MOP_S512       12
+
+#define SC_DCMD_WI          0 // Line got write-back & invalidated
+#define SC_DCMD_WS          1 // Line got write-back & kept shared
+#define SC_DCMD_I           2 // Line got invalidated (no disp)
+#define SC_DCMD_NC          4 // non-cacheable write going down
+
+#define MASK1    0x01
+#define MASK2    0x03
+#define MASK3    0x07
+#define MASK4    0x0f
+#define MASK5    0x1f
+#define MASK6    0x3f
+#define MASK7    0x7f
+#define MASK8    0xff
+#define MASK9    0x1ff
+#define MASK10   0x3ff
+#define MASK11   0x7ff
+#define MASK12   0xfff
+#define MASK13   0x1fff
+#define MASK14   0x3fff
+#define MASK15   0x7fff
+#define MASK16   0xffff
 ///////////////////////////////////////////////////////////
 // pair #1
 // l2tol1_snack_packet --> dctocore_ld_packet
@@ -96,9 +127,9 @@ struct l1tol2tlb_req_packet { //output of DUT
 // coretodc_std+l1tlbtol1_fwd1 --> l1tol2_disp
 ///////////////////////////////////////////////////////////
 struct coretodc_std_packet {
+  uint8_t   mop;
   uint8_t   ckpid;
   uint8_t   coreid;
-  uint8_t   mop;
   uint8_t   pnr;
   uint16_t  pcsign;
   uint16_t  poffset;
@@ -117,6 +148,7 @@ struct l1tol2_disp_packet {
   uint8_t   l1id;
   uint8_t   l2id;
   uint8_t   dcmd;
+  uint8_t   ppaddr;
   uint64_t  mask;
   uint64_t  line7;
   uint64_t  line6;
@@ -611,9 +643,10 @@ std::list<coretodc_std_packet>  coretodc_std_list_out;
 // try send coretodc_std
 void try_send_coretodc_std(Vdcache_pipe_wp *top) {
   if (!top->coretodc_std_retry) {
+    //printf("Coretodc_std_retry randomization\n");
     top->coretodc_std_ckpid = rand(); 
     top->coretodc_std_coreid = 0;
-    top->coretodc_std_mop = 0;
+    top->coretodc_std_mop = CORE_MOP_S32;
     top->coretodc_std_pnr = rand();
     top->coretodc_std_pcsign = rand();
     top->coretodc_std_poffset = rand();
@@ -634,6 +667,7 @@ void try_send_coretodc_std(Vdcache_pipe_wp *top) {
   }
 
   if (top->coretodc_std_valid && !top->coretodc_std_retry) {
+    //printf("Coretodc_std_retry sending\n");
     if (coretodc_std_list_in.empty()) {
       fprintf(stderr,"ERROR: Internal error, could not be empty inpa\n");
     }
@@ -733,7 +767,7 @@ void try_send_l1tlbtol1_fwd1(Vdcache_pipe_wp *top) {
     printf("l2_prefetch: %x ", inp.l2_prefetch);
     printf("fault: %x ", inp.fault);
     printf("hpaddr: %x ", inp.hpaddr);
-    printf("ppaddr: %x ", inp.ppaddr);
+    printf("ppaddr: %x \n", inp.ppaddr);
 #endif
     // generate expected output
     l1tlbtol1_fwd_packet out;
@@ -747,6 +781,152 @@ void try_send_l1tlbtol1_fwd1(Vdcache_pipe_wp *top) {
     l1tlbtol1_fwd1_list_in.pop_back();
   }
 }
+
+void try_recv_l1tol2_disp(Vdcache_pipe_wp *top) {
+  if (top->l1tol2_disp_valid && (coretodc_std_list_out.empty() || l1tlbtol1_fwd1_list_out.empty())) {
+    printf("ERROR: unexpected l1tol2_req\n");
+    error_found(top);
+    return;       
+  }
+
+  if (top->l1tol2_disp_retry) {
+    // l1tol2_disp is retried
+    return;
+  }
+
+  if (!top->l1tol2_disp_valid) {
+    // l1tol2_disp is not valid
+    return;
+  }
+
+  if (coretodc_std_list_out.empty() || l1tlbtol1_fwd1_list_out.empty()) {
+    // outputs are empty
+    return;
+  }
+
+#ifdef DEBUG_TRACE
+    printf("@%lld ",global_time);
+    printf("RECVING--> ");
+    printf("l1id: %x ", top->l1tol2_disp_l1id);
+    printf("l2id: %x ", top->l1tol2_disp_l2id);
+    printf("dcmd: %x ", top->l1tol2_disp_dcmd);
+    printf("mask: %x ", top->l1tol2_disp_mask);
+    printf("data7: %x ", top->l1tol2_disp_line_7);
+    printf("data6: %x ", top->l1tol2_disp_line_6);
+    printf("data5: %x ", top->l1tol2_disp_line_5);
+    printf("data4: %x ", top->l1tol2_disp_line_4);
+    printf("data3: %x ", top->l1tol2_disp_line_3);
+    printf("data2: %x ", top->l1tol2_disp_line_2);
+    printf("data1: %x ", top->l1tol2_disp_line_1);
+    printf("data0: %x\n", top->l1tol2_disp_line_0);
+#endif
+
+  //generate expected output
+  l1tol2_disp_packet    expected;
+  coretodc_std_packet   sent_pack1 = coretodc_std_list_out.back();
+  l1tlbtol1_fwd_packet  sent_pack2 = l1tlbtol1_fwd1_list_out.back();
+
+  expected.l1id = 0;
+  expected.l2id = 0;
+  expected.line7 = sent_pack1.data7;
+  expected.line6 = sent_pack1.data6;
+  expected.line5 = sent_pack1.data5;
+  expected.line4 = sent_pack1.data4;
+  expected.line3 = sent_pack1.data3;
+  expected.line2 = sent_pack1.data2;
+  expected.line1 = sent_pack1.data1;
+  expected.line0 = sent_pack1.data0;
+  expected.dcmd = SC_DCMD_NC;
+  expected.ppaddr = sent_pack2.ppaddr;
+  if (sent_pack1.mop == CORE_MOP_S08) {
+    expected.mask = 0x1; 
+  } else if (sent_pack1.mop == CORE_MOP_S16) {
+    expected.mask = 0x3;
+  } else if (sent_pack1.mop == CORE_MOP_S32) {
+    expected.mask = 0xF;
+  } else if (sent_pack1.mop == CORE_MOP_S64) {
+    expected.mask = 0xFF;
+  } else if (sent_pack1.mop == CORE_MOP_S128) {
+    expected.mask = 0xFFFF;
+  } else if (sent_pack1.mop == CORE_MOP_S256) {
+    expected.mask = 0xFFFFFFFF;
+  } else if (sent_pack1.mop == CORE_MOP_S512) {
+    expected.mask = 0xFFFFFFFFFFFFFFFF;
+  } else {
+    expected.mask = 0x0;
+  }
+
+  // check if expected matches to actual
+  bool matched = true;
+  if (top->l1tol2_disp_l1id != expected.l1id) {
+    printf("l1id did not match\n");
+    matched = false;
+  }
+
+  if (top->l1tol2_disp_l2id != expected.l2id) {
+    printf("l2id did not match\n");
+    matched = false;
+  }
+
+  if (top->l1tol2_disp_line_7 != expected.line7) {
+    printf("line7 did not match\n");
+    matched = false;
+  }
+
+  if (top->l1tol2_disp_line_6 != expected.line6) {
+    printf("line6 did not match\n");
+    matched = false;
+  }
+
+  if (top->l1tol2_disp_line_5 != expected.line5) {
+    printf("line5 did not match\n");
+    matched = false;
+  }
+
+  if (top->l1tol2_disp_line_4 != expected.line4) {
+    printf("line4 did not match\n");
+    matched = false;
+  }
+
+  if (top->l1tol2_disp_line_3 != expected.line3) {
+    printf("line3 did not match\n");
+    matched = false;
+  }
+
+  if (top->l1tol2_disp_line_2 != expected.line2) {
+    printf("line2 did not match\n");
+    matched = false;
+  }
+
+  if (top->l1tol2_disp_line_1 != expected.line1) {
+    printf("line1 did not match\n");
+    matched = false;
+  }
+
+  if (top->l1tol2_disp_line_0 != expected.line0) {
+    printf("line0 did not match\n");
+    matched = false;
+  }
+
+  if (top->l1tol2_disp_mask != expected.mask) {
+    printf("mask did not match\n");
+    matched = false;
+  }
+
+  if (top->l1tol2_disp_dcmd != expected.dcmd) {
+    printf("dcmd did not match\n");
+    matched = false;
+  }
+
+  if (!matched) {
+    error_found(top);
+  } 
+  printf("\n");
+  
+  coretodc_std_list_out.pop_back();
+  l1tlbtol1_fwd1_list_out.pop_back();
+}
+
 ///////////////////////////////////////////////////////////
 // MAIN SIMULATION
 ///////////////////////////////////////////////////////////
@@ -804,7 +984,7 @@ int main(int argc, char **argv, char **env) {
   }
 #endif
 
-#if TEST_CORE_TO_DC
+#if TEST_CORETODC_LD
   for (int i=0; i<1024; i++) {
     try_send_coretodc_ld(top);
     advance_clock(top,2);
@@ -819,7 +999,50 @@ int main(int argc, char **argv, char **env) {
     }
   }
 #endif
-  sim_finish(true);
 
+#if TEST_CORETODC_STD
+  printf("Testing stores\n");
+  for (int i=0; i<1024; i++) {
+    try_send_coretodc_std(top);
+    advance_clock(top, 2);
+    try_send_l1tlbtol1_fwd1(top);
+    advance_clock(top, 10);
+    try_recv_l1tol2_disp(top);
+
+    if ((rand() & 0x3)==0) {
+      if (coretodc_std_list_in.size()<3) {
+        coretodc_std_packet in;
+        in.ckpid = rand()&MASK4; 
+        in.coreid = 0;
+        in.mop = CORE_MOP_S32&MASK7;
+        in.pnr = rand()&MASK1;
+        in.pcsign = rand()&MASK13;
+        in.poffset = rand()&MASK12;
+        in.imm = rand()&MASK12;
+        in.data7 = rand();
+        in.data6 = rand();
+        in.data5 = rand();
+        in.data4 = rand();
+        in.data3 = rand();
+        in.data2 = rand();
+        in.data1 = rand();
+        in.data0 = rand();
+        coretodc_std_list_in.push_front(in);
+      }
+     
+      if (l1tlbtol1_fwd1_list_in.size()<3) {
+        l1tlbtol1_fwd_packet in;
+        in.coreid = 0; 
+        in.prefetch = rand()&MASK1; 
+        in.l2_prefetch = rand()&MASK1; 
+        in.fault = rand()&MASK3; 
+        in.hpaddr = rand()&MASK11; 
+        in.ppaddr = rand()&MASK3; 
+        l1tlbtol1_fwd1_list_in.push_front(in);
+      }
+    }
+  }
+#endif
+  sim_finish(true);
 }
 
