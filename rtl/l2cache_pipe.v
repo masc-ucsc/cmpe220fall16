@@ -133,6 +133,20 @@ module l2cache_pipe(
         logic   l2todr_req_next_valid;
         logic   l2todr_req_next_retry;
         I_l2todr_req_type   l2todr_req_next;
+
+        logic   l2todr_req_next_competitor1_valid;
+        logic   l2todr_req_next_competitor1_retry;
+        I_l2todr_req_type   l2todr_req_next_competitor1;
+
+        logic   l2todr_req_next_competitor2_valid;
+        logic   l2todr_req_next_competitor2_retry;
+        I_l2todr_req_type   l2todr_req_next_competitor2;
+
+        assign  l2todr_req_next_valid = l2todr_req_next_competitor1_valid || l2todr_req_next_competitor2_valid;
+        assign  l2todr_req_next = l2todr_req_next_competitor1_valid ? l2todr_req_next_competitor1 : l2todr_req_next_competitor2; // source 1 has higher priority
+        assign  l2todr_req_next_competitor2_retry = (l2todr_req_next_competitor1_valid && l2todr_req_next_competitor2_valid) || l2todr_req_next_retry;
+        assign  l2todr_req_next_competitor1_retry = l2todr_req_next_retry;
+
         fflop #(.Size($bits(I_l2todr_req_type))) fl2todr_req (
             .clk      (clk),
             .reset    (reset),
@@ -150,7 +164,7 @@ module l2cache_pipe(
     //retry sources
     logic l2tlbtol2_fwd_retry_source2;
     logic l2tlbtol2_fwd_retry_source1;
-    assign  l2tlbtol2_fwd_retry = l2tlbtol2_fwd_retry_source1 || l2tlbtol2_fwd_retry_source2;
+    assign  l2tlbtol2_fwd_retry = l2tlbtol2_fwd_retry_source1 || l2tlbtol2_fwd_retry_source2 || l2todr_req_next_competitor2_retry;
     logic drtol2_snack_retry_source1;
     logic   drtol2_snack_retry_source2;
     assign  drtol2_snack_retry = drtol2_snack_retry_source1 || drtol2_snack_retry_source2;
@@ -160,7 +174,8 @@ module l2cache_pipe(
     `ifdef L2_PASSTHROUGH
         `ifndef L2_COMPLETE
         //assign l2todr_req_next_valid = l1tol2_req_valid;
-        assign  l1tol2_req_retry = l2todr_req_next_retry;
+        logic   l1tol2_req_retry_source1;
+        assign  l1tol2_req_retry = l1tol2_req_retry_source1 || l2todr_req_next_competitor2_retry;
 
         // Temp drive Begin
         //assign l1tol2_pfreq_retry = 0;
@@ -171,17 +186,23 @@ module l2cache_pipe(
         // (2) l2todr_req
         // (3) drtol2_snack
         // (4) l2tol1_snack
-    always_comb begin
+        always_comb begin
         // -> l1tol2_req
         // wait for l2tlbtol2_fwd, meanwhile keep sending retry l1tol2_req_retry
         // l2todr_req ->
-        if (l2todr_req_next_valid) begin
-            l2todr_req_next.nid = 5'b00000; // Could be wrong
-            l2todr_req_next.l2id = 6'b00_0000;
-            l2todr_req_next.cmd = l1tol2_req.cmd;
-            l2todr_req_next.paddr = {{35{1'b0}},
-                l1tol2_req.ppaddr,
-                {12{1'b0}}}; //35 + 3bit + 12bit
+        l1tol2_req_retry_source1 = 0;
+        if (l1tol2_req_valid) begin
+             if (l2tlbtol2_fwd_valid && (l2tlbtol2_fwd.l1id==l1tol2_req.l1id)) begin
+                if (l2todr_req_next_competitor2_valid) begin
+                    l2todr_req_next_competitor2.nid = 5'b00000; // Could be wrong
+                    l2todr_req_next_competitor2.l2id = {1'b0, l1tol2_req.l1id};
+                    l2todr_req_next_competitor2.cmd = l1tol2_req.cmd;
+                    l2todr_req_next_competitor2.paddr = l2tlbtol2_fwd.paddr;
+                end
+             end
+        end
+        else begin
+            l1tol2_req_retry_source1 = 1;
         end
     end
 
@@ -392,11 +413,11 @@ module l2cache_pipe(
                     2'b01: begin
                         // Send l2todr_req to get a copy of the line
                         if (~sent_drreq_from_l1disp) begin
-                            l2todr_req_valid = 1;
-                            l2todr_req.nid = {5{1'b0}};
-                            l2todr_req.l2id = {1'b0, l1tol2_disp.l1id};
-                            l2todr_req.cmd = `SC_CMD_REQ_M;
-                            l2todr_req.paddr = l2tlbtol2_fwd.paddr;
+                            l2todr_req_next_competitor1_valid = 1;
+                            l2todr_req_next_competitor1.nid = {5{1'b0}};
+                            l2todr_req_next_competitor1.l2id = {1'b0, l1tol2_disp.l1id};
+                            l2todr_req_next_competitor1.cmd = `SC_CMD_REQ_M;
+                            l2todr_req_next_competitor1.paddr = l2tlbtol2_fwd.paddr;
                         end
                         sent_drreq_from_l1disp_next = 1;
                         sent_drreq_from_l1disp_next_valid = 1; //TODO: may depend on retry
