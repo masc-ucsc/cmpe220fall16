@@ -410,7 +410,7 @@ module l2cache_pipe(
                     2'b11: begin
                         if (drtol2_snack.paddr[49:6] == l2tlbtol2_fwd.paddr[49:6]) begin
                             // reset the flag
-                            sent_drreq_from_l1disp_next = 1;
+                            sent_drreq_from_l1disp_next = 0;
                             sent_drreq_from_l1disp_next_valid = 1;
                             // Merge line
                             //0 to 63
