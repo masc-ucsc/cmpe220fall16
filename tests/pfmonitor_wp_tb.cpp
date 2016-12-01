@@ -3,9 +3,8 @@
 #include "verilated.h"
 #include "verilated_vcd_c.h"
 
-#if 0
 
-#include "DOLC.h"
+//#include "DOLC.h"
 
 #include <list>
 #include <vector>
@@ -430,4 +429,3 @@ int main(int argc, char **argv, char **env) {
 
 }
 
-#endif
