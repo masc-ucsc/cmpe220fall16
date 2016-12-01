@@ -56,13 +56,11 @@ input                            	clk
  assign req_pos = (set_index*8);
  assign write_1_tagcheck=write;
 
-always@(req_tag_search or clk) 
+always@(req_tag_search) 
  begin// all works at time=0 counter-- for RRIP
- if(clk ) begin
    write_1_tagcheck=1'b1;
    counter_=counter-1'b1;
   req_data_1_tagbank[11:10]=counter_;
- end
 end	
 
 DC_1_tagbank
@@ -97,9 +95,39 @@ DC_1_tagbank
  logic NO_TAG_PRESENT=0;
  assign hit=1'b0;
  assign miss=1'b1;//miss is auto select but if hit then miss=0
- 
-always@(req_tag_search or set_index) begin
 
+
+ always @ (posedge clk) begin
+   if(reset) begin
+     way_no <= 0;
+   end else begin
+     if(way_no <= 7) begin
+       way_no <= way_no + 1;
+     end else begin
+       way_no <= 0;
+     end
+   end
+ end
+
+ assign way_no_ext={{5{1'b0}},way_no};
+ assign req_pos_in_tag = (req_pos+way_no_ext);
+
+ always_comb begin 
+   if (ack_data_to_1_tagcheck[9:0]== req_tag_search) begin 
+     if(state_line!=`I)  begin//what happens if cacheline is hit but in I state?
+       hit=1'b1; 
+       miss=1'b0;
+     end
+     way = way_no;
+   end else begin//if (ack_data_to_1_tagcheck[9:0]!= req_tag_search)
+     hit=1'b0; 
+     miss=1'b1;
+   end
+ end
+
+
+ /*
+always@(req_tag_search or set_index) begin
 //if(tag_sel_a_b)begin
 for(way_no=0;way_no<=7;way_no++) begin
     way_no_ext={{5{1'b0}},way_no};
@@ -117,7 +145,7 @@ for(way_no=0;way_no<=7;way_no++) begin
 	 end
 end//for
 end//always
-
+*/
 
 always_comb
 begin 
@@ -128,6 +156,7 @@ else if(coretodc_std_valid)  begin l1tol2_req_valid=1;l1tol2_req=`SC_CMD_REQ_M; 
 end//if miss
 end//always_comb
 
+/*
 always_comb begin 
 if (l2tol1_snack_valid) begin 
   if((l2tol1_snack==`SC_SCMD_ACK_S)||(l2tol1_snack==`SC_SCMD_ACK_M)||(l2tol1_snack==`SC_SCMD_ACK_S)) begin
@@ -147,9 +176,10 @@ for(way_no=0;way_no<=7;way_no++) begin
   end //for 
  end
  end
- end
+ end*/
 //if(state_line!=I) //no cache tag present
 
+/*
 always_comb begin 
 if (l2tol1_snack_valid && NO_TAG_PRESENT) begin 
   if((l2tol1_snack==`SC_SCMD_ACK_S)||(l2tol1_snack==`SC_SCMD_ACK_M)||(l2tol1_snack==`SC_SCMD_ACK_S))begin
@@ -171,5 +201,6 @@ end //if (l2tol1_snack==`SC_SCMD_ACK_S)
 end//if  valid
 end//always_comb
 //end//sel 
+*/
 endmodule
 
