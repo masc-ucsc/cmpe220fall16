@@ -79,7 +79,7 @@ pfmonitor pfm (
                               ,pfmtocore_pred_d2_w
                               ,pfmtocore_pred_d3_rid
                               ,pfmtocore_pred_d3_val
-                              ,pfmtocore_pred_d0_w})
+                              ,pfmtocore_pred_d3_w})
 
 
 ); 
