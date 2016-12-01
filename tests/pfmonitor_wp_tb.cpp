@@ -266,7 +266,7 @@ void prediction(uint64_t pc, uint64_t addr) { //addr is specific instr in the cu
   }
 
 #ifdef GENERATED_PREFETCH
-    printf("@%lld  req_addr:%x  delta:%x  w:%x \n",global_time, addr, out.pfmtocore_d0_val, out.pfmtocore_d0_w);
+    printf("@%lld  pc:%x  req_addr:%x  delta:%x  w:%x \n",global_time, pc, addr, out.pfmtocore_d0_val, out.pfmtocore_d0_w);
 #endif
 
 }
@@ -344,9 +344,46 @@ void try_send_input_packet_coretopfm_decode(Vpfmonitor_wp *top) {
     }
     else if(top->coretopfm_dec_decmask == 7) {      //0111
       prediction(top->coretopfm_dec_pcsign, pc_buffer.cir_buffer_pcsign_idx0);
+      prediction(top->coretopfm_dec_pcsign, pc_buffer.cir_buffer_pcsign_idx1);
+      prediction(top->coretopfm_dec_pcsign, pc_buffer.cir_buffer_pcsign_idx2);
+    }
+    else if(top->coretopfm_dec_decmask == 8) {               //decmask = 0b1000
+      prediction(top->coretopfm_dec_pcsign, pc_buffer.cir_buffer_pcsign_idx3);
+    }
+    else if(top->coretopfm_dec_decmask == 9) {      //1001
+      prediction(top->coretopfm_dec_pcsign, pc_buffer.cir_buffer_pcsign_idx0);
+      prediction(top->coretopfm_dec_pcsign, pc_buffer.cir_buffer_pcsign_idx3);
+    }
+    else if(top->coretopfm_dec_decmask == 10) {      //1010
+      prediction(top->coretopfm_dec_pcsign, pc_buffer.cir_buffer_pcsign_idx1);
+      prediction(top->coretopfm_dec_pcsign, pc_buffer.cir_buffer_pcsign_idx3);
+    }
+    else if(top->coretopfm_dec_decmask == 11) {      //1011
+      prediction(top->coretopfm_dec_pcsign, pc_buffer.cir_buffer_pcsign_idx0);
+      prediction(top->coretopfm_dec_pcsign, pc_buffer.cir_buffer_pcsign_idx1);
+      prediction(top->coretopfm_dec_pcsign, pc_buffer.cir_buffer_pcsign_idx3);
+    }
+    else if(top->coretopfm_dec_decmask == 12) {      //1100
       prediction(top->coretopfm_dec_pcsign, pc_buffer.cir_buffer_pcsign_idx2);
       prediction(top->coretopfm_dec_pcsign, pc_buffer.cir_buffer_pcsign_idx3);
     }
+    else if(top->coretopfm_dec_decmask == 13) {      //1101
+      prediction(top->coretopfm_dec_pcsign, pc_buffer.cir_buffer_pcsign_idx0);
+      prediction(top->coretopfm_dec_pcsign, pc_buffer.cir_buffer_pcsign_idx2);
+      prediction(top->coretopfm_dec_pcsign, pc_buffer.cir_buffer_pcsign_idx3);
+    }
+    else if(top->coretopfm_dec_decmask == 14) {      //1110
+      prediction(top->coretopfm_dec_pcsign, pc_buffer.cir_buffer_pcsign_idx1);
+      prediction(top->coretopfm_dec_pcsign, pc_buffer.cir_buffer_pcsign_idx2);
+      prediction(top->coretopfm_dec_pcsign, pc_buffer.cir_buffer_pcsign_idx3);
+    }
+    else if(top->coretopfm_dec_decmask == 15) {      //1111
+      prediction(top->coretopfm_dec_pcsign, pc_buffer.cir_buffer_pcsign_idx0);
+      prediction(top->coretopfm_dec_pcsign, pc_buffer.cir_buffer_pcsign_idx1);
+      prediction(top->coretopfm_dec_pcsign, pc_buffer.cir_buffer_pcsign_idx2);
+      prediction(top->coretopfm_dec_pcsign, pc_buffer.cir_buffer_pcsign_idx3);
+    }
+
     
 
 #ifdef DEBUG_TRACE
