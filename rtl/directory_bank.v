@@ -1,10 +1,12 @@
 
 `include "scmem.vh"
 `include "logfunc.h"
-//`define DR_PASSTHROUGH
+`define DR_PASSTHROUGH
 //`define EXPERIMENTAL
 `define DR_EXPERIMENTAL
 `define TEST_OLD
+
+`define TEST_NO_OUTSTD_REQ
 
 
 // Directory. Cache equivalent to 2MBytes/ 16 Way assoc
@@ -1775,7 +1777,13 @@ module directory_bank
   logic                           id_ram_write_next_valid;
   logic                           id_ram_write_next_retry;
   
+`ifdef TEST_NO_OUTSTD_REQ
+  assign drtomem_req_next = 'b0;
   
+  //valid will depend on: available DRID, RAM ready for writing, and drtomem_fflop ready
+  assign drtomem_req_next_valid  = 'b0;
+  assign id_ram_write_next_valid = 'b0;
+`else
   assign drtomem_req_next.paddr = l2todr_req.paddr;
   assign drtomem_req_next.cmd   = l2todr_req.cmd;
   assign drtomem_req_next.drid  = drid_valid_encoder;
@@ -1784,7 +1792,7 @@ module directory_bank
   assign l2todr_req_retry        = !drid_valid || drtomem_req_next_retry || id_ram_write_next_retry;
   assign drtomem_req_next_valid  = l2todr_req_valid && drid_valid && !id_ram_write_next_retry;
   assign id_ram_write_next_valid = l2todr_req_valid && drid_valid && !drtomem_req_next_retry;
-
+`endif
   fflop #(.Size($bits(I_drtomem_req_type))) drtomem_ff (
     .clk      (clk),
     .reset    (reset),
@@ -1891,6 +1899,9 @@ module directory_bank
   logic                   drtol2_snack_next_retry;
 
   always_comb begin
+    drtol2_snack_next.drid =  {`DR_REQIDBITS{1'b0}}; //This is not a mistake in this case because the drid is required to be 0 on acks, and we do not snoop in passthrough
+    drtol2_snack_next.snack = memtodr_ack_ff.ack;
+    drtol2_snack_next.line =  memtodr_ack_ff.line;
     if(memtodr_ack_ff.drid == {`DR_REQIDBITS{1'b0}}) begin
       //if drid is invalid then this is an ack for a prefetch. Therefore, use the terms in the ack that that are meant for the
       //prefetch. 
@@ -1900,9 +1911,6 @@ module directory_bank
 	    drtol2_snack_next.hpaddr_hash = 'b0;
       drtol2_snack_next.paddr = memtodr_ack_ff.paddr;
       
-      drtol2_snack_next_valid = memtodr_ack_ff_valid; 
-      memtodr_ack_ff_retry = drtol2_snack_next_retry;
-      id_ram_retry = 1'b1;
     end else begin
       //If the DRID is valid then ignore the prefetch terms and nid, l2id are set by the RAM
       drtol2_snack_next.nid = id_ram_data[10:6]; //These needs to be changed to match the request nid and l2id.
@@ -1912,18 +1920,60 @@ module directory_bank
       //drtol2_snack_next.paddr = 'b0;
       //Paddr should be set to 0 but not doing this to allow testbench to pass for now...
       drtol2_snack_next.paddr = memtodr_ack_ff.paddr;
-      
+    end
+    
+`ifdef TEST_NO_OUTSTD_REQ
+    //This block sets the next snack based on the input request. This condition occurs when the IFDEF is set which implies that
+    //the directory is not maintaining any Outstanding requests and therefore cannot complete any requests sent by memory.
+    //Therefore, the directory should immediately ACK the request. There is no command indicating an error, so this may not work.
+    if(l2todr_req_valid) begin
+      drtol2_snack_next.nid = l2todr_req.nid; 
+      drtol2_snack_next.l2id = l2todr_req.l2id;
+      drtol2_snack_next.hpaddr_base = compute_dr_hpaddr_base(l2todr_req.paddr); //not necessary, but just in case
+      drtol2_snack_next.hpaddr_hash = compute_dr_hpaddr_hash(l2todr_req.paddr);
+      drtol2_snack_next.paddr = l2todr_req.paddr;
+      drtol2_snack_next.drid =  'b0; 
+      drtol2_snack_next.snack = `SC_SCMD_ACK_OTHERI; //We do not have an "error" ack command, so I am using the "other" ack response
+      drtol2_snack_next.line =  'b0;
+    end
+`endif
+  end
+  
+`ifdef TEST_NO_OUTSTD_REQ
+    
+  always_comb begin
+    l2todr_req_retry = drtol2_snack_next_retry;
+    if(l2todr_req_valid) begin
+      drtol2_snack_next_valid = 'b1;
+      memtodr_ack_ff_retry = 'b1;
+      id_ram_retry = 1'b1;
+    end else if(memtodr_ack_ff.drid == {`DR_REQIDBITS{1'b0}}) begin
+      drtol2_snack_next_valid = memtodr_ack_ff_valid; 
+      memtodr_ack_ff_retry = drtol2_snack_next_retry;
+      id_ram_retry = 1'b1;
+    end else begin
       drtol2_snack_next_valid = memtodr_ack_ff_valid && id_ram_valid; 
       memtodr_ack_ff_retry = drtol2_snack_next_retry || (!drtol2_snack_next_valid && memtodr_ack_ff_valid);
       id_ram_retry = drtol2_snack_next_retry || (!drtol2_snack_next_valid && id_ram_valid);
     end
   end
+`else
+  always_comb begin
+    if(memtodr_ack_ff.drid == {`DR_REQIDBITS{1'b0}}) begin
+      drtol2_snack_next_valid = memtodr_ack_ff_valid; 
+      memtodr_ack_ff_retry = drtol2_snack_next_retry;
+      id_ram_retry = 1'b1;
+    end else begin
+      drtol2_snack_next_valid = memtodr_ack_ff_valid && id_ram_valid; 
+      memtodr_ack_ff_retry = drtol2_snack_next_retry || (!drtol2_snack_next_valid && memtodr_ack_ff_valid);
+      id_ram_retry = drtol2_snack_next_retry || (!drtol2_snack_next_valid && id_ram_valid);
+    end
+  end
+`endif
   
   //The other values are independent of the DRID validity. However, this is an assumption that the "ack", which refers to
   //some command bits, is set by main memory correctly for prefetches and normal requests.
-  assign drtol2_snack_next.drid =  {`DR_REQIDBITS{1'b0}}; //This is not a mistake in this case because the drid is required to be 0 on acks, and we do not snoop in passthrough
-  assign drtol2_snack_next.snack = memtodr_ack_ff.ack;
-  assign drtol2_snack_next.line =  memtodr_ack_ff.line;
+  
   
   //need to set param to assign directory id to input parameter.
   assign drtol2_snack_next.directory_id = Directory_Id[`DR_NDIRSBITS-1:0];
