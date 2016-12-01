@@ -119,7 +119,7 @@ uint16_t memory[256];
 uint64_t key;
 uint8_t doUpdate;       //flag for VTAGE update on miss
 uint8_t misPredUpdate;  //flag for VTAGE update on misprediction
-DOLC dolc(12,2,4,8);               //historySize = 12         //init DOLC pc based history
+//DOLC dolc(12,2,4,8);               //historySize = 12         //init DOLC pc based history
 std::vector<uint64_t> l1_generated_prefetch;  //L1 can have max of 4 pretfetch generations
 std::vector<uint64_t> l2_generated_prefetch;
 
