@@ -140,8 +140,7 @@ coretodc_std_retry=0;
 				else if (state_bits==`S) next_state_bits=`M; 
 					else 	next_state_bits	=  `M;    
 			end
-  
-			
+ 			
   default:next_state_bits =  state_bits; 
   endcase
 end //if

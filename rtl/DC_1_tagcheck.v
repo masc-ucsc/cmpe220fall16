@@ -11,7 +11,7 @@ input                            	clk
 ,input                            	req_valid
 ,input                            	write
 ,input                           	ack_retry
-,input [14:0]                    	req_data
+,input [14:0]                    	req_tag
 ,input[4:0]			   	index
  //Search Only for 10 bit tags
 ,output                                 ack_valid
@@ -48,11 +48,11 @@ input                            	clk
  logic [9:0]				req_tag_search;
  logic [4:0] 					set_index;
  logic                                  write_1_tagcheck;
- logic [14:0] 				req_data_1_tagbank=req_data;//req tag = 10 bit tag
+ logic [14:0] 				req_data_1_tagbank=req_tag;//req tag = 10 bit tag
 
  assign set_index=index;
- assign counter=req_data[11:10];
- assign req_tag_search=req_data[9:0];
+ assign counter=req_tag[11:10];
+ assign req_tag_search=req_tag[9:0];
  assign req_pos = (set_index*8);
  assign write_1_tagcheck=write;
 
@@ -137,7 +137,7 @@ for(way_no=0;way_no<=7;way_no++) begin
       if (ack_data_to_1_tagcheck[9:0]== req_tag_search)  begin //data comming from ram : ack_data_to_1_tagcheck
          way=way_no;
          if(state_line==`I)  begin//what happens if cacheline  in I state?
-         req_data_1_tagbank=req_data;
+         req_data_1_tagbank=req_tag;
          write_1_tagcheck=1;//write enable to ram the req data in this tag way
 	 end
 	end//]== req_tag_search
@@ -157,7 +157,7 @@ if (l2tol1_snack_valid && NO_TAG_PRESENT) begin
      way_no_ext={{5{1'b0}},way_no};
      req_pos_in_tag = (req_pos+way_no_ext);
       if(ack_data_to_1_tagcheck[11:10]==3)begin
-         req_data_1_tagbank=req_data;
+         req_data_1_tagbank=req_tag;
          write_1_tagcheck=1;//write enable to ram the req data in this tag way
 	 end
       else begin 

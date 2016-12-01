@@ -26,9 +26,17 @@ dcache_pipe_wp:
 run_dcache_pipe_wp: dcache_pipe_wp
 	./obj_dir/Vdcache_pipe_wp
 
+
 #REGLIST+=dcache_pipe_wp
 ###########################
+DC_top_bank_tag:
+	verilator --assert --debug-check -I./rtl --Wall --cc --trace  ./rtl/DC_top_bank_tag ./rtl/DC_1_tagcheck.v ./rtl/DC_8_databanks.v ./rtl/DC_1_databank.v ./rtl/DC_1_tagbank.v ./rtl/fflop.v  --exe ./tests/DC_top_bank_tag.cpp -CFLAGS -DTRACE=1 
+	make -C obj_dir/ -f VDC_top_bank_tag.mk VDC_top_bank_tag
 
+run_DC_top_bank_tag: DC_top_bank_tag
+	./obj_dir/VDC_top_bank_tag
+
+#####################################
 fork_fflop:
 	verilator --assert --debug-check -I./rtl --Wall --cc --trace ./rtl/fork_fflop.v ./rtl/fflop.v --exe tests/fork_fflop_tb.cpp -CFLAGS "-DTRACE=1 -DVL_DEBUG"
 	make -C obj_dir/ -f Vfork_fflop.mk Vfork_fflop
