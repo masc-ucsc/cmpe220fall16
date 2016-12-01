@@ -44,7 +44,8 @@ input                            	clk
 
  logic[2:0] state_line;
  logic [7:0]  	req_pos,req_pos_in_tag;
- reg [1:0] 				counter,counter_,counter_RRIP;
+ reg [1:0] 				counter,counter_;
+//,counter_RRIP;
  logic [9:0]				req_tag_search;
  logic [4:0] 					set_index;
  logic                                  write_1_tagcheck;
@@ -92,7 +93,7 @@ DC_1_tagbank
 
  logic [2:0]                  way_no;
  logic  [7:0]  way_no_ext;//8 bits needed
- logic NO_TAG_PRESENT=0;
+ //logic NO_TAG_PRESENT=0;
  assign hit=1'b0;
  assign miss=1'b1;//miss is auto select but if hit then miss=0
 

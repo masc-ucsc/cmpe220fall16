@@ -276,7 +276,7 @@ int nclocks=3;
 cout<<" AFter Sending to COre....";
 cout<<" DAta"<<top->ack_data_from_top;  
 try_recv_dctocore_ld(top,a);
-  //advance_half_clock(top);   
+  advance_half_clock(top);   
 cout<<" COmplete 1st Cyle....";  
 //advance_clock(top, nclocks);
 }
