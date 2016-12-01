@@ -10,6 +10,10 @@
 
 #define DEBUG_TRACE 1
 
+//#define TEST_TOP_LD
+#define TEST_TOP_ST
+//#define TEST_MEM_LD
+
 vluint64_t global_time = 0;
 VerilatedVcdC* tfp = 0;
 
@@ -41,14 +45,14 @@ struct DCacheSTReq {
 
   int laddr; 
 
-  int data;
+  unsigned int data[16];
 };
 
 // responses from loads
 struct DCResp {
   int coreid;
   int fault;
-  unsigned int* data;
+  unsigned int data[16];
 };
 
 struct MemReq {
@@ -129,6 +133,7 @@ void sim_finish(bool pass) {
 
 void error_found(Vintegration_2core2dr *top) {
   advance_clock(top,4);
+  printf("executed %lld tests\n", ntests);
   sim_finish(false);
 }
 
@@ -513,37 +518,37 @@ void enqueue_resp_packet(int addr, int coreid, Vintegration_2core2dr *top) {
 void try_recv_packet(Vintegration_2core2dr *top) {
 
   if (top->dr0_drtomem_req_valid && dr0_reqs.empty()) {
-    printf("ERROR: unexpected result on directory 0, paddr = %d\n",top->dr0_drtomem_req_paddr);
+    printf("ERROR: unexpected result on directory 0, paddr = %X\n",top->dr0_drtomem_req_paddr);
     error_found(top);
     return;
   }
 
   if (top->dr1_drtomem_req_valid && dr1_reqs.empty()) {
-    printf("ERROR: unexpected result on directory 1, paddr = %d\n",top->dr1_drtomem_req_paddr);
+    printf("ERROR: unexpected result on directory 1, paddr = %X\n",top->dr1_drtomem_req_paddr);
     error_found(top);
     return;
   }
 
   if (top->core0_slice0_dctocore_ld_valid && c0s0_resp_queue.empty()) {
-    printf("ERROR: unexpected result on c0s0, poffset %d\n",top->core0_slice0_coretodc_ld_poffset);
+    printf("ERROR: unexpected result on c0s0, coreid %X\n",top->core0_slice0_coretodc_ld_coreid);
     error_found(top);
     return;
   }
 
   if (top->core0_slice1_dctocore_ld_valid && c0s1_resp_queue.empty()) {
-    printf("ERROR: unexpected result on c0s1, poffset %d\n",top->core0_slice1_coretodc_ld_poffset);
+    printf("ERROR: unexpected result on c0s1, coreidt %X\n",top->core0_slice1_coretodc_ld_coreid);
     error_found(top);
     return;
   }
 
   if (top->core0_slice2_dctocore_ld_valid && c0s2_resp_queue.empty()) {
-    printf("ERROR: unexpected result on c0s2, poffset %d\n",top->core0_slice2_coretodc_ld_poffset);
+    printf("ERROR: unexpected result on c0s2, coreid %X\n",top->core0_slice2_coretodc_ld_coreid);
     error_found(top);
     return;
   }
 
   if (top->core0_slice3_dctocore_ld_valid && c0s3_resp_queue.empty()) {
-    printf("ERROR: unexpected result on c0s3, poffset %d\n",top->core0_slice3_coretodc_ld_poffset);
+    printf("ERROR: unexpected result on c0s3, coreid %X\n",top->core0_slice3_coretodc_ld_coreid);
     error_found(top);
     return;
   }
@@ -642,7 +647,7 @@ void try_send_packet(Vintegration_2core2dr *top) {
 
         c0s0_ld_req_queue.pop_back();
 #ifdef DEBUG_TRACE
-        printf("@%lld c0s0 ld coreid=%d, ckpid=%d, offset=%d, imm=%d, lop=%d, pnr=%d, pcsign=%d\n",42,c0s0_req.coreid, c0s0_req.ckpid, c0s0_req.poffset, c0s0_req.imm, c0s0_req.lop, c0s0_req.pnr, c0s0_req.pcsign);
+        printf("@%lld c0s0 ld coreid=%X, ckpid=%X, offset=%X, imm=%X, lop=%X, pnr=%X, pcsign=%X\n",42,c0s0_req.coreid, c0s0_req.ckpid, c0s0_req.poffset, c0s0_req.imm, c0s0_req.lop, c0s0_req.pnr, c0s0_req.pcsign);
 #endif
       }
     } else {
@@ -651,6 +656,47 @@ void try_send_packet(Vintegration_2core2dr *top) {
     }
   }
 
+  // SEND DCACHE DISP
+  // will also send to tlb
+  if(!top->core0_slice0_coretodc_std_retry && !top->c0_s0_coretodctlb_st_retry){
+      if (!c0s0_st_req_queue.empty()) {
+
+          DCacheSTReq c0s0_req = c0s0_st_req_queue.back();
+          if(c0s0_req.coreid = 0 && !top->core0_slice0_coretodc_std_retry) {
+              //dcache req
+              top->core0_slice0_coretodc_std_ckpid    = c0s0_req.ckpid;
+              top->core0_slice0_coretodc_std_coreid   = c0s0_req.coreid;
+              std::memcpy(top->core0_slice0_coretodc_std_data, c0s0_req.data, 16);
+              top->core0_slice0_coretodc_std_imm      = c0s0_req.imm;
+              top->core0_slice0_coretodc_std_mop      = c0s0_req.mop;
+              top->core0_slice0_coretodc_std_pcsign   = c0s0_req.pcsign;
+              top->core0_slice0_coretodc_std_pnr      = c0s0_req.pnr;
+              top->core0_slice0_coretodc_std_poffset  = c0s0_req.poffset;
+
+              top->core0_slice0_coretodc_std_valid    = 1;
+
+              //dctlb req
+              top->c0_s0_coretodctlb_st_ckpid    = c0s0_req.ckpid;
+              top->c0_s0_coretodctlb_st_coreid   = c0s0_req.coreid;
+              top->c0_s0_coretodctlb_st_imm      = c0s0_req.imm;
+              top->c0_s0_coretodctlb_st_mop      = c0s0_req.mop;
+              top->c0_s0_coretodctlb_st_pnr      = c0s0_req.pnr;
+
+              top->c0_s0_coretodctlb_st_sptbr    = 0;
+              top->c0_s0_coretodctlb_st_user     = 1;
+
+              top->c0_s0_coretodctlb_st_valid    = 1;
+
+              c0s0_st_req_queue.pop_back();
+#ifdef DEBUG_TRACE
+              printf("st c0s0 ckpid=%X, coreid=%X, data=%X, imm=%X, mop=%X, pcsign=%X, pnr=%X, poffset=%X\n", c0s0_req.ckpid, c0s0_req.coreid, c0s0_req.data, c0s0_req.imm, c0s0_req.mop, c0s0_req.pcsign, c0s0_req.pnr, c0s0_req.poffset);
+#endif
+          }
+      } else {
+          top->core0_slice0_coretodc_std_valid = 0;
+          top->c0_s0_coretodctlb_st_valid      = 0;
+      }
+  }
 
   // SEND MEMORY RESP
   if(!top->dr0_memtodr_ack_retry) {
@@ -664,6 +710,7 @@ void try_send_packet(Vintegration_2core2dr *top) {
       std::memcpy(top->dr0_memtodr_ack_line,resp.line,16);
 
       top->dr0_memtodr_ack_valid = 1;
+      dr0_resps.pop_back();
 
 #ifdef DEBUG_TRACE
         printf("@%lld dr0 ack drid=%X, nid=%X, paddr=%X\n",46,resp.drid,resp.nid,resp.paddr);
@@ -705,6 +752,13 @@ void run_single_core(int coreid) {
   for(int niters=0 ; niters < 1; niters++) {
     //-------------------------------------------------------;
 
+    c0s0_ld_req_queue.clear();
+    c0s1_ld_req_queue.clear();
+    c0s2_ld_req_queue.clear();
+    c0s3_ld_req_queue.clear();
+    dr0_reqs.clear();
+    dr1_reqs.clear();
+
   /*
 #ifdef DEBUG_TRACE
     printf("reset\n");
@@ -742,6 +796,7 @@ void run_single_core(int coreid) {
       try_recv_packet(top);
       advance_half_clock(top);
 
+#ifdef TEST_TOP_LD
       // LOAD REQUESTS SLICE 0
       if (((rand() & 0x3)==0) && c0s0_ld_req_queue.size() < 3) {
         DCacheLDReq request;
@@ -769,7 +824,9 @@ void run_single_core(int coreid) {
         else
           dr0_reqs.push_front(m_req);
       }
+#endif
 
+#ifdef TEST_TOP_ST
       // ST REQUESTS SLICE 0
       if (((rand() & 0x3)==0) && c0s0_st_req_queue.size() < 3) {
         DCacheSTReq request;
@@ -778,7 +835,7 @@ void run_single_core(int coreid) {
         request.mop     = rand() & mask(sizeof(top->core0_slice0_coretodc_std_mop));
         request.pnr     = rand() & mask(sizeof(top->core0_slice0_coretodc_std_pnr));
         request.pcsign  = rand() & mask(sizeof(top->core0_slice0_coretodc_std_pcsign));
-        request.data    = rand() & mask(sizeof(top->core0_slice0_coretodc_std_data));
+        set_array(16, request.data, 16);
 
         request.imm     = rand() & mask(sizeof(top->core0_slice0_coretodc_std_imm));
         request.laddr   = rand() & mask(sizeof(top->c0_s0_coretodctlb_st_laddr));
@@ -787,21 +844,23 @@ void run_single_core(int coreid) {
         request.poffset = request.laddr & mask(sizeof(top->core0_slice0_coretodc_ld_poffset));
 
         //FIXME: stores not implemented in L1 PASSTHROUGH
-        //c0s0_ld_req_queue.push_front(request);
+        c0s0_st_req_queue.push_front(request);
 
         MemReq m_req;
         m_req.drid  = 0;
         m_req.paddr = (request.laddr >> 12) & mask(sizeof(top->dr0_drtomem_req_paddr));
 
         //directory choice defined by the 10th bit of paddr
-        /*
+        
         if((m_req.paddr >> 9) & 0x1 == 1)
           dr1_reqs.push_front(m_req);
         else
           dr0_reqs.push_front(m_req);
-        */
+        
       }
+#endif
 
+#ifdef TEST_MEM_LD
       // FIXME: for now, sending random responses through the hierarchy to test
       // passthroughs. Remove when the request paths are working and send data
       // for requested paths
@@ -817,12 +876,13 @@ void run_single_core(int coreid) {
         dr0_resps.push_front(resp);
 
         DCResp dc_resp;
-        dc_resp.coreid = 0;
+        dc_resp.coreid = 0; //rand() & 0x37;
         dc_resp.fault  = 0;
         std::memcpy(dc_resp.data, resp.line, 8*sizeof(int));
         //FIXME: need to check what the right queue is
         c0s0_resp_queue.push_front(dc_resp);
       }
+#endif
     }
 
     for(int i =0;i<1000;i++) {
