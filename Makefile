@@ -115,6 +115,15 @@ run_pfengine_wp: pfengine_wp
 
 REGLIST+=pfengine_wp
 ###########################
+pfmonitor_wp:
+	  verilator --assert --debug-check -I./rtl --Wall --cc --trace --top-module pfmonitor_wp ./rtl/pfmonitor.v ./tests/pfmonitor_wp.v ./rtl/fflop.v ./rtl/flop.v --exe tests/pfmonitor_wp_tb.cpp -CFLAGS -DTRACE=1
+		  make -C obj_dir/ -f Vpfmonitor_wp.mk Vpfmonitor_wp
+
+run_pfmonitor_wp: pfmonitor_wp
+	  ./obj_dir/Vpfmonitor_wp
+
+REGLIST+=pfmonitor_wp
+###########################
 directory_bank_wp:
 	verilator --assert --debug-check -I./rtl --Wall --cc --trace --top-module directory_bank_wp ./tests/directory_bank_wp.v ./rtl/directory_bank.v ./rtl/fflop.v ./rtl/flop_r.v --exe tests/directory_bank_wp_tb.cpp -CFLAGS -DTRACE=1
 	make -C obj_dir/ -f Vdirectory_bank_wp.mk Vdirectory_bank_wp
