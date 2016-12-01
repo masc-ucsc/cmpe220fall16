@@ -159,7 +159,7 @@ module l2cache_pipe(
 
     `ifdef L2_PASSTHROUGH
         `ifndef L2_COMPLETE
-        assign l2todr_req_next_valid = l1tol2_req_valid;
+        //assign l2todr_req_next_valid = l1tol2_req_valid;
         assign  l1tol2_req_retry = l2todr_req_next_retry;
 
         // Temp drive Begin
@@ -173,6 +173,7 @@ module l2cache_pipe(
         // (4) l2tol1_snack
     always_comb begin
         // -> l1tol2_req
+        // wait for l2tlbtol2_fwd, meanwhile keep sending retry l1tol2_req_retry
         // l2todr_req ->
         if (l2todr_req_next_valid) begin
             l2todr_req_next.nid = 5'b00000; // Could be wrong
@@ -288,9 +289,6 @@ module l2cache_pipe(
 
 `ifdef L2_PASSTHROUGH
     `ifndef L2_COMPLETE
-// (1) -> l1tol2_disp
-// (2) l2todr_disp ->
-// (2) l2tol1_dack ->
     logic l2tol1_dack_next_valid;
     //assign l2tol1_dack_next_valid = l1tol2_disp_valid;
     logic l2tol1_dack_next_retry;
@@ -340,13 +338,31 @@ module l2cache_pipe(
     logic l2todr_disp_next_retry;
     logic l2tlb_match_l1disp;
     logic drtol2_ack_valid;
+    logic l1tol2_disp_retry_source1;
     assign  drtol2_ack_valid = drtol2_snack_valid && (drtol2_snack.l2id!=0);
     assign  l2tlb_match_l1disp = l1tol2_disp_valid && l2tlbtol2_fwd_valid && (l2tlbtol2_fwd.l1id==l1tol2_disp.l1id);
-    assign l1tol2_disp_retry = l2todr_disp_next_retry | l2tol1_dack_next_retry; // Note this is BUGGYYYYY!
+    assign l1tol2_disp_retry = l2todr_disp_next_retry | l2tol1_dack_next_retry | l1tol2_disp_retry_source1; // Note this is BUGGYYYYY!
     I_l2todr_disp_type l2todr_disp_next;
+
+    logic sent_drreq_from_l1disp_next, sent_drreq_from_l1disp_next_valid, sent_drreq_from_l1disp_next_retry;
+    logic sent_drreq_from_l1disp, sent_drreq_from_l1disp_valid,sent_drreq_from_l1disp_retry;
+    // flag
+    fflop #(.Size(1)) fsent_drreq_from_l1disp (
+        .clk      (clk),
+        .reset    (reset),
+
+        .din      (sent_drreq_from_l1disp_next),
+        .dinValid (sent_drreq_from_l1disp_next_valid),
+        .dinRetry (sent_drreq_from_l1disp_next_retry),
+
+        .q        (sent_drreq_from_l1disp),
+        .qValid   (sent_drreq_from_l1disp_valid),
+        .qRetry   (sent_drreq_from_l1disp_retry)
+        );
+
     always_comb begin
         l2todr_disp_next_valid = 0;
-        l1tol2_disp_retry = 0;
+        l1tol2_disp_retry_source1 = 0;
         l2tlbtol2_fwd_retry_source1 = 0;
         drtol2_snack_retry_source1 = 0;
         if (l1tol2_disp_valid) begin
@@ -366,22 +382,36 @@ module l2cache_pipe(
                     l2tol1_dack_next.l1id =  l1tol2_disp.l1id;
                 end
                 else begin
-                    l1tol2_disp_retry = 1;
+                    l1tol2_disp_retry_source1 = 1;
                 end
             end
             else begin// If the mask bits of l1tol2_disp are not all enabled
+                
                 case ({drtol2_ack_valid, l2tlb_match_l1disp})
-                    2'b00: l1tol2_disp_retry = 1;
+                    2'b00: l1tol2_disp_retry_source1 = 1;
                     2'b01: begin
-                        l1tol2_disp_retry = 1;
+                        // Send l2todr_req to get a copy of the line
+                        if (~sent_drreq_from_l1disp) begin
+                            l2todr_req_valid = 1;
+                            l2todr_req.nid = {5{1'b0}};
+                            l2todr_req.l2id = {1'b0, l1tol2_disp.l1id};
+                            l2todr_req.cmd = `SC_CMD_REQ_M;
+                            l2todr_req.paddr = l2tlbtol2_fwd.paddr;
+                        end
+                        sent_drreq_from_l1disp_next = 1;
+                        sent_drreq_from_l1disp_next_valid = 1; //TODO: may depend on retry
+                        l1tol2_disp_retry_source1 = 1;
                         l2tlbtol2_fwd_retry_source1 = 1;
                     end
                     2'b10: begin
-                        l1tol2_disp_retry = 1;
+                        l1tol2_disp_retry_source1 = 1;
                         drtol2_snack_retry_source1 = 1;
                     end
                     2'b11: begin
                         if (drtol2_snack.paddr[49:6] == l2tlbtol2_fwd.paddr[49:6]) begin
+                            // reset the flag
+                            sent_drreq_from_l1disp_next = 1;
+                            sent_drreq_from_l1disp_next_valid = 1;
                             // Merge line
                             //0 to 63
                             if (l1tol2_disp.mask[(0+8*0)]) begin
