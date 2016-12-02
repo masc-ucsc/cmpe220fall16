@@ -171,13 +171,13 @@ module l2tlb(
 
 `ifdef L2TLB_ENTRIES
   
-  logic				TLBT_valid;
-  logic				TLBT_retry;
-  logic				TLB_write[3:0];
+  logic			TLBT_valid;
+  logic			TLBT_retry;
+  logic			TLB_write[3:0];
 
-  logic				TLBT_valid_next[3:0]
-  logic             TLBT_valid_retry
-  logic 			TLBE_valid_next[3:0];
+  logic			TLBT_valid_next[3:0]
+  logic  	        TLBT_valid_retry
+  logic 		TLBE_valid_next[3:0];
   SC_dctlbe_type 	TLBE_dctlbe_next[3:0];
   logic[18:0] 		TLBE_tag_next[3:0];
 
@@ -196,8 +196,8 @@ module l2tlb(
     ,.req_valid(l1tlbtol2tlb_req_valid)
     ,.req_retry(l1tlbtol2tlb_req_retry)
     ,.req_we(TLBE_write[0])
-	,.req_pos(l1tlbtol2tlb_req.laddr[19:12])
-	,.req_data({1, 13'b0_0000_0000_0000, l1tlbtol2tlb_req.laddr[38:20]})
+    ,.req_pos(l1tlbtol2tlb_req.laddr[19:12])
+    ,.req_data({1, 13'b0_0000_0000_0000, l1tlbtol2tlb_req.laddr[38:20]})
 
     ,.ack_valid(TLBT_valid_next[0])
     ,.ack_retry(TLBT_valid_retry)
@@ -211,8 +211,8 @@ module l2tlb(
     ,.req_valid(l1tlbtol2tlb_req_valid)
     ,.req_retry(l1tlbtol2tlb_req_retry)
     ,.req_we(TLBE_write[1])
-	,.req_pos(l1tlbtol2tlb_req.laddr[19:12])
-	,.req_data({1, 13'b0_0000_0000_0000, l1tlbtol2tlb_req.laddr[38:20]})
+    ,.req_pos(l1tlbtol2tlb_req.laddr[19:12])
+    ,.req_data({1, 13'b0_0000_0000_0000, l1tlbtol2tlb_req.laddr[38:20]})
 
     ,.ack_valid(TLBT_valid_next[1])
     ,.ack_retry(TLBT_valid_retry)
@@ -226,8 +226,8 @@ module l2tlb(
     ,.req_valid(l1tlbtol2tlb_req_valid)
     ,.req_retry(l1tlbtol2tlb_req_retry)
     ,.req_we(TLBE_write[2])
-	,.req_pos(l1tlbtol2tlb_req.laddr[19:12])
-	,.req_data({1, 13'b0_0000_0000_0000, l1tlbtol2tlb_req.laddr[38:20]})
+    ,.req_pos(l1tlbtol2tlb_req.laddr[19:12])
+    ,.req_data({1, 13'b0_0000_0000_0000, l1tlbtol2tlb_req.laddr[38:20]})
 
     ,.ack_valid(TLBT_valid_next[2])
     ,.ack_retry(TLBT_valid_retry)
@@ -241,8 +241,8 @@ module l2tlb(
     ,.req_valid(l1tlbtol2tlb_req_valid)
     ,.req_retry(l1tlbtol2tlb_req_retry)
     ,.req_we(TLBE_write[3])
-	,.req_pos(l1tlbtol2tlb_req.laddr[19:12])
-	,.req_data({1, 13'b0_0000_0000_0000, l1tlbtol2tlb_req.laddr[38:20]})
+    ,.req_pos(l1tlbtol2tlb_req.laddr[19:12])
+    ,.req_data({1, 13'b0_0000_0000_0000, l1tlbtol2tlb_req.laddr[38:20]})
 
     ,.ack_valid(TLBT_valid_next[3])
     ,.ack_retry(TLBT_valid_retry)
@@ -298,8 +298,8 @@ module l2tlb(
     ,.req_valid(HT_valid)
     ,.req_retry(HT_retry)
     ,.req_we(HE_write)
-	,.req_pos(HE_hpaddr)
-	,.req_data({HE_valid, HE_paddr})
+    ,.req_pos(HE_hpaddr)
+    ,.req_data({HE_valid, HE_paddr})
 
     ,.ack_valid(HT_valid_next)
     ,.ack_retry(HT_retry_next)
