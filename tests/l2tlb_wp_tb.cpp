@@ -412,6 +412,8 @@ int main(int argc, char **argv, char **env) {
     l2_dr_disp_list.clear();
 
     top->l1tol2tlb_req_valid = 0;
+	top->l1tlbtol2tlb_req_valid = 0;
+	top->drtol2_snack_valid = 0;
     int ncycles= rand() & 0xFF;
     ncycles++; // At least one cycle reset
     for(int i =0;i<ncycles;i++) {
@@ -419,6 +421,16 @@ int main(int argc, char **argv, char **env) {
 		top->l1tol2tlb_req_prefetch = (uint8_t)rand() & 0x01;
 		top->l1tol2tlb_req_hpaddr 	= (uint16_t)rand() & 0x07FF;
 		top->l2tlbtol2_fwd_retry	= rand() & 1;
+
+	    top->l1tlbtol2tlb_req_rid			= rand() & 0x03;
+		top->l1tlbtol2tlb_req_disp_req		= 0;
+		top->l1tlbtol2tlb_req_disp_A		= 0;
+		top->l1tlbtol2tlb_req_disp_D		= 0;
+		top->l1tlbtol2tlb_req_disp_hpaddr 	= rand() & 0x07FF;
+		top->l1tlbtol2tlb_req_laddr 		= rand() & 0x0000007FFFFFFFFF;
+		top->l1tlbtol2tlb_req_sptbr			= 0;
+		top->l2tlbtol1tlb_ack_retry			= rand() & 1;
+
 		advance_clock(top,1);
     }
 
@@ -427,11 +439,21 @@ int main(int argc, char **argv, char **env) {
 #endif
     //-------------------------------------------------------
     top->reset = 0;
+	top->l1tol2tlb_req_valid 	= 0;
     top->l1tol2tlb_req_l1id 	= 0;
     top->l1tol2tlb_req_prefetch = 0;
-    top->l1tol2tlb_req_hpaddr 	= 0;
-    top->l1tol2tlb_req_valid = 0;
-    top->l2tlbtol2_fwd_retry = 1;
+    top->l1tol2tlb_req_hpaddr 	= 0;    
+    top->l2tlbtol2_fwd_retry 	= 1;
+
+	top->l1tlbtol2tlb_req_valid			= 0;
+	top->l1tlbtol2tlb_req_rid			= rand() & 0x03;
+	top->l1tlbtol2tlb_req_disp_req		= 0;
+	top->l1tlbtol2tlb_req_disp_A		= 0;
+	top->l1tlbtol2tlb_req_disp_D		= 0;
+	top->l1tlbtol2tlb_req_disp_hpaddr 	= rand() & 0x07FF;
+	top->l1tlbtol2tlb_req_laddr 		= rand() & 0x0000007FFFFFFFFF;
+	top->l1tlbtol2tlb_req_sptbr			= 0;
+	top->l2tlbtol1tlb_ack_retry			= 1;
 
     advance_clock(top,1);
 
