@@ -10,16 +10,19 @@
 #define DEBUG_TRACE 1
 
 //Set which sets you want to run
-#define TEST_PFREQ 1
+//#define TEST_PFREQ 1
 #define TEST_REQ 1
 #define TEST_ACK 1
-#define TEST_DISP 1
+//#define TEST_DISP 1
+#define TEST_DISP_ACK 1
 
-#define DR_PASSTHROUGH 1
-#define TEST_NO_OUTSTD_REQ 1
+
+//#define DR_PASSTHROUGH 1
+//#define TEST_NO_OUTSTD_REQ 1
 
 vluint64_t global_time = 0;
 VerilatedVcdC* tfp = 0;
+
 
 
 //Below is code from other tb
@@ -168,6 +171,7 @@ struct InputPacket_l2todr_snoop_ack {
   uint8_t directory_id;
 };
 
+bool checkSnack(Vdirectory_bank_wp *top, OutputPacket_drtol2_snack o);
 
 
 double sc_time_stamp() {
@@ -184,10 +188,12 @@ std::list<OutputPacket_drtomem_req> out_list_req;
 
 std::list<InputPacket_memtodr_ack>  inp_list_ack;
 std::list<OutputPacket_drtol2_snack> out_list_ack;
+std::list<OutputPacket_drtol2_snack> out_list_ack_disp;
 std::list<OutputPacket_drtol2_snack> out_list_pfack;
 std::list<OutputPacket_drtol2_ack_ids> out_list_ack_ids;
 
 std::list<InputPacket_l2todr_disp>  inp_list_disp;
+
 std::list<OutputPacket_drtol2_dack> out_list_dack;
 std::list<OutputPacket_drtomem_wb> out_list_wb;
 
@@ -437,7 +443,7 @@ void try_send_packet(Vdirectory_bank_wp *top) {
 
 }
 
-//above is code from other tb
+
 void try_recv_packet_pfreq(Vdirectory_bank_wp *top) {
 
   //pfreq
@@ -671,7 +677,7 @@ void try_recv_packet_req(Vdirectory_bank_wp *top) {
   inAck.line_0 = rand();
   inAck.drid = top->drtomem_req_drid;
   inAck.nid = 0;
-  inAck.paddr = 0;
+  inAck.paddr = top->drtomem_req_paddr;
   inAck.ack_cmd = rand() & 0x1B; //this prevents prefetch command from being generated.
   inp_list_ack.push_front(inAck);
   
@@ -687,7 +693,7 @@ void try_recv_packet_req(Vdirectory_bank_wp *top) {
   out3.drid = 0;
   out3.directory_id = 0;
   out3.ack_cmd = inAck.ack_cmd;
-  out3.paddr = 0;
+  out3.paddr = top->drtomem_req_paddr;
   
 #ifdef DR_PASSTHROUGH
   OutputPacket_drtol2_ack_ids o_id = out_list_ack_ids.back();
@@ -705,13 +711,13 @@ void try_recv_packet_req(Vdirectory_bank_wp *top) {
   
 }
 
-//ack
-void try_recv_packet_ack(Vdirectory_bank_wp *top) {
+//snack
+void try_recv_packet_snack(Vdirectory_bank_wp *top) {
 
   //The ack list only maintains acks and not snoops. If the DRID is not 0 then this is a snoop and we can ignore
   //the error condition where there are no items in our list.
-  if (top->drtol2_snack_valid && out_list_ack.empty() && out_list_pfack.empty() && top->drtol2_snack_drid == 0) {
-    printf("ERROR: unexpected drtol2 ack paddr: %lu, nid: %u, l2id: %u, drid: %u, directory_id: %u, snack_cmd: %u, data:%lu,%lu,%lu,%lu,%lu,%lu,%lu,%lu\n"
+  if (top->drtol2_snack_valid && out_list_ack.empty() && out_list_ack_disp.empty() && out_list_pfack.empty() && top->drtol2_snack_drid == 0) {
+    printf("ERROR: unexpected drtol2 snack paddr: %lu, nid: %u, l2id: %u, drid: %u, directory_id: %u, snack_cmd: %u, data:%lu,%lu,%lu,%lu,%lu,%lu,%lu,%lu\n"
                                                                              ,top->drtol2_snack_paddr
                                                                              ,top->drtol2_snack_nid
                                                                              ,top->drtol2_snack_l2id
@@ -736,15 +742,15 @@ void try_recv_packet_ack(Vdirectory_bank_wp *top) {
   if (!top->drtol2_snack_valid)
     return;
 
-  if (out_list_ack.empty() && out_list_pfack.empty() && top->drtol2_snack_drid == 0)
-    return;
+  // if (out_list_ack.empty() && out_list_pfack.empty() && top->drtol2_snack_drid == 0)
+    // return;
   
   //This is the case of the snack being a snoop rather than an ack. In this case, we want to send a snoop ack which implies
   //that the Testbench is not sending data as a response to this ack and just acking instead.
   
 
 #ifdef DEBUG_TRACE
-  printf("@%lu drtol2 ack paddr: %lu, nid: %u, l2id: %u, drid: %u, directory_id: %u, snack_cmd: %u, data:%lu,%lu,%lu,%lu,%lu,%lu,%lu,%lu\n",global_time 
+  printf("@%lu drtol2 snack paddr: %lu, nid: %u, l2id: %u, drid: %u, directory_id: %u, snack_cmd: %u, data:%lu,%lu,%lu,%lu,%lu,%lu,%lu,%lu\n",global_time 
                                                                              ,top->drtol2_snack_paddr
                                                                              ,top->drtol2_snack_nid
                                                                              ,top->drtol2_snack_l2id
@@ -762,74 +768,166 @@ void try_recv_packet_ack(Vdirectory_bank_wp *top) {
 #endif
 
   if(top->drtol2_snack_drid != 0){
-    InputPacket_l2todr_snoop_ack i;
-    i.drid = top->drtol2_snack_drid;
-    i.directory_id = top->drtol2_snack_directory_id;
-    inp_list_snoop_ack.push_front(i);
+    int randNum;
+#ifdef TEST_DISP_ACK
+    randNum = (rand() % 4);
+#else
+    randNum = 0;
+#endif
+
+    if(randNum == 0){
+      //Generating a snoop ack. This response implies no data is being sent back
+      InputPacket_l2todr_snoop_ack i;
+      i.drid = top->drtol2_snack_drid;
+      i.directory_id = top->drtol2_snack_directory_id;
+      inp_list_snoop_ack.push_front(i);
+    }
+    else {
+#ifdef TEST_DISP_ACK
+      //Generating a displacement if there is data
+      InputPacket_l2todr_disp i_disp;
+      i_disp.drid = top->drtol2_snack_drid; 
+      i_disp.nid = top->drtol2_snack_nid;
+      i_disp.l2id = 0;
+      
+      if(top->drtol2_snack_snack == 20)
+        i_disp.dcmd = 0x0; //wb invalidated
+      else if(top->drtol2_snack_snack == 24)
+        i_disp.dcmd = 0x1; //wb shared
+      else
+        i_disp.dcmd = 0x0; //wb invalidated
+      
+      i_disp.mask = 0;
+      i_disp.line_7 = rand() & 0xFFFFFFFFFFFFFFFF;
+      i_disp.line_6 = rand() & 0xFFFFFFFFFFFFFFFF;
+      i_disp.line_5 = rand() & 0xFFFFFFFFFFFFFFFF;
+      i_disp.line_4 = rand() & 0xFFFFFFFFFFFFFFFF;
+      i_disp.line_3 = rand() & 0xFFFFFFFFFFFFFFFF;
+      i_disp.line_2 = rand() & 0xFFFFFFFFFFFFFFFF;
+      i_disp.line_1 = rand() & 0xFFFFFFFFFFFFFFFF;
+      i_disp.line_0 = rand() & 0xFFFFFFFFFFFFFFFF;
+      i_disp.paddr = top->drtol2_snack_paddr;
+      
+      inp_list_disp.push_front(i_disp);
+      
+      OutputPacket_drtol2_snack out3;    
+      out3.line_7 = i_disp.line_7;
+      out3.line_6 = i_disp.line_6;
+      out3.line_5 = i_disp.line_5;
+      out3.line_4 = i_disp.line_4;
+      out3.line_3 = i_disp.line_3;
+      out3.line_2 = i_disp.line_2;
+      out3.line_1 = i_disp.line_1;
+      out3.line_0 = i_disp.line_0;
+      out3.drid = 0;
+      out3.directory_id = 0;
+      
+      if(top->drtol2_snack_snack == 20)
+        out3.ack_cmd = 3;
+      else if(top->drtol2_snack_snack == 24)
+        out3.ack_cmd = 0;
+      else
+        out3.ack_cmd = 0x0; //wb invalidated
+      
+      out3.paddr = i_disp.paddr;
+      out3.nid = 0;
+      out3.l2id = 0;
+
+      out_list_ack_disp.push_front(out3);
+#endif
+    }
     return;
   }
 
   
   OutputPacket_drtol2_snack o;
-  if(top->drtol2_snack_l2id != 0)
-    o = out_list_ack.back();
-  else
+  OutputPacket_drtol2_snack o_disp;
+  bool ack = false;
+  bool ackDisp = false;
+  if(top->drtol2_snack_l2id != 0){
+    if(!out_list_ack.empty()){
+      o = out_list_ack.back();
+      ack = checkSnack(top,o);
+    }
+    
+    if(!out_list_ack_disp.empty()){
+      o_disp = out_list_ack_disp.back();
+      ackDisp = checkSnack(top,o_disp);
+    }
+    
+    if(!ack && !ackDisp){
+      printf("ERROR: expected drtol2 snack did not match actual\n");
+      error_found(top);
+    }
+  } else {
     o = out_list_pfack.back();
+    if(!checkSnack(top,o))
+      error_found(top);
+  }  
   
-  if (top->drtol2_snack_line_7 != o.line_7) {
-    printf("ERROR: expected drtol2 ack data:%lu but ack is %lu\n",o.line_7,top->drtol2_snack_line_7);
-    error_found(top);
+  
+  if(top->drtol2_snack_l2id != 0){
+    if(ack)
+      out_list_ack.pop_back();
+    else
+      out_list_ack_disp.pop_back();
+  }
+  else {
+    out_list_pfack.pop_back();
+  }
+}
+
+bool checkSnack(Vdirectory_bank_wp *top, OutputPacket_drtol2_snack o){
+   if (top->drtol2_snack_line_7 != o.line_7) {
+    //printf("ERROR: expected drtol2 snack data:%lu but actual is %lu\n",o.line_7,top->drtol2_snack_line_7);
+    return false;
   } else if (top->drtol2_snack_line_6 != o.line_6) {
-    printf("ERROR: expected drtol2 ack data:%lu but ack is %lu\n",o.line_6,top->drtol2_snack_line_6);
-    error_found(top);
+    //printf("ERROR: expected drtol2 snack data:%lu but actual is %lu\n",o.line_6,top->drtol2_snack_line_6);
+    return false;
   } else if (top->drtol2_snack_line_5 != o.line_5) {
-    printf("ERROR: expected drtol2 ack data:%lu but ack is %lu\n",o.line_5,top->drtol2_snack_line_5);
-    error_found(top);
+    //printf("ERROR: expected drtol2 snack data:%lu but actual is %lu\n",o.line_5,top->drtol2_snack_line_5);
+    return false;
   } else if (top->drtol2_snack_line_4 != o.line_4) {
-    printf("ERROR: expected drtol2 ack data:%lu but ack is %lu\n",o.line_4,top->drtol2_snack_line_4);
-    error_found(top);
+    //printf("ERROR: expected drtol2 snack data:%lu but actual is %lu\n",o.line_4,top->drtol2_snack_line_4);
+    return false;
   } else if (top->drtol2_snack_line_3 != o.line_3) {
-    printf("ERROR: expected drtol2 ack data:%lu but ack is %lu\n",o.line_3,top->drtol2_snack_line_3);
-    error_found(top);
+    //printf("ERROR: expected drtol2 snack data:%lu but actual is %lu\n",o.line_3,top->drtol2_snack_line_3);
+    return false;
   } else if (top->drtol2_snack_line_2 != o.line_2) {
-    printf("ERROR: expected drtol2 ack data:%lu but ack is %lu\n",o.line_2,top->drtol2_snack_line_2);
-    error_found(top);
+    //printf("ERROR: expected drtol2 snack data:%lu but actual is %lu\n",o.line_2,top->drtol2_snack_line_2);
+    return false;
   } else if (top->drtol2_snack_line_1 != o.line_1) {
-    printf("ERROR: expected drtol2 ack data:%lu but ack is %lu\n",o.line_1,top->drtol2_snack_line_1);
-    error_found(top);
+    //printf("ERROR: expected drtol2 snack data:%lu but actual is %lu\n",o.line_1,top->drtol2_snack_line_1);
+    return false;
   } else if (top->drtol2_snack_line_0 != o.line_0) {
-    printf("ERROR: expected drtol2 ack data:%lu but ack is %lu\n",o.line_0,top->drtol2_snack_line_0);
-    error_found(top);
+    //printf("ERROR: expected drtol2 snack data:%lu but actual is %lu\n",o.line_0,top->drtol2_snack_line_0);
+    return false;
   }
   
 #ifdef DR_PASSTHROUGH
   if (top->drtol2_snack_nid != o.nid) {
-    printf("ERROR: expected drtol2 ack nid:%u but actual is %u\n",o.nid,top->drtol2_snack_nid);
-    error_found(top);
+    //printf("ERROR: expected drtol2 snack nid:%u but actual is %u\n",o.nid,top->drtol2_snack_nid);
+    return false;
   } else if (top->drtol2_snack_l2id != o.l2id) {
-    printf("ERROR: expected drtol2 ack l2id:%u but actual is %u\n",o.l2id,top->drtol2_snack_l2id);
-    error_found(top);
+    //printf("ERROR: expected drtol2 snack l2id:%u but actual is %u\n",o.l2id,top->drtol2_snack_l2id);
+    return false;
   } 
 #endif
 
   if (top->drtol2_snack_drid != o.drid) {
-    printf("ERROR: expected drtol2 ack drid:%u but actual is %u\n",o.drid,top->drtol2_snack_drid);
-    error_found(top);
+    //printf("ERROR: expected drtol2 snack drid:%u but actual is %u\n",o.drid,top->drtol2_snack_drid);
+    return false;
   } else if (top->drtol2_snack_directory_id != o.directory_id) {
-    printf("ERROR: expected drtol2 ack directory_id:%u but actual is %u\n",o.directory_id,top->drtol2_snack_directory_id);
-    error_found(top);
+    //printf("ERROR: expected drtol2 snack directory_id:%u but actual is %u\n",o.directory_id,top->drtol2_snack_directory_id);
+    return false;
   } else if (top->drtol2_snack_snack != o.ack_cmd) {
-    printf("ERROR: expected drtol2 ack snack :%u but actual is %u\n",o.ack_cmd,top->drtol2_snack_snack );
-    error_found(top);
+    //printf("ERROR: expected drtol2 snack snack :%u but actual is %u\n",o.ack_cmd,top->drtol2_snack_snack );
+    return false;
   } else if (top->drtol2_snack_paddr != o.paddr) {
-    printf("ERROR: expected drtol2 ack paddr:%lu but actual is %lu\n",o.paddr,top->drtol2_snack_paddr);
-    error_found(top);
+    //printf("ERROR: expected drtol2 snack paddr:%lu but actual is %lu\n",o.paddr,top->drtol2_snack_paddr);
+    return false;
   }
-  
-  if(top->drtol2_snack_l2id != 0)
-    out_list_ack.pop_back();
-  else
-    out_list_pfack.pop_back();
+  return true;
 }
 
 
@@ -903,7 +1001,7 @@ int main(int argc, char **argv, char **env) {
 #endif
 
 #ifdef TEST_ACK    
-    try_recv_packet_ack(top);
+    try_recv_packet_snack(top);
 #endif
     advance_half_clock(top);
     
@@ -944,6 +1042,8 @@ int main(int argc, char **argv, char **env) {
       else
         i.cmd = 0x2; //get NC
       
+      i.cmd = 0;
+      
       if (rand() % 3)
         i.paddr = rand() & 0x0001FFFFFFFFFFFF;
       else if (!inp_list_req.empty())
@@ -953,7 +1053,7 @@ int main(int argc, char **argv, char **env) {
       else
         i.paddr = rand() & 0x00000000FFFFFFFF;
       
-      i.paddr = 0x0000001234567890;
+      //i.paddr = 0x0000001234567890;
 
       inp_list_req.push_front(i);
       
@@ -1023,6 +1123,8 @@ int main(int argc, char **argv, char **env) {
       else
         i.paddr = rand() & 0x00000000FFFFFFFF;
 
+      
+      
       inp_list_disp.push_front(i);
       
       

@@ -1,13 +1,17 @@
 
 `include "scmem.vh"
 `include "logfunc.h"
-`define DR_PASSTHROUGH
-//`define EXPERIMENTAL
+
 `define DR_EXPERIMENTAL
-`define TEST_OLD
+//`define TEST_OLD
 
-`define TEST_NO_OUTSTD_REQ
+//`define DR_PASSTHROUGH
+//`define TEST_NO_OUTSTD_REQ
 
+//TO DO:
+// -  Change the DISP req buf write to check if the disp is an ack
+// - Change the disp_gen_snack_valid to include the new getM changes.
+//
 
 // Directory. Cache equivalent to 2MBytes/ 16 Way assoc
 //
@@ -66,6 +70,8 @@ typedef struct packed {
   
   SC_nodeid_type    nid; 
   L2_reqid_type     l2id;
+  
+  logic             found; //state bit for a request, set to 1 if data has been found, unset otherwise
   logic [`OUTSTANDING_REQUEST_BITS:0] next;
 } I_dr_req_buf_type;
 // 1}}}
@@ -181,6 +187,10 @@ module directory_bank
       req_buf_next[req_release.rel_pos] = 'b0;
     end
     
+    if(l2todr_disp_valid && !l2todr_disp_retry && found_line) begin
+      req_buf_next[disp_req_buf_pos].found = 'b1;
+    end
+    
   end
   
   logic [DR_ENTRY_WIDTH+`ENTRY_POINTER_SIZE_BITS-1:0] entry_buf [0:MAX_OUTSTANDING_REQUESTS-1];
@@ -192,7 +202,7 @@ module directory_bank
     //if a snack occurred that was initiated by a request, put this entry into the buffer
     if(req_gen_snack_valid && !req_gen_snack_retry) begin
     //acquire space in buffer
-      entry_buf_next[entry_ff_stage.drid[`OUTSTANDING_REQUEST_BITS-1:0]] = {entry_pos_start, entry_bank_data};
+      entry_buf_next[entry_ff_stage.drid[`OUTSTANDING_REQUEST_BITS-1:0] - 'b1] = {entry_pos_start, entry_buf_data_next};
     end
     
     //if we are updating a value in the buffer then do this.
@@ -328,10 +338,6 @@ module directory_bank
   
   //TAG REQUEST ARBITER END
   
-  //valid will depend on: available DRID, available request buffer space, ID RAM ready for writing, and tag pipeline fflop ready, and Tag bank is available.
-  // assign l2todr_req_retry = !drid_valid || !req_buf_valid || tag_req_ff_stage_next_retry || id_ram_write_next_retry || tag_bank_read_next_retry;
-  // assign tag_req_ff_stage_next_valid = l2todr_req_valid && drid_valid && req_buf_valid && !id_ram_write_next_retry && !tag_bank_read_next_retry;
-  // assign id_ram_write_next_valid = l2todr_req_valid && drid_valid && req_buf_valid && !tag_req_ff_stage_next_retry && !tag_bank_read_next_retry;
   
   //fflop that maintains the pipeline of the request. In addition to remembering the request that will be sent as a snoops or request to memory
   //which contains the command, paddr, and drid. This fflop also pipelines the position in the outstanding request table and the NID for the request.
@@ -390,7 +396,7 @@ module directory_bank
     tag_bank_next_valid = 'b0;
     if(!tag_hit && tag_bank_valid) begin
       tag_bank_next_valid = tag_bank_valid && tag_req_ff_stage_valid && !entry_bank_next_retry && (!tag_gen_req_next_retry || tag_req_ff_stage.dr_cmd);
-    end else if(l2todr_req_gen_valid || req_rel_gen_req_valid || snoop_ack_gen_in_req_valid) begin
+    end else if(l2todr_req_gen_valid || req_rel_gen_req_valid || snoop_ack_gen_in_req_valid || disp_gen_req_in_valid) begin
       tag_bank_next_valid = !tag_req_ff_stage_next_retry;
     end
   end
@@ -565,7 +571,7 @@ module directory_bank
   always_comb begin 
     tag_gen_req_next_valid = 'b0;
     tag_gen_req_next = 'b0;
-    if(!tag_hit) begin
+    if(!tag_hit && !tag_req_ff_stage.dr_cmd) begin
       tag_gen_req_next.paddr = tag_req_ff_stage.paddr;
       tag_gen_req_next.drid = tag_req_ff_stage.drid;
       tag_gen_req_next.cmd = tag_req_ff_stage.cmd;
@@ -773,18 +779,33 @@ module directory_bank
     entry_bank_retry = req_gen_snack_retry || !entry_ff_stage_valid;
   end
   
+  I_dr_entry_type entry_buf_data_next;
+  //remove duplicate nids
   always_comb begin
-    if(entry_bank_data.nid_0 != 'b0) begin
-      req_gen_snack.nid = entry_bank_data.nid_0;
+    entry_buf_data_next = entry_bank_data;
+    if(entry_bank_data.nid_0 == entry_ff_stage.nid) begin
+      entry_buf_data_next.nid_0 = 'd0;
+    end else if(entry_bank_data.nid_1 == entry_ff_stage.nid) begin
+      entry_buf_data_next.nid_1 = 'd0;
+    end else if(entry_bank_data.nid_2 == entry_ff_stage.nid) begin
+      entry_buf_data_next.nid_2 = 'd0;
+    end else if(entry_bank_data.nid_3 == entry_ff_stage.nid) begin
+      entry_buf_data_next.nid_3 = 'd0;
+    end
+  end
+  
+  always_comb begin
+    if(entry_buf_data_next.nid_0 != 'b0) begin
+      req_gen_snack.nid = entry_buf_data_next.nid_0;
       entry_pos_start = 'd0;
-    end else if(entry_bank_data.nid_1 != 'b0) begin
-      req_gen_snack.nid = entry_bank_data.nid_1;
+    end else if(entry_buf_data_next.nid_1 != 'b0) begin
+      req_gen_snack.nid = entry_buf_data_next.nid_1;
       entry_pos_start = 'd1;
-    end else if(entry_bank_data.nid_2 != 'b0) begin
-      req_gen_snack.nid = entry_bank_data.nid_2;
+    end else if(entry_buf_data_next.nid_2 != 'b0) begin
+      req_gen_snack.nid = entry_buf_data_next.nid_2;
       entry_pos_start = 'd2;
     end else begin
-      req_gen_snack.nid = entry_bank_data.nid_3;
+      req_gen_snack.nid = entry_buf_data_next.nid_3;
       entry_pos_start = 'd3;
     end 
   end
@@ -794,7 +815,8 @@ module directory_bank
   assign req_gen_snack.line = 'b0;
   assign req_gen_snack.hpaddr_base = compute_dr_hpaddr_base(entry_ff_stage.paddr);
   assign req_gen_snack.hpaddr_hash = compute_dr_hpaddr_hash(entry_ff_stage.paddr);
-  assign req_gen_snack.paddr = 'b0;
+  //assign req_gen_snack.paddr = 'b0;
+  assign req_gen_snack.paddr = entry_ff_stage.paddr;
   
   always_comb begin
     req_gen_snack.snack = `SC_SCMD_WI;
@@ -837,6 +859,12 @@ module directory_bank
   logic                   snoop_ack_gen_in_req_valid;
   logic                   snoop_ack_gen_in_req_retry;
   
+  I_dr_req_release_type   snoop_ack_gen_rel;
+  logic                   snoop_ack_gen_rel_valid;
+  logic                   snoop_ack_gen_rel_retry;
+  
+  assign snoop_ack_gen_rel = sa_req_buf_ack_pos;
+  
   //assign snoop_ack_gen_in_req_retry = 1'b0;
   
   assign snoop_ack_gen_req_valid = l2todr_snoop_ack_valid && !snoop_ack_gen_in_req_retry && checked_all_positions;
@@ -851,8 +879,14 @@ module directory_bank
       l2todr_snoop_ack_retry = snoop_ack_gen_snack_retry;
     end else begin
     //This case indicates we have checked all cores and this request is now deemed a miss and should send a request to memory.
-      snoop_ack_gen_in_req_valid = l2todr_snoop_ack_valid && !snoop_ack_gen_req_retry;
-      l2todr_snoop_ack_retry = snoop_ack_gen_in_req_retry || snoop_ack_gen_req_retry;
+      if(sa_buf.found) begin
+        snoop_ack_gen_in_req_valid = l2todr_snoop_ack_valid && !snoop_ack_gen_rel_retry;
+        snoop_ack_gen_rel_valid = l2todr_snoop_ack_valid && !snoop_ack_gen_in_req_retry;
+        l2todr_snoop_ack_retry = snoop_ack_gen_in_req_retry || snoop_ack_gen_rel_retry;
+      end else begin
+        snoop_ack_gen_in_req_valid = l2todr_snoop_ack_valid && !snoop_ack_gen_req_retry;
+        l2todr_snoop_ack_retry = snoop_ack_gen_in_req_retry || snoop_ack_gen_req_retry;
+      end
     end
   end
   
@@ -863,7 +897,7 @@ module directory_bank
     //This case indicates we are going to send a snoop to the next core
     if(!checked_all_positions) begin
       snoop_ack_gen_snack_valid = l2todr_snoop_ack_valid;
-    end
+    end 
   end
   
   assign snoop_ack_gen_req.drid = l2todr_snoop_ack.drid;
@@ -885,7 +919,7 @@ module directory_bank
   assign snoop_ack_gen_snack.line = 'b0;
   assign snoop_ack_gen_snack.hpaddr_base = compute_dr_hpaddr_base(sa_buf.paddr);
   assign snoop_ack_gen_snack.hpaddr_hash = compute_dr_hpaddr_hash(sa_buf.paddr);
-  assign snoop_ack_gen_snack.paddr = 'b0;
+  assign snoop_ack_gen_snack.paddr = sa_buf.paddr;
   
   
   always_comb begin
@@ -905,16 +939,18 @@ module directory_bank
     sa_entry_pos_next = 'b0;
     snoop_ack_gen_snack.nid = 'b0; 
     
-    if(sa_entry_buf_next.nid_0 != 'b0) begin
-      sa_entry_pos_next = 'd0;
-      snoop_ack_gen_snack.nid = sa_entry_buf_next.nid_0;
-    end else if(sa_entry_buf_next.nid_1 != 'b0) begin
+    // if(sa_entry_buf_next.nid_0 != 'b0) begin
+      // sa_entry_pos_next = 'd0;
+      // snoop_ack_gen_snack.nid = sa_entry_buf_next.nid_0;
+    // end else 
+    //No check for nid_0, not possible to choose it at this point.
+    if(sa_entry_buf_next.nid_1 != 'b0 && (sa_entry_pos < 'd1)) begin
       sa_entry_pos_next = 'd1;
       snoop_ack_gen_snack.nid = sa_entry_buf_next.nid_1;
-    end else if(sa_entry_buf_next.nid_2 != 'b0) begin
+    end else if(sa_entry_buf_next.nid_2 != 'b0 && (sa_entry_pos < 'd2)) begin
       sa_entry_pos_next = 'd2;
       snoop_ack_gen_snack.nid = sa_entry_buf_next.nid_2;
-    end else if(sa_entry_buf_next.nid_3 != 'b0) begin
+    end else if(sa_entry_buf_next.nid_3 != 'b0 && (sa_entry_pos < 'd3)) begin
       sa_entry_pos_next = 'd3;
       snoop_ack_gen_snack.nid = sa_entry_buf_next.nid_3;
     end else begin
@@ -933,34 +969,8 @@ module directory_bank
 //L2TODR DISP START
 
   logic [`OUTSTANDING_REQUEST_BITS-1:0] disp_req_buf_pos;
-`ifdef DR_EXPERIMENTAL
   assign disp_req_buf_pos = l2todr_disp.drid[`OUTSTANDING_REQUEST_BITS-1:0] - 2'b1;
-`else
-  I_dr_req_buf_type temp_buf_req_0;
-  I_dr_req_buf_type temp_buf_req_1;
-  I_dr_req_buf_type temp_buf_req_2;
-  I_dr_req_buf_type temp_buf_req_3;
- 
-  
-  
-  always_comb begin
-    temp_buf_req_0 = req_buf[0];
-    temp_buf_req_1 = req_buf[1];
-    temp_buf_req_2 = req_buf[2];
-    temp_buf_req_3 = req_buf[3];
-    disp_req_buf_pos = 'b0;
-    if         (temp_buf_req_0.valid && temp_buf_req_0.drid == l2todr_disp.drid) begin
-      disp_req_buf_pos = 2'd0;
-    end else if(temp_buf_req_1.valid && temp_buf_req_1.drid == l2todr_disp.drid) begin
-      disp_req_buf_pos = 2'd1;
-    end else if(temp_buf_req_2.valid && temp_buf_req_2.drid == l2todr_disp.drid) begin
-      disp_req_buf_pos = 2'd2;
-    end else if(temp_buf_req_3.valid && temp_buf_req_3.drid == l2todr_disp.drid) begin
-      disp_req_buf_pos = 2'd3;
-    end 
-  end
-`endif
-  
+
   I_dr_req_buf_type disp_buf; 
   assign disp_buf = req_buf[disp_req_buf_pos];
   
@@ -971,12 +981,21 @@ module directory_bank
   assign {disp_entry_pos,disp_entry_buf} = entry_buf[disp_req_buf_pos];
   
   logic alter_entry_buf;
+  assign alter_entry_buf = (l2todr_disp.dcmd == `SC_DCMD_WI);
+  logic found_line;
   //This needs to generate a combination of the following: a writeback to mem, an snack to ack back a line, and an internal
   //request to change an entry, and a request to memory.
   
   I_drtol2_snack_type     disp_gen_snack;
   logic                   disp_gen_snack_valid;
   logic                   disp_gen_snack_retry;
+  
+  //A displacement can actually causes two snacks to be generated. This case is not often but must be accounted for with a second snack signal.
+  //The case occurs when the directory receives a data from a displacement which needs to be forwarded via a snack but the directory also needs
+  //to continue invalidating other nodes via a separate snack.
+  I_drtol2_snack_type     disp_gen_snack_i_next;
+  logic                   disp_gen_snack_i_next_valid;
+  logic                   disp_gen_snack_i_next_retry;
   
   I_drtomem_wb_type       disp_gen_wb;
   logic                   disp_gen_wb_valid;
@@ -1013,9 +1032,12 @@ module directory_bank
     disp_gen_req_in_valid = 'b0;
     
     disp_gen_rel_valid = 'b0;
+    
+    disp_gen_snack_i_next = 'b0;
+    disp_gen_snack_i_next_valid = 'b0;
   
-    //if the drid is not zero then this disp indicates a command generated by the l2 
-    if(l2todr_disp.drid != 'b0) begin
+    //if the drid is zero then this disp indicates a command generated by the l2 
+    if(l2todr_disp.drid == 'b0) begin
       disp_gen_wb.line = l2todr_disp.line;
       disp_gen_wb.paddr = l2todr_disp.paddr;
       //mask not set on purpose. Mask is only set when command is for non-cacheables. Check case below.
@@ -1076,15 +1098,20 @@ module directory_bank
       disp_gen_snack.line = l2todr_disp.line;
       disp_gen_snack.hpaddr_base = compute_dr_hpaddr_base(disp_buf.paddr);
       disp_gen_snack.hpaddr_hash = compute_dr_hpaddr_hash(disp_buf.paddr);
+      disp_gen_snack.paddr = disp_buf.paddr;//temporary
       
-      //temporary
-      disp_gen_snack.paddr = disp_buf.paddr;
+      //nid set in a different area.
+      disp_gen_snack_i_next.l2id = 'b0;
+      disp_gen_snack_i_next.drid = l2todr_disp.drid;
+      disp_gen_snack_i_next.directory_id = Directory_Id;
+      disp_gen_snack_i_next.line = 'b0;
+      disp_gen_snack_i_next.hpaddr_base = compute_dr_hpaddr_base(disp_buf.paddr);
+      disp_gen_snack_i_next.hpaddr_hash = compute_dr_hpaddr_hash(disp_buf.paddr);
+      disp_gen_snack_i_next.snack = `SC_SCMD_WI;
       
-      disp_gen_snack.snack = `SC_SCMD_ACK_S;
-      if(disp_buf.cmd == `SC_CMD_REQ_M) begin
-        disp_gen_snack.snack = `SC_SCMD_ACK_M;
-      end
       
+      
+      //If the outstanding request asked for the line is the shared state execute these cases.
       if(disp_buf.cmd == `SC_CMD_REQ_S) begin
         disp_gen_snack.snack = `SC_SCMD_ACK_S;
         disp_gen_req_in.cmd = `DR_CMD_UPDATE_ENTRY;
@@ -1103,7 +1130,6 @@ module directory_bank
             disp_gen_rel_valid = l2todr_disp_valid && !disp_gen_wb_retry && !disp_gen_snack_retry && !disp_gen_req_in_retry;
             l2todr_disp_retry = disp_gen_wb_retry || disp_gen_req_in_retry || disp_gen_snack_retry || disp_gen_rel_retry;     
           end
-          alter_entry_buf = 'b1; //since invalidation occurred, we want to edit our temporary entry
           
         //If the L2 returns the Line but kept shared, note: retry/valids same as previous case but entry is updated differently
         end else if(l2todr_disp.dcmd == `SC_DCMD_WS) begin
@@ -1136,6 +1162,46 @@ module directory_bank
           //error state, ignore this disp
           l2todr_disp_retry = 'b0;
         end
+        
+      //if the outstanding request asked for the line in modified state, execute these instructions.
+      //This block will check if there are more positions to invalidate because we want to invalidate our sharers.
+      end else if(disp_buf.cmd == `SC_CMD_REQ_M) begin
+        disp_gen_snack.snack = `SC_SCMD_ACK_M;
+        disp_gen_req_in.cmd = `DR_CMD_NEW_ENTRY;
+        //make sure to check paddr. An incorrect paddr could cause a miss.
+        
+        //If L2 returns line and invalidated
+        if(l2todr_disp.dcmd == `SC_DCMD_WI) begin
+
+          if(more_sharers && !disp_buf.found) begin
+            disp_gen_snack_i_next_valid = l2todr_disp_valid && !disp_gen_snack_retry;
+            l2todr_disp_retry = disp_gen_snack_retry || disp_gen_snack_i_next_retry;
+            found_line = 'b1;
+          end else if(more_sharers && disp_buf.found) begin
+            l2todr_disp_retry = disp_gen_snack_retry;
+            disp_gen_snack = disp_gen_snack_i_next;
+          end else if(!more_sharers && !disp_buf.found) begin            
+            disp_gen_wb_valid = l2todr_disp_valid && !disp_gen_snack_retry && !disp_gen_req_in_retry && !disp_gen_rel_retry;
+            disp_gen_req_in_valid = l2todr_disp_valid && !disp_gen_snack_retry && !disp_gen_wb_retry && !disp_gen_rel_retry;
+            disp_gen_rel_valid = l2todr_disp_valid && !disp_gen_snack_retry && !disp_gen_req_in_retry && !disp_gen_wb_retry;
+            l2todr_disp_retry = disp_gen_snack_retry || disp_gen_req_in_retry || disp_gen_wb_retry || disp_gen_rel_retry;
+          end else if(!more_sharers && disp_buf.found) begin
+            disp_gen_req_in_valid = l2todr_disp_valid && !disp_gen_snack_retry && !disp_gen_rel_retry;
+            disp_gen_rel_valid = l2todr_disp_valid && !disp_gen_snack_retry && !disp_gen_req_in_retry;
+            l2todr_disp_retry = disp_gen_snack_retry || disp_gen_snack_i_next_retry || disp_gen_rel_retry;
+            disp_gen_snack = disp_gen_snack_i_next;
+          end 
+        end else if(l2todr_disp.dcmd == `SC_DCMD_NC) begin
+          //send data to requester. We should not get to this state, but adding it just in case.
+          disp_gen_rel_valid = l2todr_disp_valid && !disp_gen_snack_retry;
+          l2todr_disp_retry = disp_gen_snack_retry || disp_gen_rel_retry;
+          disp_gen_wb.mask = l2todr_disp.mask;
+        end else begin
+          //error state if the outstanding request said to get the line in M state, ignore this disp.
+          //We will end of here if: line was kept shared, line was only invalidated (L2 must use snoop ack in that case) or some other
+          //undefined command.
+          l2todr_disp_retry = 'b0;
+        end
       end
     end
   end
@@ -1143,7 +1209,7 @@ module directory_bank
   //Another always block just for the snack valid because a warning occurs if I place it with the other logic.
   always_comb begin
     disp_gen_snack_valid = 'b0;
-    //if the drid is not zero then this disp indicates a command generated by the l2 
+    //if the drid is zero then this disp indicates a command generated by the l2 
     if(l2todr_disp.drid == 'b0) begin
       //make sure to check paddr. An incorrect paddr could cause a miss.
       if(l2todr_disp.dcmd == `SC_DCMD_WI) begin
@@ -1182,7 +1248,6 @@ module directory_bank
   //This block determines how to edit it.
   always_comb begin
     disp_entry_buf_next = disp_entry_buf;
-    disp_entry_pos_next = disp_entry_pos;
     if(alter_entry_buf) begin
       case(disp_entry_pos)
         'd0: disp_entry_buf_next.nid_0 = 'b0;
@@ -1193,7 +1258,60 @@ module directory_bank
     end
   end
   
+  //This determines if there are more nodes to check.
+  logic more_sharers;
+  always_comb begin
+    more_sharers = 'b0;
+    if(disp_entry_buf_next.nid_0 != 'b0) begin
+      more_sharers = 'b1;
+    end else if(disp_entry_buf_next.nid_1 != 'b0) begin
+      more_sharers = 'b1;
+    end else if(disp_entry_buf_next.nid_2 != 'b0) begin
+      more_sharers = 'b1;
+    end else if(disp_entry_buf_next.nid_3 != 'b0) begin
+      more_sharers = 'b1;
+    end 
+  end
+  
+  always_comb begin
+    disp_entry_pos_next = disp_entry_pos;
+    disp_gen_snack_i_next.nid = 'b0; 
+    
+
+    if(disp_entry_buf_next.nid_1 != 'b0 && (disp_entry_pos < 'd1)) begin
+      disp_entry_pos_next = 'd1;
+      disp_gen_snack_i_next.nid = disp_entry_buf_next.nid_1;
+    end else if(disp_entry_buf_next.nid_2 != 'b0 && (disp_entry_pos < 'd2)) begin
+      disp_entry_pos_next = 'd2;
+      disp_gen_snack_i_next.nid = disp_entry_buf_next.nid_2;
+    end else if(disp_entry_buf_next.nid_3 != 'b0 && (disp_entry_pos < 'd3)) begin
+      disp_entry_pos_next = 'd3;
+      disp_gen_snack_i_next.nid = disp_entry_buf_next.nid_3;
+    end 
+  end
+  
 //L2TODR DISP END
+
+//SNACK BUFFER START
+//This section contains a fflop that accepts a SNACK which is generated by a DISP and try to get it sent on the drtol2_snack
+//signals. The DISP can create two SNACKS, so the second one ends up here.
+  I_drtol2_snack_type     disp_gen_snack_i;
+  logic                   disp_gen_snack_i_valid;
+  logic                   disp_gen_snack_i_retry;
+  
+  fflop #(.Size($bits(I_drtol2_snack_type))) disp_snack_ff (
+    .clk      (clk),
+    .reset    (reset),
+
+    .din      (disp_gen_snack_i_next),
+    .dinValid (disp_gen_snack_i_next_valid),
+    .dinRetry (disp_gen_snack_i_next_retry),
+
+    .q        (disp_gen_snack_i),
+    .qValid   (disp_gen_snack_i_valid),
+    .qRetry   (disp_gen_snack_i_retry)
+  );
+//SNACK BUFFER END
   
 //SNACK ARBITER START
   I_drtol2_snack_type     drtol2_snack_next;
@@ -1207,30 +1325,23 @@ module directory_bank
   
   assign req_gen_snack_retry = drtol2_snack_next_retry;
   assign mem_ack_gen_snack_retry = drtol2_snack_next_retry || req_gen_snack_valid;
-  assign disp_gen_snack_retry = drtol2_snack_next_retry || req_gen_snack_valid || mem_ack_gen_snack_valid;
-  assign snoop_ack_gen_snack_retry = drtol2_snack_next_retry || req_gen_snack_valid || mem_ack_gen_snack_valid || disp_gen_snack_valid;
+  assign disp_gen_snack_i_retry = drtol2_snack_next_retry || req_gen_snack_valid || mem_ack_gen_snack_valid;
+  assign disp_gen_snack_retry = drtol2_snack_next_retry || req_gen_snack_valid || mem_ack_gen_snack_valid || disp_gen_snack_i_valid;
+  assign snoop_ack_gen_snack_retry = drtol2_snack_next_retry || req_gen_snack_valid || mem_ack_gen_snack_valid || disp_gen_snack_valid || disp_gen_snack_i_valid;
   
   always_comb begin
     drtol2_snack_next_valid = 'b0;
     
     req_buf_release_pos = 'b0;
     req_buf_release = 'b0;
-    
     if(req_gen_snack_valid) begin
       drtol2_snack_next_valid = 1'b1;
     end else if(mem_ack_gen_snack_valid) begin
       drtol2_snack_next_valid = 1'b1;
-      req_buf_release_pos = ack_buf_pos;
-      req_buf_release = !drtol2_snack_next_retry;
+    end else if(disp_gen_snack_i_valid) begin
+      drtol2_snack_next_valid = 1'b1;
     end else if(disp_gen_snack_valid) begin
       drtol2_snack_next_valid = 1'b1;
-      req_buf_release_pos = disp_req_buf_pos;
-      req_buf_release = !drtol2_snack_next_retry;
-      
-      //leaving this commented out because it tells me out to include some other useful parts.
-      // drtol2_snack_next_valid = memtodr_ack_ff_valid && id_ram_valid; 
-      // memtodr_ack_ff_retry = drtol2_snack_next_retry || (!drtol2_snack_next_valid && memtodr_ack_ff_valid);
-      // id_ram_retry = drtol2_snack_next_retry || (!drtol2_snack_next_valid && id_ram_valid);
     end else if(snoop_ack_gen_snack_valid) begin
       drtol2_snack_next_valid = 1'b1;
     end
@@ -1245,6 +1356,8 @@ module directory_bank
       drtol2_snack_next = req_gen_snack;
     end else if(mem_ack_gen_snack_valid) begin
       drtol2_snack_next = mem_ack_gen_snack;
+    end else if(disp_gen_snack_i_valid) begin
+      drtol2_snack_next = disp_gen_snack_i;
     end else if(disp_gen_snack_valid) begin
       drtol2_snack_next = disp_gen_snack;
     end else if(snoop_ack_gen_snack_valid) begin
@@ -1608,11 +1721,11 @@ module directory_bank
       //If the DRID is valid then ignore the prefetch terms and nid, l2id are set by the RAM
       mem_ack_gen_snack.nid = req_buf[ack_buf_pos].nid; 
       mem_ack_gen_snack.l2id = req_buf[ack_buf_pos].l2id;
-	    mem_ack_gen_snack.hpaddr_base = compute_dr_hpaddr_base(memtodr_ack.paddr);
-	    mem_ack_gen_snack.hpaddr_hash = compute_dr_hpaddr_hash(memtodr_ack.paddr);
+	    mem_ack_gen_snack.hpaddr_base = compute_dr_hpaddr_base(req_buf[ack_buf_pos].paddr);
+	    mem_ack_gen_snack.hpaddr_hash = compute_dr_hpaddr_hash(req_buf[ack_buf_pos].paddr);
       //mem_ack_gen_snack.paddr = 'b0;
       //Paddr should be set to 0 but not doing this to allow testbench to pass for now...
-      mem_ack_gen_snack.paddr = memtodr_ack.paddr;
+      mem_ack_gen_snack.paddr = req_buf[ack_buf_pos].paddr;
       
       id_ram_retry = 'b0;
       rel_request = 'b1;
@@ -1648,6 +1761,7 @@ module directory_bank
   I_dr_req_release_type           ack_gen_rel;
   logic                           ack_gen_rel_valid;
   logic                           ack_gen_rel_retry;
+  
   
   assign ack_gen_rel_valid = memtodr_ack_valid && !mem_ack_gen_snack_retry && !(memtodr_ack.drid == 'b0);
   assign ack_gen_rel.rel_pos = ack_buf_pos;
@@ -1692,6 +1806,7 @@ module directory_bank
   //Included: disp_gen_rel_retry, ack_gen_rel_retry
   assign ack_gen_rel_retry = req_release_next_retry;
   assign disp_gen_rel_retry = req_release_next_retry || ack_gen_rel_valid;
+  assign snoop_ack_gen_rel_retry = req_release_next_retry || ack_gen_rel_valid || disp_gen_rel_valid;
   
   always_comb begin
     req_release_next = 'b0;
@@ -1702,6 +1817,9 @@ module directory_bank
       req_release_next_valid = 'b1;
     end else if(disp_gen_rel_valid) begin
       req_release_next = disp_gen_rel;
+      req_release_next_valid = 'b1;
+    end else if(snoop_ack_gen_rel_valid) begin
+      req_release_next = snoop_ack_gen_rel;
       req_release_next_valid = 'b1;
     end
   end
@@ -1850,7 +1968,7 @@ module directory_bank
   logic                   id_ram_read_next_retry;
   
   always_comb begin
-    if(memtodr_ack.drid == {`DR_REQIDBITS{1'b0}}) begin //0 is an invalid drid, this is checked here
+    if(memtodr_ack.drid == 'b0) begin //0 is an invalid drid, this is checked here
       //this indicates we do not need to use the RAM, so only base handshake on fflop valid/retry
       memtodr_ack_ff_next_valid = memtodr_ack_valid; 
       memtodr_ack_retry = memtodr_ack_ff_next_retry;

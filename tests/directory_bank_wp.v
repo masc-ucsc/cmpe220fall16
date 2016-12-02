@@ -15,6 +15,7 @@
 // 
 // For replacement use HawkEye or RRIP
 
+
 module directory_bank_wp(
    input                           clk
   ,input                           reset
@@ -222,6 +223,24 @@ module directory_bank_wp(
     .qRetry   (l2todr_disp_ff_retry)
   );
   
+  logic l2todr_snoop_ack_ff_valid;
+  logic l2todr_snoop_ack_ff_retry;
+  I_drsnoop_ack_type l2todr_snoop_ack_wpff;
+  
+  fflop #(.Size($bits(I_drsnoop_ack_type))) l2todr_snoop_ack_ff (
+    .clk      (clk),
+    .reset    (reset),
+
+    .din      (       {l2todr_snoop_ack_drid
+                      ,l2todr_snoop_ack_directory_id}),
+    .dinValid (l2todr_snoop_ack_valid),
+    .dinRetry (l2todr_snoop_ack_retry),
+
+    .q        (l2todr_snoop_ack_wpff),
+    .qValid   (l2todr_snoop_ack_ff_valid),
+    .qRetry   (l2todr_snoop_ack_ff_retry)
+  );
+  
   logic drtomem_wb_ff_valid;
   logic drtomem_wb_ff_retry;
   I_drtomem_wb_type drtomem_wb_wpff;
@@ -350,10 +369,9 @@ module directory_bank_wp(
    ,.drtol2_dack_retry(drtol2_dack_ff_retry)
    ,.drtol2_dack(drtol2_dack_wpff)
 
-   ,.l2todr_snoop_ack_valid(l2todr_snoop_ack_valid)
-   ,.l2todr_snoop_ack_retry(l2todr_snoop_ack_retry)
-   ,.l2todr_snoop_ack({l2todr_snoop_ack_drid
-                      ,l2todr_snoop_ack_directory_id})
+   ,.l2todr_snoop_ack_valid(l2todr_snoop_ack_ff_valid)
+   ,.l2todr_snoop_ack_retry(l2todr_snoop_ack_ff_retry)
+   ,.l2todr_snoop_ack(l2todr_snoop_ack_wpff)
 
   // Memory interface
   // If nobody has the data, send request to memory
@@ -365,6 +383,20 @@ module directory_bank_wp(
    ,.memtodr_ack_valid(memtodr_ack_ff_valid)
    ,.memtodr_ack_retry(memtodr_ack_ff_retry)
    ,.memtodr_ack(memtodr_ack_wpff)
+   // ,.memtodr_ack_valid(memtodr_ack_valid)
+   // ,.memtodr_ack_retry(memtodr_ack_retry)
+   // ,.memtodr_ack({  memtodr_ack_drid
+		               // ,memtodr_ack_nid
+		               // ,memtodr_ack_paddr
+                   // ,memtodr_ack_ack
+                   // ,memtodr_ack_line_7
+                   // ,memtodr_ack_line_6
+                   // ,memtodr_ack_line_5
+                   // ,memtodr_ack_line_4
+                   // ,memtodr_ack_line_3
+                   // ,memtodr_ack_line_2
+                   // ,memtodr_ack_line_1
+                   // ,memtodr_ack_line_0})
 
    ,.drtomem_wb_valid(drtomem_wb_ff_valid)
    ,.drtomem_wb_retry(drtomem_wb_ff_retry)
