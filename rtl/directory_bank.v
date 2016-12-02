@@ -2,20 +2,18 @@
 `include "scmem.vh"
 `include "logfunc.h"
 
-`define DR_EXPERIMENTAL
-//`define TEST_OLD
-
 //`define DR_PASSTHROUGH
 //`define TEST_NO_OUTSTD_REQ
 
 //TO DO:
-// -  Change the DISP req buf write to check if the disp is an ack
-// - Change the disp_gen_snack_valid to include the new getM changes.
-//
+// -  Change the DISP req buf write to check if the disp is an ack 
+// - Change the disp_gen_snack_valid to include the new getM changes. //
+// - change logic on dack valid/retry
+// - set shared bit when an entry is written based on input command
 
-// Directory. Cache equivalent to 2MBytes/ 16 Way assoc
+// Directory. Cache equivalent to 2MBytes/ 8 Way assoc
 //
-// Config size: 1M, 2M, 4M, 16M 16 way
+// Config size: 1M, 2M, 4M, 16M 8 way
 //
 // Assume a 64bytes line
 //
@@ -27,13 +25,14 @@
 // 
 // For replacement use HawkEye or RRIP
 
-//This has to be here for snoop acks. Current unused signals are allf ro snoop acks which the passthrough does not use
-//because the directory does not snoop in the passthrough.
+
 /* verilator lint_off UNUSED */
 
 `define OUTSTANDING_REQUEST_BITS 2
 `define ENTRY_POINTER_SIZE_BITS 2
 `define NUM_ENTRY_POINTERS (1<<`ENTRY_POINTER_SIZE_BITS)
+
+
 
 `define DR_CMD_REQ_BITS          `SC_CMD_REQBITS       
 `define DR_CMD_NEW_ENTRY         3'b000  // Delete a previous entry and replace it with the new node
@@ -139,23 +138,11 @@ module directory_bank
 `ifndef DR_PASSTHROUGH
   
 
-  //Creating this temporary area to test a new way to manage requests
-  //The first stage in a request is accessing the Tag bank. However, there are some prerequisites required
-  //before a request can get to this stage.
-  //1) The Tag bank is not signalling a retry. Obviously if the Tag bank is not ready, then we have to wait.
-  //2) There needs to be space available in the request buffer which holds requests that are currently being snooped. The question
-  //   obviously is why does this need space for every request? This is because we do not know if we need to snoop until after the Tag
-  //   bank access, but we do not want the request to get stuck in this stage of the pipeline if the request buffer is full.
-  //   This can cause a deadlock because other parts of the directory need access to the Tag and Entry banks but a blocked request could
-  //   cause these parts to also be blocked (disp, ack) which we want to avoid. There is a solution to allow snoop requests to be queued
-  //   but this would need a queue implemented which there currently is not.
-  //3) There needs to be an available DRID. The directory can maintain 63 different DRIDs and we need to make sure there is one available.
-  //4) The fflop that maintains the pipeline of the RAM banks are available. This availability is mostly trivial but still required to
-  //   check when processing a request.
+
   
   //Number of requests that the directly can currently handle. This number should refer to the snoops it can handle, but right now it refers
-  //to all requests. Max number of requests is currently 4. Will eventually change with an input parameter.
-  //localparam OUTSTANDING_REQUEST_BITS = 2;
+  //to all requests. Max number of requests is currently 4. Implemented as flops
+
   localparam MAX_OUTSTANDING_REQUESTS = 1<<`OUTSTANDING_REQUEST_BITS;
   
 
@@ -168,16 +155,15 @@ module directory_bank
     
     if(l2todr_req_valid && !l2todr_req_retry) begin
     //acquire space in buffer
-      req_buf_next[req_buf_valid_encoder].valid = 1'b1;
+      req_buf_next[req_buf_valid_encoder].valid = 'b1;
       req_buf_next[req_buf_valid_encoder].paddr = l2todr_req.paddr;
-      //req_buf_next[req_buf_valid_encoder].drid = drid_valid_encoder;
       req_buf_next[req_buf_valid_encoder].cmd = l2todr_req.cmd;
       req_buf_next[req_buf_valid_encoder].nid = l2todr_req.nid;
       req_buf_next[req_buf_valid_encoder].l2id = l2todr_req.l2id;
       req_buf_next[req_buf_valid_encoder].next = 'b0;
-      
+      req_buf_next[disp_req_buf_pos].found = 'b0;
       if(req_conflict) begin
-        req_buf_next[req_conflict_pos].next = req_buf_valid_encoder + 3'b1;
+        req_buf_next[req_conflict_pos].next = req_buf_valid_encoder + 'b1;
       end
     end
     
@@ -193,6 +179,7 @@ module directory_bank
     
   end
   
+  //These are buffers to temporarily store the entry for the request 
   logic [DR_ENTRY_WIDTH+`ENTRY_POINTER_SIZE_BITS-1:0] entry_buf [0:MAX_OUTSTANDING_REQUESTS-1];
   logic [DR_ENTRY_WIDTH+`ENTRY_POINTER_SIZE_BITS-1:0] entry_buf_next [0:MAX_OUTSTANDING_REQUESTS-1];
   
@@ -249,20 +236,18 @@ module directory_bank
 
   logic [`OUTSTANDING_REQUEST_BITS-1:0] req_buf_valid_encoder;
   logic req_buf_valid;
-  I_dr_req_buf_type req_buf_value_temp;
   always_comb begin  
     //This code was adapted from https://github.com/AmeerAbdelhadi/Indirectly-Indexed-2D-Binary-Content-Addressable-Memory-BCAM/blob/master/pe_bhv.v
     req_buf_valid_encoder = 'b0;
-    req_buf_value_temp = req_buf[0];
-    req_buf_valid = !req_buf_value_temp.valid;
+    req_buf_valid = !req_buf[0].valid;
     while ((!req_buf_valid) && (req_buf_valid_encoder != MAX_REQ_BUF_VALUE)) begin
-      req_buf_valid_encoder = req_buf_valid_encoder + 1 ;
-      req_buf_value_temp = req_buf[req_buf_valid_encoder];
-      req_buf_valid = !req_buf_value_temp.valid;
+      req_buf_valid_encoder = req_buf_valid_encoder + 'b1 ;
+      req_buf_valid = !req_buf[req_buf_valid_encoder].valid;
     end
   end
 
-
+  //Below code determine if there is any current oustanding requests that conflict with incoming outstanding requests and also
+  //determines position of conflicting request in outstanding request buffer.
   logic [`OUTSTANDING_REQUEST_BITS-1:0] req_conflict_pos;
   logic req_conflict;
 
@@ -281,20 +266,18 @@ module directory_bank
   I_dr_pipe_stage_type      l2todr_req_gen;
   logic                     l2todr_req_gen_valid;
   logic                     l2todr_req_gen_retry;
-  logic                     id_ram_write_next_valid;
-  logic                     id_ram_write_next_retry;
+
   
 
   assign l2todr_req_retry = !req_buf_valid || (l2todr_req_gen_retry && !req_conflict);
   assign l2todr_req_gen_valid = l2todr_req_valid && req_buf_valid && !req_conflict;
-  assign id_ram_write_next_valid = 'b0;
 
   always_comb begin
     l2todr_req_gen.paddr = l2todr_req.paddr;
     l2todr_req_gen.cmd   = l2todr_req.cmd;
     l2todr_req_gen.drid  = {3'b0,req_buf_valid_encoder + 3'b1};
     l2todr_req_gen.nid = l2todr_req.nid;
-    l2todr_req_gen.dr_cmd = 1'b0;
+    l2todr_req_gen.dr_cmd = 'b0;
   end
   
   //TAG REQUEST ARBITER START
@@ -337,8 +320,7 @@ module directory_bank
   end
   
   //TAG REQUEST ARBITER END
-  
-  
+
   //fflop that maintains the pipeline of the request. In addition to remembering the request that will be sent as a snoops or request to memory
   //which contains the command, paddr, and drid. This fflop also pipelines the position in the outstanding request table and the NID for the request.
   fflop #(.Size($bits(I_dr_pipe_stage_type))) tag_req_stage_fflop (
@@ -436,15 +418,10 @@ module directory_bank
   logic       tag_hit;
   logic [7:0] paddr_hash;
   logic [7:0] tag_comp_result;
-  integer j;
   
   always_comb begin
     //compare all 8 tags to the hash of the request tag. Should always result in a one-hot encoding result
     //or nothing
-    //Did not want to remove this look because it look nice but is not compiling.
-    // for(j = 0; j < 8; j = j + 1) begin
-      // tag_comp_result[j] = (tag_bank_data[(j+1)*8-1:j*8] == compute_dr_hpaddr_hash(tag_req_ff_stage.paddr));
-    // end
     paddr_hash = compute_dr_hpaddr_hash(tag_req_ff_stage.paddr);
     
     //Perform the comparison and also check the valid bit if the tag is valid.
@@ -535,6 +512,10 @@ module directory_bank
   always_comb begin
     tag_miss_entry = 'b0;
     tag_miss_entry.nid_0 = tag_req_ff_stage.nid;
+    tag_miss_entry.shared = 'b1;
+    if(tag_req_ff_stage.cmd == `SC_CMD_REQ_M) begin
+      tag_miss_entry.shared = 'b0;
+    end
   end
   
   I_dr_entry_type tag_stage_entry_buf;
@@ -559,9 +540,12 @@ module directory_bank
       //set broadcast bit.
       updated_entry.broadcast = 'b1;
     end
+    
+    updated_entry.shared = 'b1;
 
   end
   
+  //ALTER
   assign entry_pos_next = {tag_pos_next, tag_req_ff_stage.paddr[12:6]};
   
   I_drtomem_req_type              tag_gen_req_next;
@@ -613,9 +597,6 @@ module directory_bank
         tag_bank_retry = tag_gen_req_next_retry || entry_bank_next_retry || tag_bank_write_next_retry || (!tag_req_ff_stage_valid && tag_bank_valid);
         tag_req_ff_stage_retry = tag_gen_req_next_retry || entry_bank_next_retry || tag_bank_write_next_retry || (!tag_bank_valid && tag_req_ff_stage_valid);
       end else begin
-        //should not enter this... something went wrong if this is entered for now since all tag accesses should be a miss.
-        //Turns out, tag hits can occur with nothing written, but mostly bugs out since I was not checking if the tag_bank data was valid.
-        //Setting this temporarily.
         entry_ff_stage_next = tag_req_ff_stage;
         entry_ff_stage_next_valid = tag_bank_valid && tag_req_ff_stage_valid && !entry_bank_next_retry;
         
@@ -652,23 +633,6 @@ module directory_bank
     end
   end
 
-  // always_comb begin
-    // drtomem_req_next_valid = 'b0;
-    // disp_gen_req_retry = 1'b1;
-    // snoop_ack_gen_req_retry = 1'b1;
-    // tag_gen_req_next_retry = 1'b1;
-    
-    // if(tag_gen_req_next_valid) begin
-      // drtomem_req_next_valid = 1'b1;
-      // tag_gen_req_next_retry = drtomem_req_next_retry;
-    // end else if(disp_gen_req_valid) begin
-      // drtomem_req_next_valid = 1'b1;
-      // disp_gen_req_retry = drtomem_req_next_retry;
-    // end else if(snoop_ack_gen_req_valid) begin
-      // drtomem_req_next_valid = 1'b1;
-      // snoop_ack_gen_req_retry = drtomem_req_next_retry;
-    // end
-  // end   
   
   always_comb begin
     drtomem_req_next_valid = 'b0;
@@ -677,17 +641,17 @@ module directory_bank
     tag_gen_req_next_retry = drtomem_req_next_retry;
     
     if(tag_gen_req_next_valid) begin
-      drtomem_req_next_valid = 1'b1;
-      disp_gen_req_retry = 1'b1;
-      snoop_ack_gen_req_retry = 1'b1;
+      drtomem_req_next_valid = 'b1;
+      disp_gen_req_retry = 'b1;
+      snoop_ack_gen_req_retry = 'b1;
     end else if(disp_gen_req_valid) begin
-      drtomem_req_next_valid = 1'b1;
-      snoop_ack_gen_req_retry = 1'b1;
-      tag_gen_req_next_retry = 1'b1;
+      drtomem_req_next_valid = 'b1;
+      snoop_ack_gen_req_retry = 'b1;
+      tag_gen_req_next_retry = 'b1;
     end else if(snoop_ack_gen_req_valid) begin
-      drtomem_req_next_valid = 1'b1;
-      disp_gen_req_retry = 1'b1;
-      tag_gen_req_next_retry = 1'b1;
+      drtomem_req_next_valid = 'b1;
+      disp_gen_req_retry = 'b1;
+      tag_gen_req_next_retry = 'b1;
     end
   end   
   
@@ -714,6 +678,7 @@ module directory_bank
   //Number of bits per entry. Arbitrary for now. Will be parametrically defined at some time.
   localparam DR_ENTRY_WIDTH = $bits(I_dr_entry_type);
   localparam DR_ENTRY_SIZE = 1024;
+  //ALTER , do math
   
   logic        entry_bank_next_valid;
   logic        entry_bank_next_retry;
@@ -804,10 +769,12 @@ module directory_bank
     end else if(entry_buf_data_next.nid_2 != 'b0) begin
       req_gen_snack.nid = entry_buf_data_next.nid_2;
       entry_pos_start = 'd2;
-    end else begin
+    end else if(entry_buf_data_next.nid_3 != 'b0) begin
       req_gen_snack.nid = entry_buf_data_next.nid_3;
       entry_pos_start = 'd3;
-    end 
+    end else begin
+      req_gen_snack.nid = entry_ff_stage.nid;
+    end
   end
   assign req_gen_snack.l2id = 'b0;
   assign req_gen_snack.drid = entry_ff_stage.drid;
@@ -831,7 +798,7 @@ module directory_bank
   //Below code finds which outstanding request this ack refers to using the DRID provided in the snoop ack.
   logic [`OUTSTANDING_REQUEST_BITS-1:0] sa_req_buf_ack_pos;
   
-  assign sa_req_buf_ack_pos = l2todr_snoop_ack.drid[`OUTSTANDING_REQUEST_BITS-1:0] - 2'b1;
+  assign sa_req_buf_ack_pos = l2todr_snoop_ack.drid[`OUTSTANDING_REQUEST_BITS-1:0] - 'b1;
 
   I_dr_req_buf_type sa_buf;
   
@@ -864,14 +831,12 @@ module directory_bank
   logic                   snoop_ack_gen_rel_retry;
   
   assign snoop_ack_gen_rel = sa_req_buf_ack_pos;
-  
-  //assign snoop_ack_gen_in_req_retry = 1'b0;
-  
+
   assign snoop_ack_gen_req_valid = l2todr_snoop_ack_valid && !snoop_ack_gen_in_req_retry && checked_all_positions;
   
   always_comb begin
     snoop_ack_gen_in_req_valid = 'b0;
-    l2todr_snoop_ack_retry = 1'b1;
+    l2todr_snoop_ack_retry = 'b1;
     
     
     //This case indicates we are going to send a snoop to the next core
@@ -935,14 +900,9 @@ module directory_bank
     end
   
     checked_all_positions = 'b0;
-    //checked_all_positions = 'b1;
     sa_entry_pos_next = 'b0;
     snoop_ack_gen_snack.nid = 'b0; 
     
-    // if(sa_entry_buf_next.nid_0 != 'b0) begin
-      // sa_entry_pos_next = 'd0;
-      // snoop_ack_gen_snack.nid = sa_entry_buf_next.nid_0;
-    // end else 
     //No check for nid_0, not possible to choose it at this point.
     if(sa_entry_buf_next.nid_1 != 'b0 && (sa_entry_pos < 'd1)) begin
       sa_entry_pos_next = 'd1;
@@ -969,7 +929,7 @@ module directory_bank
 //L2TODR DISP START
 
   logic [`OUTSTANDING_REQUEST_BITS-1:0] disp_req_buf_pos;
-  assign disp_req_buf_pos = l2todr_disp.drid[`OUTSTANDING_REQUEST_BITS-1:0] - 2'b1;
+  assign disp_req_buf_pos = l2todr_disp.drid[`OUTSTANDING_REQUEST_BITS-1:0] - 'b1;
 
   I_dr_req_buf_type disp_buf; 
   assign disp_buf = req_buf[disp_req_buf_pos];
@@ -1240,6 +1200,24 @@ module directory_bank
           //send data to requester
           disp_gen_snack_valid = l2todr_disp_valid && !disp_gen_rel_retry;
         end
+      end else if(disp_buf.cmd == `SC_CMD_REQ_M) begin
+
+        //If L2 returns line and invalidated
+        if(l2todr_disp.dcmd == `SC_DCMD_WI) begin
+
+          if(more_sharers && !disp_buf.found) begin
+            disp_gen_snack_valid = l2todr_disp_valid && !disp_gen_snack_i_next_retry;
+          end else if(more_sharers && disp_buf.found) begin
+            disp_gen_snack_valid = l2todr_disp_valid;
+          end else if(!more_sharers && !disp_buf.found) begin            
+            disp_gen_snack_valid = l2todr_disp_valid && !disp_gen_req_in_retry && !disp_gen_wb_retry && !disp_gen_rel_retry;
+          end else if(!more_sharers && disp_buf.found) begin
+            disp_gen_snack_valid = l2todr_disp_valid && !disp_gen_snack_i_next_retry && !disp_gen_rel_retry;
+          end 
+        end else if(l2todr_disp.dcmd == `SC_DCMD_NC) begin
+          //send data to requester. We should not get to this state, but adding it just in case.
+          disp_gen_snack_valid = l2todr_disp_valid && !disp_gen_rel_retry;
+        end 
       end
     end
   end
@@ -1320,8 +1298,7 @@ module directory_bank
   
   //This always block also controls logic for the retries including: disp_gen_snack_retry, snoop_ack_gen_snack_retry, and
   //req_gen_snack_retry, mem_ack_gen_snack_retry
-  logic [`OUTSTANDING_REQUEST_BITS-1:0] req_buf_release_pos;
-  logic req_buf_release;
+
   
   assign req_gen_snack_retry = drtol2_snack_next_retry;
   assign mem_ack_gen_snack_retry = drtol2_snack_next_retry || req_gen_snack_valid;
@@ -1331,19 +1308,17 @@ module directory_bank
   
   always_comb begin
     drtol2_snack_next_valid = 'b0;
-    
-    req_buf_release_pos = 'b0;
-    req_buf_release = 'b0;
+
     if(req_gen_snack_valid) begin
-      drtol2_snack_next_valid = 1'b1;
+      drtol2_snack_next_valid = 'b1;
     end else if(mem_ack_gen_snack_valid) begin
-      drtol2_snack_next_valid = 1'b1;
+      drtol2_snack_next_valid = 'b1;
     end else if(disp_gen_snack_i_valid) begin
-      drtol2_snack_next_valid = 1'b1;
+      drtol2_snack_next_valid = 'b1;
     end else if(disp_gen_snack_valid) begin
-      drtol2_snack_next_valid = 1'b1;
+      drtol2_snack_next_valid = 'b1;
     end else if(snoop_ack_gen_snack_valid) begin
-      drtol2_snack_next_valid = 1'b1;
+      drtol2_snack_next_valid = 'b1;
     end
   end 
   
@@ -1381,35 +1356,6 @@ module directory_bank
   );
 //SNACK ARBITER END
 
-//REQUEST BUFFER ACCESS ARBITER START
-  //The buffer that holds the outstanding wants to be accessed by most parts of the directory. However, major issues can occur
-  //if we let them do it all at the same time. Therefore, we need to arbitrate who gets access. The different parts will signal an
-  //"access get" and the block below determines who gets access. The basic rule of order: requests > acks > disps > snoop acks
-`ifdef NOT_TESTING
-  logic [`OUTSTANDING_REQUEST_BITS-1:0] req_buf_release_pos;
-  logic req_buf_release;
-  
-  always_comb begin   
-    req_buf_release_pos = 'b0;
-    req_buf_release = 'b0;
-    
-    if(req_gen_snack_valid) begin
-      
-    end else if(l2todr_req_valid && !l2todr_req_retry) begin
-      drtol2_snack_next = mem_ack_gen_snack;
-      req_buf_release_pos = ack_buf_pos;
-      req_buf_release = 'b1;
-    end else if(disp_gen_snack_valid) begin
-      drtol2_snack_next = disp_gen_snack;
-      req_buf_release_pos = disp_req_buf_pos;
-      req_buf_release = 'b1;
-    end else if(snoop_ack_gen_snack_valid) begin
-      drtol2_snack_next = snoop_ack_gen_snack;
-    end
-  end 
-  
-`endif
-//REQUEST BUFFER ACCESS ARBITER END
   
 //DRTOMEM WB START
   I_drtomem_wb_type         drtomem_wb_next;
@@ -1438,183 +1384,183 @@ module directory_bank
 //DRTOMEM WB END
 
 //DRID VALID ENCODER START
-  localparam MAX_DRID_VALUE = `DR_REQIDS-1;
+  // localparam MAX_DRID_VALUE = `DR_REQIDS-1;
  
-  logic [`DR_REQIDBITS-1:0] drid_valid_encoder;
-  logic drid_valid;
-  always_comb begin 
-    //Yes, I know the while loop looks bad, and I agree. The while loop is to allow for parametrization, but this scheme may
-    //affect synthesis and may be forced to change.    
-    //This for loop implements a priority encoder. It uses a 64 bit vector input which holds
-    //a valid bit for every possible DRID. This encoder looks at the bit vector and determines a 
-    //valid DRID which can be used for a memory request. The encoder is likely huge based on seeing examples
-    //for small priority encoders.
-    //The benefits of this scheme are that it does an arbitration of which DRID should be used and it does it quickly.
-    //The obvious downsides it the gate count is large. However, we only need one of these.
+  // logic [`DR_REQIDBITS-1:0] drid_valid_encoder;
+  // logic drid_valid;
+  // always_comb begin 
+    // //Yes, I know the while loop looks bad, and I agree. The while loop is to allow for parametrization, but this scheme may
+    // //affect synthesis and may be forced to change.    
+    // //This for loop implements a priority encoder. It uses a 64 bit vector input which holds
+    // //a valid bit for every possible DRID. This encoder looks at the bit vector and determines a 
+    // //valid DRID which can be used for a memory request. The encoder is likely huge based on seeing examples
+    // //for small priority encoders.
+    // //The benefits of this scheme are that it does an arbitration of which DRID should be used and it does it quickly.
+    // //The obvious downsides it the gate count is large. However, we only need one of these.
     
-    //This code was adapted from https://github.com/AmeerAbdelhadi/Indirectly-Indexed-2D-Binary-Content-Addressable-Memory-BCAM/blob/master/pe_bhv.v
-    drid_valid_encoder = {`DR_REQIDBITS{1'b0}};
-    //drid_valid_encoder = 1'b1; //temporary declaration
-    drid_valid = 1'b0;
-    while ((!drid_valid) && (drid_valid_encoder != MAX_DRID_VALUE)) begin
-      drid_valid_encoder = drid_valid_encoder + 1 ;
-      drid_valid = drid_valid_vector[drid_valid_encoder];
-    end
-  end
-//DRID VALID ENCODER END
+    // //This code was adapted from https://github.com/AmeerAbdelhadi/Indirectly-Indexed-2D-Binary-Content-Addressable-Memory-BCAM/blob/master/pe_bhv.v
+    // drid_valid_encoder = {`DR_REQIDBITS{1'b0}};
+    // //drid_valid_encoder = 1'b1; //temporary declaration
+    // drid_valid = 1'b0;
+    // while ((!drid_valid) && (drid_valid_encoder != MAX_DRID_VALUE)) begin
+      // drid_valid_encoder = drid_valid_encoder + 1 ;
+      // drid_valid = drid_valid_vector[drid_valid_encoder];
+    // end
+  // end
+// //DRID VALID ENCODER END
   
-//ID RAM START 
-  logic id_ram_next_valid;
-  logic id_ram_next_retry;
-  logic id_ram_we;
-  logic [`DR_REQIDBITS-1:0] id_ram_pos_next;
+// //ID RAM START 
+  // logic id_ram_next_valid;
+  // logic id_ram_next_retry;
+  // logic id_ram_we;
+  // logic [`DR_REQIDBITS-1:0] id_ram_pos_next;
   
-  logic id_ram_valid;
-  logic id_ram_retry;
-  logic [10:0] id_ram_data;
+  // logic id_ram_valid;
+  // logic id_ram_retry;
+  // logic [10:0] id_ram_data;
   
-  //this needs to be changed
-  ram_1port_fast 
-   #(.Width(11), .Size(`DR_REQIDS), .Forward(1))
-  id_ram ( 
-    .clk         (clk)
-   ,.reset       (reset)
+  // //this needs to be changed
+  // ram_1port_fast 
+   // #(.Width(11), .Size(`DR_REQIDS), .Forward(1))
+  // id_ram ( 
+    // .clk         (clk)
+   // ,.reset       (reset)
 
-   ,.req_valid   (id_ram_next_valid)
-   ,.req_retry   (id_ram_next_retry)
-   ,.req_we      (id_ram_we) 
-   ,.req_pos     (id_ram_pos_next)
-   ,.req_data    ({l2todr_req.nid,l2todr_req.l2id})
+   // ,.req_valid   (id_ram_next_valid)
+   // ,.req_retry   (id_ram_next_retry)
+   // ,.req_we      (id_ram_we) 
+   // ,.req_pos     (id_ram_pos_next)
+   // ,.req_data    ({l2todr_req.nid,l2todr_req.l2id})
 
-   ,.ack_valid   (id_ram_valid)
-   ,.ack_retry   (id_ram_retry)
-   ,.ack_data    (id_ram_data)
- );
+   // ,.ack_valid   (id_ram_valid)
+   // ,.ack_retry   (id_ram_retry)
+   // ,.ack_data    (id_ram_data)
+ // );
 
 //ID RAM END
 
-//ID RAM ARBITER START
+// //ID RAM ARBITER START
   
-  localparam ARBITER_READ_PREFERRED_STATE = 1'b0;
-  localparam ARBITER_WRITE_PREFERRED_STATE = 1'b1;
+  // localparam ARBITER_READ_PREFERRED_STATE = 1'b0;
+  // localparam ARBITER_WRITE_PREFERRED_STATE = 1'b1;
   
-  //not assigned: arb_drid_write_valid
+  // //not assigned: arb_drid_write_valid
 
   
-  logic id_ram_state;
-  logic id_ram_state_next;
-  //I had to separate the write enable signal into a different always block or else a warning will occur claiming circular logic. This warning appears to be a glitch
-  //and should not affect simulation, but I removed it anyway.
-  always_comb begin
-    id_ram_we = 1'b0;
-    if(id_ram_state == ARBITER_READ_PREFERRED_STATE) begin    
-      if(id_ram_write_next_valid && !id_ram_read_next_valid) begin
-        id_ram_we = 1'b1;
-      end
+  // logic id_ram_state;
+  // logic id_ram_state_next;
+  // //I had to separate the write enable signal into a different always block or else a warning will occur claiming circular logic. This warning appears to be a glitch
+  // //and should not affect simulation, but I removed it anyway.
+  // always_comb begin
+    // id_ram_we = 1'b0;
+    // if(id_ram_state == ARBITER_READ_PREFERRED_STATE) begin    
+      // if(id_ram_write_next_valid && !id_ram_read_next_valid) begin
+        // id_ram_we = 1'b1;
+      // end
       
-    end else begin //state == ARBITER_WRITE_PREFERRED_STATE
-      if(id_ram_write_next_valid) begin
-        id_ram_we = 1'b1;
-      end 
+    // end else begin //state == ARBITER_WRITE_PREFERRED_STATE
+      // if(id_ram_write_next_valid) begin
+        // id_ram_we = 1'b1;
+      // end 
       
-    end
-  end
+    // end
+  // end
   
-  //This always blocks performs the next state logic for the DRID RAM READ/WRITE arbiter FSM. It also contains some output logic
-  //for the FSM but not all of it. The write enable had to be moved outside the always blocks because it caused warnings to occur
-  //when they were in the same always block.
+  // //This always blocks performs the next state logic for the DRID RAM READ/WRITE arbiter FSM. It also contains some output logic
+  // //for the FSM but not all of it. The write enable had to be moved outside the always blocks because it caused warnings to occur
+  // //when they were in the same always block.
   
-  always_comb begin
-    //default next state is the current state
-    id_ram_state_next = id_ram_state;
+  // always_comb begin
+    // //default next state is the current state
+    // id_ram_state_next = id_ram_state;
     
-    //default retry on read or writes is the retry coming from the SRAM, however this will fail in some cases. For example,
-    //if retry from SRAM is high and both valids from retry are high then the operation that occurs after the retry falls LOW
-    //depends on which state we are in. If the SRAM retry falls low, then the fflops think that their valid goes through, but
-    //this will not occur since the state machine only allows one operations to happen. Basically, I solve this by extending
-    //the retry during a state transition. Difficult to say if this work 100%, but my notes imply this will work.
-    id_ram_read_next_retry = id_ram_next_retry;
-    id_ram_write_next_retry = id_ram_next_retry;
+    // //default retry on read or writes is the retry coming from the SRAM, however this will fail in some cases. For example,
+    // //if retry from SRAM is high and both valids from retry are high then the operation that occurs after the retry falls LOW
+    // //depends on which state we are in. If the SRAM retry falls low, then the fflops think that their valid goes through, but
+    // //this will not occur since the state machine only allows one operations to happen. Basically, I solve this by extending
+    // //the retry during a state transition. Difficult to say if this work 100%, but my notes imply this will work.
+    // id_ram_read_next_retry = id_ram_next_retry;
+    // id_ram_write_next_retry = id_ram_next_retry;
     
-    //default drid to index RAM is the value used for writing to the RAM
-    id_ram_pos_next = drid_valid_encoder;
+    // //default drid to index RAM is the value used for writing to the RAM
+    // id_ram_pos_next = drid_valid_encoder;
     
-    id_ram_next_valid = 1'b0;
+    // id_ram_next_valid = 1'b0;
     
-    if(id_ram_state == ARBITER_READ_PREFERRED_STATE) begin
-      //next state logic
-      if(id_ram_read_next_valid && !id_ram_next_retry) begin
-        id_ram_state_next = ARBITER_WRITE_PREFERRED_STATE;
-      end
+    // if(id_ram_state == ARBITER_READ_PREFERRED_STATE) begin
+      // //next state logic
+      // if(id_ram_read_next_valid && !id_ram_next_retry) begin
+        // id_ram_state_next = ARBITER_WRITE_PREFERRED_STATE;
+      // end
       
-      //output logic
-      if(id_ram_read_next_valid) begin
-        id_ram_next_valid = 1'b1;      
-        id_ram_write_next_retry = 1'b1; 
-        id_ram_pos_next = memtodr_ack.drid;
-      end else if(id_ram_write_next_valid) begin
-        id_ram_next_valid = 1'b1;
-      end
+      // //output logic
+      // if(id_ram_read_next_valid) begin
+        // id_ram_next_valid = 1'b1;      
+        // id_ram_write_next_retry = 1'b1; 
+        // id_ram_pos_next = memtodr_ack.drid;
+      // end else if(id_ram_write_next_valid) begin
+        // id_ram_next_valid = 1'b1;
+      // end
       
-    end else begin //state == ARBITER_WRITE_PREFERRED_STATE
+    // end else begin //state == ARBITER_WRITE_PREFERRED_STATE
     
-      if(id_ram_write_next_valid && !id_ram_next_retry) begin
-        id_ram_state_next = ARBITER_READ_PREFERRED_STATE;
-      end
+      // if(id_ram_write_next_valid && !id_ram_next_retry) begin
+        // id_ram_state_next = ARBITER_READ_PREFERRED_STATE;
+      // end
       
-      if(id_ram_write_next_valid) begin
-        id_ram_next_valid = 1'b1;
-        id_ram_read_next_retry = 1'b1;
-      end else if(id_ram_read_next_valid) begin
-        id_ram_next_valid = 1'b1;
-        id_ram_pos_next = memtodr_ack.drid;
-      end
+      // if(id_ram_write_next_valid) begin
+        // id_ram_next_valid = 1'b1;
+        // id_ram_read_next_retry = 1'b1;
+      // end else if(id_ram_read_next_valid) begin
+        // id_ram_next_valid = 1'b1;
+        // id_ram_pos_next = memtodr_ack.drid;
+      // end
       
-    end
-  end
+    // end
+  // end
   
-  flop #(.Bits(1)) sram_arbiter_state_flop (
-    .clk      (clk)
-   ,.reset    (reset)
-   ,.d        (id_ram_state_next)
-   ,.q        (id_ram_state)
-  );
-//ID RAM ARBITER END
+  // flop #(.Bits(1)) sram_arbiter_state_flop (
+    // .clk      (clk)
+   // ,.reset    (reset)
+   // ,.d        (id_ram_state_next)
+   // ,.q        (id_ram_state)
+  // );
+// //ID RAM ARBITER END
 
-//DRID VALID VECTOR START
-  //Adding some temporary code here
-  logic [`DR_REQIDS-1:0] drid_valid_vector;
-  logic [`DR_REQIDS-1:0] drid_valid_vector_next;
+// //DRID VALID VECTOR START
+  // //Adding some temporary code here
+  // logic [`DR_REQIDS-1:0] drid_valid_vector;
+  // logic [`DR_REQIDS-1:0] drid_valid_vector_next;
   
   
-  //This always block combined with the flop represents the logic used to maintain a vector which remembers which DRIDs are in use 
-  //and which are available. This valid is sent to a priority encoder which determines the next available DRID to be used in the pending
-  //request.
-  //DRID are marked in use when a request from the L2 has been accepted by the directory and they are released when an ACK for that request 
-  //has been processed by the directory.
-  always_comb begin
-    drid_valid_vector_next = drid_valid_vector;
+  // //This always block combined with the flop represents the logic used to maintain a vector which remembers which DRIDs are in use 
+  // //and which are available. This valid is sent to a priority encoder which determines the next available DRID to be used in the pending
+  // //request.
+  // //DRID are marked in use when a request from the L2 has been accepted by the directory and they are released when an ACK for that request 
+  // //has been processed by the directory.
+  // always_comb begin
+    // drid_valid_vector_next = drid_valid_vector;
     
-    if(id_ram_write_next_valid && !id_ram_write_next_retry) begin
-        drid_valid_vector_next[drid_valid_encoder] = 1'b0;
-    end
+    // if(id_ram_write_next_valid && !id_ram_write_next_retry) begin
+        // drid_valid_vector_next[drid_valid_encoder] = 1'b0;
+    // end
     
-    //releasing DRIDs will probably change because this logic release them after I read the ram values
-    if(id_ram_read_next_valid && !id_ram_read_next_retry) begin
-      drid_valid_vector_next[memtodr_ack.drid] = 1'b1;
-    end
+    // //releasing DRIDs will probably change because this logic release them after I read the ram values
+    // if(id_ram_read_next_valid && !id_ram_read_next_retry) begin
+      // drid_valid_vector_next[memtodr_ack.drid] = 1'b1;
+    // end
     
-  end
+  // end
   
-  //should probably change this is an fflop
-  //That way, the valids can come from inputs
-  flop_r #(.Size(`DR_REQIDS), .Reset_Value({`DR_REQIDS{1'b1}})) drid_vector_flop_r (
-    .clk      (clk)
-   ,.reset    (reset)
-   ,.din      (drid_valid_vector_next)
-   ,.q        (drid_valid_vector)
-  );
-//DRID VALID VECTOR END
+  // //should probably change this is an fflop
+  // //That way, the valids can come from inputs
+  // flop_r #(.Size(`DR_REQIDS), .Reset_Value({`DR_REQIDS{1'b1}})) drid_vector_flop_r (
+    // .clk      (clk)
+   // ,.reset    (reset)
+   // ,.din      (drid_valid_vector_next)
+   // ,.q        (drid_valid_vector)
+  // );
+// //DRID VALID VECTOR END
 
   
 //DRTOL2 DACK START
@@ -1682,30 +1628,16 @@ module directory_bank
   logic                   mem_ack_gen_snack_valid;
   logic                   mem_ack_gen_snack_retry;
   
-  logic                   id_ram_read_next_valid;
-  logic                   id_ram_read_next_retry;
-  
-  assign id_ram_read_next_valid = 'b0;
-  logic rel_request;
   logic [`OUTSTANDING_REQUEST_BITS-1:0] ack_buf_pos; 
 
   assign ack_buf_pos = memtodr_ack.drid[`OUTSTANDING_REQUEST_BITS-1:0] - 2'b1;
-`ifdef DR_EXPERIMENTAL
+
   always_comb begin
     memtodr_ack_retry = mem_ack_gen_snack_retry || (ack_gen_rel_retry && memtodr_ack.drid != 'b0);
   end
-`else
-  always_comb begin
-    if(req_buf[ack_buf_pos].next != 'b0) begin
-      memtodr_ack_retry = mem_ack_gen_snack_retry || (l2todr_req_valid && !l2todr_req_retry) || mem_ack_gen_req_retry;
-    end else begin
-      memtodr_ack_retry = mem_ack_gen_snack_retry || (l2todr_req_valid && !l2todr_req_retry);
-    end
-  end
-`endif
+
   
   always_comb begin
-    rel_request = 'b0;
     
     if(memtodr_ack.drid == {`DR_REQIDBITS{1'b0}}) begin
       //if drid is invalid then this is an ack for a prefetch. Therefore, use the terms in the ack that that are meant for the
@@ -1716,37 +1648,23 @@ module directory_bank
 	    mem_ack_gen_snack.hpaddr_hash = 'b0;
       mem_ack_gen_snack.paddr = memtodr_ack.paddr;
       
-      id_ram_retry = 'b0;
     end else begin
       //If the DRID is valid then ignore the prefetch terms and nid, l2id are set by the RAM
       mem_ack_gen_snack.nid = req_buf[ack_buf_pos].nid; 
       mem_ack_gen_snack.l2id = req_buf[ack_buf_pos].l2id;
 	    mem_ack_gen_snack.hpaddr_base = compute_dr_hpaddr_base(req_buf[ack_buf_pos].paddr);
 	    mem_ack_gen_snack.hpaddr_hash = compute_dr_hpaddr_hash(req_buf[ack_buf_pos].paddr);
-      //mem_ack_gen_snack.paddr = 'b0;
-      //Paddr should be set to 0 but not doing this to allow testbench to pass for now...
       mem_ack_gen_snack.paddr = req_buf[ack_buf_pos].paddr;
       
-      id_ram_retry = 'b0;
-      rel_request = 'b1;
     end
   end
 
 
   //Logic for valid signal has been separated to removed a warning.
-`ifdef DR_EXPERIMENTAL
   always_comb begin
     mem_ack_gen_snack_valid = memtodr_ack_valid && (!ack_gen_rel_retry || memtodr_ack.drid == 'b0); 
   end
-`else
-  always_comb begin
-    if(req_buf[ack_buf_pos].next != 'b0) begin
-      mem_ack_gen_snack_valid = memtodr_ack_valid && !(l2todr_req_valid && !l2todr_req_retry) && !mem_ack_gen_req_retry;
-    end else begin
-      mem_ack_gen_snack_valid = memtodr_ack_valid && !(l2todr_req_valid && !l2todr_req_retry); 
-    end
-  end
-`endif
+
   
   //The other values are independent of the DRID validity. However, this is an assumption that the "ack", which refers to
   //some command bits, is set by main memory correctly for prefetches and normal requests.

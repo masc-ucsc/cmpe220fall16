@@ -1040,7 +1040,7 @@ int main(int argc, char **argv, char **env) {
       else if(pick_cmd == 1)
         i.cmd = 0x1; //get exclusive
       else
-        i.cmd = 0x2; //get NC
+        i.cmd = 0x0; //get NC
       
       i.cmd = 0;
       
