@@ -1028,80 +1028,108 @@ module net_2core2dr(
   I_drtol2_snack_type c1_drtol2it_snack_next;
   I_drtol2_snack_type c1_drtol2d_0_snack_next;
   I_drtol2_snack_type c1_drtol2dt_0_snack_next;
+  logic c0_drtol2i_snack_valid_next;
+  logic c0_drtol2it_snack_valid_next;
+  logic c0_drtol2d_0_snack_valid_next;
+  logic c0_drtol2dt_0_snack_valid_next;
+  logic c1_drtol2i_snack_valid_next;
+  logic c1_drtol2it_snack_valid_next;
+  logic c1_drtol2d_0_snack_valid_next;
+  logic c1_drtol2dt_0_snack_valid_next;
 
-  wire c0_drtol2i_snack_valid_next;
-  wire c0_drtol2it_snack_valid_next;
 
   always_comb begin
     // start retry signals high so they must be set low to pass through
     dr0tol2_snack_retry = 1;
     dr1tol2_snack_retry = 1;
+    // Set all valids low so they have to be set high to pass through
+    c0_drtol2i_snack_valid_next = 1'b0;
+    c0_drtol2it_snack_valid_next = 1'b0;
+    c0_drtol2d_0_snack_valid_next = 1'b0;
+    c0_drtol2dt_0_snack_valid_next = 1'b0;
+    c1_drtol2i_snack_valid_next = 1'b0;
+    c1_drtol2it_snack_valid_next = 1'b0;
+    c1_drtol2d_0_snack_valid_next = 1'b0;
+    c1_drtol2dt_0_snack_valid_next = 1'b0;
 
     if (dr0tol2_snack_valid & (dr0tol2_snack.nid[2:0] == 3'b000)) begin
       c0_drtol2i_snack_next = dr0tol2_snack;
       dr0tol2_snack_retry = c0_drtol2i_snack_retry;
       c0_drtol2i_snack_valid_next = 1'b1;
-      c0_drtol2it_snack_valid_next = 1'b0;
-
     end else if (dr1tol2_snack_valid & (dr1tol2_snack.nid[2:0] == 3'b000)) begin
       c0_drtol2i_snack_next = dr1tol2_snack;
       dr0tol2_snack_retry = c0_drtol2i_snack_retry;
+      c0_drtol2i_snack_valid_next = 1'b1;
     end
 
     if (dr0tol2_snack_valid & (dr0tol2_snack.nid[2:0] == 3'b001)) begin
+      c0_drtol2it_snack_valid_next = 1'b1;
       c0_drtol2it_snack_next = dr0tol2_snack;
       dr0tol2_snack_retry = c0_drtol2it_snack_retry;
     end else if (dr1tol2_snack_valid & (dr1tol2_snack.nid[2:0] == 3'b001)) begin
       c0_drtol2it_snack_next = dr1tol2_snack;
       dr1tol2_snack_retry = c0_drtol2it_snack_retry;
+      c0_drtol2it_snack_valid_next = 1'b1;
     end
 
     if (dr0tol2_snack_valid & (dr0tol2_snack.nid[2:0] == 3'b010)) begin
       c0_drtol2d_0_snack_next = dr0tol2_snack;
       dr0tol2_snack_retry = c0_drtol2d_0_snack_retry;
+      c0_drtol2d_0_snack_valid_next = 1'b1;
     end else if (dr1tol2_snack_valid & (dr1tol2_snack.nid[2:0] == 3'b010)) begin
       c0_drtol2d_0_snack_next = dr1tol2_snack;
       dr1tol2_snack_retry = c0_drtol2d_0_snack_retry;
+      c0_drtol2d_0_snack_valid_next = 1'b1;
     end
 
     if (dr0tol2_snack_valid & (dr0tol2_snack.nid[2:0] == 3'b011)) begin
       c0_drtol2dt_0_snack_next = dr0tol2_snack;
       dr0tol2_snack_retry = c0_drtol2dt_0_snack_retry;
+      c0_drtol2dt_0_snack_valid_next = 1'b1;
     end else if (dr1tol2_snack_valid & (dr1tol2_snack.nid[2:0] == 3'b011)) begin
       c0_drtol2dt_0_snack_next = dr1tol2_snack;
       dr1tol2_snack_retry = c0_drtol2dt_0_snack_retry;
+      c0_drtol2dt_0_snack_valid_next = 1'b1;
     end
 
     if (dr0tol2_snack_valid & (dr0tol2_snack.nid[2:0] == 3'b100)) begin
       c1_drtol2i_snack_next = dr0tol2_snack;
       dr0tol2_snack_retry = c1_drtol2i_snack_retry;
+      c1_drtol2i_snack_valid_next = 1'b1;
     end else if (dr1tol2_snack_valid & (dr1tol2_snack.nid[2:0] == 3'b100)) begin
       c1_drtol2i_snack_next = dr1tol2_snack;
       dr1tol2_snack_retry = c1_drtol2i_snack_retry;
+      c1_drtol2i_snack_valid_next = 1'b1;
     end
 
     if (dr0tol2_snack_valid & (dr0tol2_snack.nid[2:0] == 3'b101)) begin
       c1_drtol2it_snack_next = dr0tol2_snack;
       dr0tol2_snack_retry = c1_drtol2it_snack_retry;
+      c1_drtol2it_snack_valid_next = 1'b1;
     end else if (dr1tol2_snack_valid & (dr1tol2_snack.nid[2:0] == 3'b101)) begin
       c1_drtol2it_snack_next = dr1tol2_snack;
       dr1tol2_snack_retry = c1_drtol2it_snack_retry;
+      c1_drtol2it_snack_valid_next = 1'b1;
     end
 
     if (dr0tol2_snack_valid & (dr0tol2_snack.nid[2:0] == 3'b110)) begin
       c1_drtol2d_0_snack_next = dr0tol2_snack;
       dr0tol2_snack_retry = c1_drtol2d_0_snack_retry;
+      c1_drtol2d_0_snack_valid_next = 1'b1;
     end else if (dr1tol2_snack_valid & (dr1tol2_snack.nid[2:0] == 3'b110)) begin
       c1_drtol2d_0_snack_next = dr1tol2_snack;
       dr1tol2_snack_retry = c1_drtol2d_0_snack_retry;
+      c1_drtol2d_0_snack_valid_next = 1'b1;
     end
 
     if (dr0tol2_snack_valid & (dr0tol2_snack.nid[2:0] == 3'b111)) begin
       c1_drtol2dt_0_snack_next = dr0tol2_snack;
       dr0tol2_snack_retry = c1_drtol2dt_0_snack_retry;
+      c1_drtol2dt_0_snack_valid_next = 1'b1;
     end else if (dr1tol2_snack_valid & (dr1tol2_snack.nid[2:0] == 3'b111)) begin
       c1_drtol2dt_0_snack_next = dr1tol2_snack;
       dr1tol2_snack_retry = c1_drtol2dt_0_snack_retry;
+      c1_drtol2dt_0_snack_valid_next = 1'b1;
     end
   end
 
@@ -1137,7 +1165,7 @@ module net_2core2dr(
     .reset    (reset),
 
     .din      (c0_drtol2d_0_snack_next),
-    .dinValid (dr0tol2_snack_valid),
+    .dinValid (c0_drtol2d_0_snack_valid_next),
     .dinRetry (dr0tol2_snack_retry),
 
     .q        (c0_drtol2d_0_snack),
@@ -1150,7 +1178,7 @@ module net_2core2dr(
     .reset    (reset),
 
     .din      (c0_drtol2dt_0_snack_next),
-    .dinValid (dr0tol2_snack_valid),
+    .dinValid (c0_drtol2dt_0_snack_valid_next),
     .dinRetry (dr0tol2_snack_retry),
 
     .q        (c0_drtol2dt_0_snack),
@@ -1163,7 +1191,7 @@ module net_2core2dr(
     .reset    (reset),
 
     .din      (c1_drtol2i_snack_next),
-    .dinValid (dr0tol2_snack_valid),
+    .dinValid (c1_drtol2i_snack_valid_next),
     .dinRetry (dr0tol2_snack_retry),
 
     .q        (c1_drtol2i_snack),
@@ -1176,7 +1204,7 @@ module net_2core2dr(
     .reset    (reset),
 
     .din      (c1_drtol2it_snack_next),
-    .dinValid (dr0tol2_snack_valid),
+    .dinValid (c1_drtol2it_snack_valid_next),
     .dinRetry (dr0tol2_snack_retry),
 
     .q        (c1_drtol2it_snack),
@@ -1189,7 +1217,7 @@ module net_2core2dr(
     .reset    (reset),
 
     .din      (c1_drtol2d_0_snack_next),
-    .dinValid (dr0tol2_snack_valid),
+    .dinValid (c1_drtol2d_0_snack_valid_next),
     .dinRetry (dr0tol2_snack_retry),
 
     .q        (c1_drtol2d_0_snack),
@@ -1202,7 +1230,7 @@ module net_2core2dr(
     .reset    (reset),
 
     .din      (c1_drtol2dt_0_snack_next),
-    .dinValid (dr0tol2_snack_valid),
+    .dinValid (c1_drtol2dt_0_snack_valid_next),
     .dinRetry (dr0tol2_snack_retry),
 
     .q        (c1_drtol2dt_0_snack),
@@ -1218,74 +1246,107 @@ module net_2core2dr(
   I_drtol2_dack_type c1_drtol2it_dack_next;
   I_drtol2_dack_type c1_drtol2d_0_dack_next;
   I_drtol2_dack_type c1_drtol2dt_0_dack_next;
+  logic c0_drtol2i_dack_valid_next;
+  logic c0_drtol2it_dack_valid_next;
+  logic c0_drtol2d_0_dack_valid_next;
+  logic c0_drtol2dt_0_dack_valid_next;
+  logic c1_drtol2i_dack_valid_next;
+  logic c1_drtol2it_dack_valid_next;
+  logic c1_drtol2d_0_dack_valid_next;
+  logic c1_drtol2dt_0_dack_valid_next;
 
   always_comb begin
     // start retry signals high so they must be set low to pass through
     dr0tol2_dack_retry = 1;
     dr1tol2_dack_retry = 1;
+    // stary valid signals low so they must be set high to pass through
+    c0_drtol2i_dack_valid_next = 1'b0;
+    c0_drtol2it_dack_valid_next = 1'b0;
+    c0_drtol2d_0_dack_valid_next = 1'b0;
+    c0_drtol2dt_0_dack_valid_next = 1'b0;
+    c1_drtol2i_dack_valid_next = 1'b0;
+    c1_drtol2it_dack_valid_next = 1'b0;
+    c1_drtol2d_0_dack_valid_next = 1'b0;
+    c1_drtol2dt_0_dack_valid_next = 1'b0;
 
     if (dr0tol2_dack_valid & (dr0tol2_dack.nid[2:0] == 3'b000)) begin
       c0_drtol2i_dack_next = dr0tol2_dack;
       dr0tol2_dack_retry = c0_drtol2i_dack_retry;
+      c0_drtol2i_dack_valid_next = 1'b1;
     end else if (dr1tol2_dack_valid & (dr1tol2_dack.nid[2:0] == 3'b000)) begin
       c0_drtol2i_dack_next = dr1tol2_dack;
       dr0tol2_dack_retry = c0_drtol2i_dack_retry;
+      c0_drtol2i_dack_valid_next = 1'b1;
     end
 
     if (dr0tol2_dack_valid & (dr0tol2_dack.nid[2:0] == 3'b001)) begin
       c0_drtol2it_dack_next = dr0tol2_dack;
       dr0tol2_dack_retry = c0_drtol2it_dack_retry;
+      c0_drtol2it_dack_valid_next = 1'b1;
     end else if (dr1tol2_dack_valid & (dr1tol2_dack.nid[2:0] == 3'b001)) begin
       c0_drtol2it_dack_next = dr1tol2_dack;
       dr1tol2_dack_retry = c0_drtol2it_dack_retry;
+      c0_drtol2it_dack_valid_next = 1'b1;
     end
 
     if (dr0tol2_dack_valid & (dr0tol2_dack.nid[2:0] == 3'b010)) begin
       c0_drtol2d_0_dack_next = dr0tol2_dack;
       dr0tol2_dack_retry = c0_drtol2d_0_dack_retry;
+      c0_drtol2d_0_dack_valid_next = 1'b1;
     end else if (dr1tol2_dack_valid & (dr1tol2_dack.nid[2:0] == 3'b010)) begin
       c0_drtol2d_0_dack_next = dr1tol2_dack;
       dr1tol2_dack_retry = c0_drtol2d_0_dack_retry;
+      c0_drtol2d_0_dack_valid_next = 1'b1;
     end
 
     if (dr0tol2_dack_valid & (dr0tol2_dack.nid[2:0] == 3'b011)) begin
       c0_drtol2dt_0_dack_next = dr0tol2_dack;
       dr0tol2_dack_retry = c0_drtol2dt_0_dack_retry;
+      c0_drtol2dt_0_dack_valid_next = 1'b1;
     end else if (dr1tol2_dack_valid & (dr1tol2_dack.nid[2:0] == 3'b011)) begin
       c0_drtol2dt_0_dack_next = dr1tol2_dack;
       dr1tol2_dack_retry = c0_drtol2dt_0_dack_retry;
+      c0_drtol2dt_0_dack_valid_next = 1'b1;
     end
 
     if (dr0tol2_dack_valid & (dr0tol2_dack.nid[2:0] == 3'b100)) begin
       c1_drtol2i_dack_next = dr0tol2_dack;
       dr0tol2_dack_retry = c1_drtol2i_dack_retry;
+      c1_drtol2i_dack_valid_next = 1'b1;
     end else if (dr1tol2_dack_valid & (dr1tol2_dack.nid[2:0] == 3'b100)) begin
       c1_drtol2i_dack_next = dr1tol2_dack;
       dr1tol2_dack_retry = c1_drtol2i_dack_retry;
+      c1_drtol2i_dack_valid_next = 1'b1;
     end
 
     if (dr0tol2_dack_valid & (dr0tol2_dack.nid[2:0] == 3'b101)) begin
       c1_drtol2it_dack_next = dr0tol2_dack;
       dr0tol2_dack_retry = c1_drtol2it_dack_retry;
+      c1_drtol2it_dack_valid_next = 1'b1;
     end else if (dr1tol2_dack_valid & (dr1tol2_dack.nid[2:0] == 3'b101)) begin
       c1_drtol2it_dack_next = dr1tol2_dack;
       dr1tol2_dack_retry = c1_drtol2it_dack_retry;
+      c1_drtol2it_dack_valid_next = 1'b1;
     end
 
     if (dr0tol2_dack_valid & (dr0tol2_dack.nid[2:0] == 3'b110)) begin
       c1_drtol2d_0_dack_next = dr0tol2_dack;
       dr0tol2_dack_retry = c1_drtol2d_0_dack_retry;
+      c1_drtol2d_0_dack_valid_next = 1'b1;
     end else if (dr1tol2_dack_valid & (dr1tol2_dack.nid[2:0] == 3'b110)) begin
       c1_drtol2d_0_dack_next = dr1tol2_dack;
       dr1tol2_dack_retry = c1_drtol2d_0_dack_retry;
+      c1_drtol2d_0_dack_valid_next = 1'b1;
     end
 
     if (dr0tol2_dack_valid & (dr0tol2_dack.nid[2:0] == 3'b111)) begin
       c1_drtol2dt_0_dack_next = dr0tol2_dack;
       dr0tol2_dack_retry = c1_drtol2dt_0_dack_retry;
+      c1_drtol2dt_0_dack_valid_next = 1'b1;
     end else if (dr1tol2_dack_valid & (dr1tol2_dack.nid[2:0] == 3'b111)) begin
       c1_drtol2dt_0_dack_next = dr1tol2_dack;
       dr1tol2_dack_retry = c1_drtol2dt_0_dack_retry;
+      c1_drtol2dt_0_dack_valid_next = 1'b1;
     end
   end
 
@@ -1294,7 +1355,7 @@ module net_2core2dr(
     .reset    (reset),
 
     .din      (c0_drtol2i_dack_next),
-    .dinValid (dr0tol2_dack_valid),
+    .dinValid (c0_drtol2i_dack_valid_next),
     .dinRetry (dr0tol2_dack_retry),
 
     .q        (c0_drtol2i_dack),
@@ -1307,7 +1368,7 @@ module net_2core2dr(
     .reset    (reset),
 
     .din      (c0_drtol2it_dack_next),
-    .dinValid (dr0tol2_dack_valid),
+    .dinValid (c0_drtol2it_dack_valid_next),
     .dinRetry (dr0tol2_dack_retry),
 
     .q        (c0_drtol2it_dack),
@@ -1320,7 +1381,7 @@ module net_2core2dr(
     .reset    (reset),
 
     .din      (c0_drtol2d_0_dack_next),
-    .dinValid (dr0tol2_dack_valid),
+    .dinValid (c0_drtol2d_0_dack_valid_next),
     .dinRetry (dr0tol2_dack_retry),
 
     .q        (c0_drtol2d_0_dack),
@@ -1333,7 +1394,7 @@ module net_2core2dr(
     .reset    (reset),
 
     .din      (c0_drtol2dt_0_dack_next),
-    .dinValid (dr0tol2_dack_valid),
+    .dinValid (c0_drtol2dt_0_dack_valid_next),
     .dinRetry (dr0tol2_dack_retry),
 
     .q        (c0_drtol2dt_0_dack),
@@ -1346,7 +1407,7 @@ module net_2core2dr(
     .reset    (reset),
 
     .din      (c1_drtol2i_dack_next),
-    .dinValid (dr0tol2_dack_valid),
+    .dinValid (c1_drtol2i_dack_valid_next),
     .dinRetry (dr0tol2_dack_retry),
 
     .q        (c1_drtol2i_dack),
@@ -1359,7 +1420,7 @@ module net_2core2dr(
     .reset    (reset),
 
     .din      (c1_drtol2it_dack_next),
-    .dinValid (dr0tol2_dack_valid),
+    .dinValid (c1_drtol2it_dack_valid_next),
     .dinRetry (dr0tol2_dack_retry),
 
     .q        (c1_drtol2it_dack),
@@ -1372,7 +1433,7 @@ module net_2core2dr(
     .reset    (reset),
 
     .din      (c1_drtol2d_0_dack_next),
-    .dinValid (dr0tol2_dack_valid),
+    .dinValid (c1_drtol2d_0_dack_valid_next),
     .dinRetry (dr0tol2_dack_retry),
 
     .q        (c1_drtol2d_0_dack),
@@ -1385,7 +1446,7 @@ module net_2core2dr(
     .reset    (reset),
 
     .din      (c1_drtol2dt_0_dack_next),
-    .dinValid (dr0tol2_dack_valid),
+    .dinValid (c1_drtol2dt_0_dack_valid_next),
     .dinRetry (dr0tol2_dack_retry),
 
     .q        (c1_drtol2dt_0_dack),
