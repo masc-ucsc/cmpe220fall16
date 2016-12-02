@@ -277,6 +277,229 @@ struct OutputPacket_l2todr1_pfreq {
   uint64_t paddr;
 };
 
+// snacks, mmm
+
+struct InputPacket_dr0tol2_snack {
+  uint8_t nid;
+  uint8_t l2id;
+  uint8_t drid;
+  uint8_t directory_id;
+  uint8_t ack_cmd;
+  uint64_t paddr; 
+  uint64_t line_7;
+  uint64_t line_6;
+  uint64_t line_5;
+  uint64_t line_4;
+  uint64_t line_3;
+  uint64_t line_2;
+  uint64_t line_1;
+  uint64_t line_0;
+};
+
+struct InputPacket_dr1tol2_snack {
+  uint8_t nid;
+  uint8_t l2id;
+  uint8_t drid;
+  uint8_t directory_id;
+  uint8_t ack_cmd;
+  uint64_t paddr; 
+  uint64_t line_7;
+  uint64_t line_6;
+  uint64_t line_5;
+  uint64_t line_4;
+  uint64_t line_3;
+  uint64_t line_2;
+  uint64_t line_1;
+  uint64_t line_0;
+};
+
+struct OutputPacket_c0_drtol2i_snack {
+	uint8_t nid;
+  uint8_t l2id;
+  uint8_t drid;
+  uint8_t directory_id;
+  uint8_t ack_cmd;
+  uint64_t paddr; 
+  uint64_t line_7;
+  uint64_t line_6;
+  uint64_t line_5;
+  uint64_t line_4;
+  uint64_t line_3;
+  uint64_t line_2;
+  uint64_t line_1;
+  uint64_t line_0;
+};
+
+struct OutputPacket_c0_drtol2it_snack {
+	uint8_t nid;
+  uint8_t l2id;
+  uint8_t drid;
+  uint8_t directory_id;
+  uint8_t ack_cmd;
+  uint64_t paddr; 
+  uint64_t line_7;
+  uint64_t line_6;
+  uint64_t line_5;
+  uint64_t line_4;
+  uint64_t line_3;
+  uint64_t line_2;
+  uint64_t line_1;
+  uint64_t line_0;
+};
+
+struct OutputPacket_c0_drtol2d_0_snack {
+	uint8_t nid;
+  uint8_t l2id;
+  uint8_t drid;
+  uint8_t directory_id;
+  uint8_t ack_cmd;
+  uint64_t paddr; 
+  uint64_t line_7;
+  uint64_t line_6;
+  uint64_t line_5;
+  uint64_t line_4;
+  uint64_t line_3;
+  uint64_t line_2;
+  uint64_t line_1;
+  uint64_t line_0;
+};
+
+struct OutputPacket_c0_drtol2dt_0_snack {
+	uint8_t nid;
+  uint8_t l2id;
+  uint8_t drid;
+  uint8_t directory_id;
+  uint8_t ack_cmd;
+  uint64_t paddr; 
+  uint64_t line_7;
+  uint64_t line_6;
+  uint64_t line_5;
+  uint64_t line_4;
+  uint64_t line_3;
+  uint64_t line_2;
+  uint64_t line_1;
+  uint64_t line_0;
+};
+
+struct OutputPacket_c1_drtol2i_snack {
+	uint8_t nid;
+  uint8_t l2id;
+  uint8_t drid;
+  uint8_t directory_id;
+  uint8_t ack_cmd;
+  uint64_t paddr; 
+  uint64_t line_7;
+  uint64_t line_6;
+  uint64_t line_5;
+  uint64_t line_4;
+  uint64_t line_3;
+  uint64_t line_2;
+  uint64_t line_1;
+  uint64_t line_0;
+};
+
+struct OutputPacket_c1_drtol2it_snack {
+	uint8_t nid;
+  uint8_t l2id;
+  uint8_t drid;
+  uint8_t directory_id;
+  uint8_t ack_cmd;
+  uint64_t paddr; 
+  uint64_t line_7;
+  uint64_t line_6;
+  uint64_t line_5;
+  uint64_t line_4;
+  uint64_t line_3;
+  uint64_t line_2;
+  uint64_t line_1;
+  uint64_t line_0;
+};
+
+struct OutputPacket_c1_drtol2d_0_snack {
+	uint8_t nid;
+  uint8_t l2id;
+  uint8_t drid;
+  uint8_t directory_id;
+  uint8_t ack_cmd;
+  uint64_t paddr; 
+  uint64_t line_7;
+  uint64_t line_6;
+  uint64_t line_5;
+  uint64_t line_4;
+  uint64_t line_3;
+  uint64_t line_2;
+  uint64_t line_1;
+  uint64_t line_0;
+};
+
+struct OutputPacket_c1_drtol2dt_0_snack {
+	uint8_t nid;
+  uint8_t l2id;
+  uint8_t drid;
+  uint8_t directory_id;
+  uint8_t ack_cmd;
+  uint64_t paddr; 
+  uint64_t line_7;
+  uint64_t line_6;
+  uint64_t line_5;
+  uint64_t line_4;
+  uint64_t line_3;
+  uint64_t line_2;
+  uint64_t line_1;
+  uint64_t line_0;
+};
+
+// dacks, mmm
+
+struct InputPacket_dr0tol2_dack {
+  uint8_t nid;
+  uint8_t l2id;
+};
+
+struct InputPacket_dr1tol2_dack {
+  uint8_t nid;
+  uint8_t l2id;
+};
+
+struct OutputPacket_c0_drtol2i_dack {
+	uint8_t nid;
+  uint8_t l2id;
+};
+
+struct OutputPacket_c0_drtol2it_dack {
+	uint8_t nid;
+  uint8_t l2id;
+};
+
+struct OutputPacket_c0_drtol2d_0_dack {
+	uint8_t nid;
+  uint8_t l2id;
+};
+
+struct OutputPacket_c0_drtol2dt_0_dack {
+	uint8_t nid;
+  uint8_t l2id;
+};
+
+struct OutputPacket_c1_drtol2i_dack {
+	uint8_t nid;
+  uint8_t l2id;
+};
+
+struct OutputPacket_c1_drtol2it_dack {
+	uint8_t nid;
+  uint8_t l2id;
+};
+
+struct OutputPacket_c1_drtol2d_0_dack {
+	uint8_t nid;
+  uint8_t l2id;
+};
+
+struct OutputPacket_c1_drtol2dt_0_dack {
+	uint8_t nid;
+  uint8_t l2id;
+};
 double sc_time_stamp() {
   return 0;
 }
@@ -1310,6 +1533,7 @@ void try_send_packet_pfreq(Vnet_2core2dr_wp *top)
 	    out_list_d0_pfreq[0].push_front(out); 
 	    inp_list_c0_l2i_pfreq.pop_back();
     }
+    // THIS IS BUGGED< NOT SURE WHY
   /*} else if(top->c0_l2d_0todr_pfreq_valid && !top->c0_l2d_0todr_pfreq_retry) {
   	if (inp_list_c0_l2d_pfreq.empty()) {
       fprintf(stderr,"ERROR: Internal error, could not be empty c0l2d pfreqs\n");
@@ -1481,6 +1705,421 @@ void try_recv_packet_pfreq(Vnet_2core2dr_wp *top) {
 	}
 }
 
+std::list<InputPacket_dr0tol2_snack>  inp_list_dr0tol2_snack;
+std::list<InputPacket_dr1tol2_snack>  inp_list_dr1tol2_snack;
+std::list<OutputPacket_c0_drtol2i_snack>  out_list_c0_drtol2i_snack;
+std::list<OutputPacket_c0_drtol2it_snack>  out_list_c0_drtol2it_snack;
+std::list<OutputPacket_c0_drtol2d_0_snack>  out_list_c0_drtol2d_snack; 
+std::list<OutputPacket_c0_drtol2dt_0_snack>  out_list_c0_drtol2dt_snack;
+std::list<OutputPacket_c1_drtol2i_snack>  out_list_c1_drtol2i_snack;
+std::list<OutputPacket_c1_drtol2it_snack>  out_list_c1_drtol2it_snack;
+std::list<OutputPacket_c1_drtol2d_0_snack>  out_list_c1_drtol2d_snack; 
+std::list<OutputPacket_c1_drtol2dt_0_snack>  out_list_c1_drtol2dt_snack;
+
+std::list<InputPacket_dr0tol2_dack>  inp_list_dr0tol2_dack;
+std::list<InputPacket_dr1tol2_dack>  inp_list_dr1tol2_dack;
+std::list<OutputPacket_c0_drtol2i_dack>  out_list_c0_drtol2i_dack;
+std::list<OutputPacket_c0_drtol2it_dack>  out_list_c0_drtol2it_dack;
+std::list<OutputPacket_c0_drtol2d_0_dack>  out_list_c0_drtol2d_dack; 
+std::list<OutputPacket_c0_drtol2dt_0_dack>  out_list_c0_drtol2dt_dack;
+std::list<OutputPacket_c1_drtol2i_dack>  out_list_c1_drtol2i_dack;
+std::list<OutputPacket_c1_drtol2it_dack>  out_list_c1_drtol2it_dack;
+std::list<OutputPacket_c1_drtol2d_0_dack>  out_list_c1_drtol2d_dack; 
+std::list<OutputPacket_c1_drtol2dt_0_dack>  out_list_c1_drtol2dt_dack;
+
+void try_send_packet_dack(Vnet_2core2dr_wp *top)
+{
+  // dack
+
+  top->dr0tol2_dack_retry =0; // randomizing the retries not working for some reason...
+  top->dr1tol2_dack_retry =0; 
+
+  if (!top->dr0tol2_dack_retry) {
+    top->dr0tol2_dack_nid = rand();
+    if (inp_list_dr0tol2_dack.empty() || (rand() & 0x3)) { // Once every 4
+      top->dr0tol2_dack_valid = 0;
+    }else{
+      top->dr0tol2_dack_valid = 1;
+    }
+  }
+
+  if (!top->dr1tol2_dack_retry) {
+    top->dr1tol2_dack_nid = rand();
+    if (inp_list_dr1tol2_dack.empty() || (rand() & 0x3)) { // Once every 4
+      top->dr1tol2_dack_valid = 0;
+    }else{
+      top->dr1tol2_dack_valid = 1;
+    }
+  }
+
+  //dack d0
+  if (top->dr0tol2_dack_valid && !top->dr0tol2_dack_retry) {
+    if (inp_list_dr0tol2_dack.empty()) {
+      fprintf(stderr,"ERROR: Internal error, could not be empty c0l2i pfreqs\n");
+      error_found(top);
+    }
+
+
+    InputPacket_dr0tol2_dack inp = inp_list_dr0tol2_dack.back();
+
+  	top->dr0tol2_dack_nid = inp.nid;
+    top->dr0tol2_dack_l2id = inp.l2id;
+#ifdef DEBUG_TRACE
+    printf("@%lu nid: %u, l2id: %u\n",global_time, inp.nid, inp.l2id);
+#endif
+
+	  if (inp.nid == 0) 
+    {
+	    OutputPacket_c0_drtol2i_dack out;
+	    out.nid = inp.nid;
+	    out.l2id = inp.l2id;
+	    out_list_c0_drtol2i_dack.push_front(out); 
+	    inp_list_dr0tol2_dack.pop_back();
+    }
+    else if (inp.nid == 1)
+    {
+	   	OutputPacket_c0_drtol2it_dack out;
+	    out.nid = inp.nid;
+	    out.l2id = inp.l2id;
+	    out_list_c0_drtol2it_dack.push_front(out); 
+	    inp_list_dr0tol2_dack.pop_back();
+    }
+    else if (inp.nid == 2)
+    {
+	   	OutputPacket_c0_drtol2d_0_dack out;
+	    out.nid = inp.nid;
+	    out.l2id = inp.l2id;
+	    out_list_c0_drtol2d_dack.push_front(out); 
+	    inp_list_dr0tol2_dack.pop_back();
+    }
+    else if (inp.nid == 3)
+    {
+	   	OutputPacket_c0_drtol2dt_0_dack out;
+	    out.nid = inp.nid;
+	    out.l2id = inp.l2id;
+	    out_list_c0_drtol2dt_dack.push_front(out); 
+	    inp_list_dr0tol2_dack.pop_back();
+    } 
+    else if (inp.nid == 4) 
+    {
+	    OutputPacket_c1_drtol2i_dack out;
+	    out.nid = inp.nid;
+	    out.l2id = inp.l2id;
+	    out_list_c1_drtol2i_dack.push_front(out); 
+	    inp_list_dr0tol2_dack.pop_back();
+    }
+    else if (inp.nid == 5)
+    {
+	   	OutputPacket_c1_drtol2it_dack out;
+	    out.nid = inp.nid;
+	    out.l2id = inp.l2id;
+	    out_list_c1_drtol2it_dack.push_front(out); 
+	    inp_list_dr0tol2_dack.pop_back();
+    }
+    else if (inp.nid == 6)
+    {
+	   	OutputPacket_c1_drtol2d_0_dack out;
+	    out.nid = inp.nid;
+	    out.l2id = inp.l2id;
+	    out_list_c1_drtol2d_dack.push_front(out); 
+	    inp_list_dr0tol2_dack.pop_back();
+    }
+    else if (inp.nid == 7)
+    {
+	   	OutputPacket_c1_drtol2dt_0_dack out;
+	    out.nid = inp.nid;
+	    out.l2id = inp.l2id;
+	    out_list_c1_drtol2dt_dack.push_front(out); 
+	    inp_list_dr0tol2_dack.pop_back();
+    }
+  }
+
+    //dack d1
+  if (top->dr1tol2_dack_valid && !top->dr1tol2_dack_retry) {
+    if (inp_list_dr1tol2_dack.empty()) {
+      fprintf(stderr,"ERROR: Internal error, could not be empty c0l2i pfreqs\n");
+      error_found(top);
+    }
+
+
+    InputPacket_dr1tol2_dack inp = inp_list_dr1tol2_dack.back();
+
+  	top->dr1tol2_dack_nid = inp.nid;
+    top->dr1tol2_dack_l2id = inp.l2id;
+#ifdef DEBUG_TRACE
+    printf("@%lu l2itodr nid: %u, l2id: %u\n",global_time, inp.nid, inp.l2id);
+#endif
+
+	  if (inp.nid == 0) 
+    {
+	    OutputPacket_c0_drtol2i_dack out;
+	    out.nid = inp.nid;
+	    out.l2id = inp.l2id;
+	    out_list_c0_drtol2i_dack.push_front(out); 
+	    inp_list_dr1tol2_dack.pop_back();
+    }
+    else if (inp.nid == 1)
+    {
+	   	OutputPacket_c0_drtol2it_dack out;
+	    out.nid = inp.nid;
+	    out.l2id = inp.l2id;
+	    out_list_c0_drtol2it_dack.push_front(out); 
+	    inp_list_dr1tol2_dack.pop_back();
+    }
+    else if (inp.nid == 2)
+    {
+	   	OutputPacket_c0_drtol2d_0_dack out;
+	    out.nid = inp.nid;
+	    out.l2id = inp.l2id;
+	    out_list_c0_drtol2d_dack.push_front(out); 
+	    inp_list_dr1tol2_dack.pop_back();
+    }
+    else if (inp.nid == 3)
+    {
+	   	OutputPacket_c0_drtol2dt_0_dack out;
+	    out.nid = inp.nid;
+	    out.l2id = inp.l2id;
+	    out_list_c0_drtol2dt_dack.push_front(out); 
+	    inp_list_dr1tol2_dack.pop_back();
+    } 
+    else if (inp.nid == 4) 
+    {
+	    OutputPacket_c1_drtol2i_dack out;
+	    out.nid = inp.nid;
+	    out.l2id = inp.l2id;
+	    out_list_c1_drtol2i_dack.push_front(out); 
+	    inp_list_dr1tol2_dack.pop_back();
+    }
+    else if (inp.nid == 5)
+    {
+	   	OutputPacket_c1_drtol2it_dack out;
+	    out.nid = inp.nid;
+	    out.l2id = inp.l2id;
+	    out_list_c1_drtol2it_dack.push_front(out); 
+	    inp_list_dr1tol2_dack.pop_back();
+    }
+    else if (inp.nid == 6)
+    {
+	   	OutputPacket_c1_drtol2d_0_dack out;
+	    out.nid = inp.nid;
+	    out.l2id = inp.l2id;
+	    out_list_c1_drtol2d_dack.push_front(out); 
+	    inp_list_dr1tol2_dack.pop_back();
+    }
+    else if (inp.nid == 7)
+    {
+	   	OutputPacket_c1_drtol2dt_0_dack out;
+	    out.nid = inp.nid;
+	    out.l2id = inp.l2id;
+	    out_list_c1_drtol2dt_dack.push_front(out); 
+	    inp_list_dr1tol2_dack.pop_back();
+    }
+  }
+}
+
+void try_recv_packet_dack(Vnet_2core2dr_wp *top) {
+	if (top->c0_drtol2i_dack_retry && out_list_c0_drtol2i_dack.empty()) {
+	    printf("ERROR: unexpected result %d, retry: %d \n",top->c0_drtol2i_dack_l2id,top->c0_drtol2i_dack_retry); // I am just choosing paddr because it should be pretty unique
+	    error_found(top);
+	    return;
+	}
+
+	if (top->c0_drtol2it_dack_retry && out_list_c0_drtol2it_dack.empty()) {
+	    printf("ERROR: unexpected result %d, retry: %d \n",top->c0_drtol2it_dack_l2id,top->c0_drtol2it_dack_retry); // I am just choosing paddr because it should be pretty unique
+	    error_found(top);
+	    return;
+	}
+
+	if (top->c0_drtol2d_0_dack_retry && out_list_c0_drtol2d_dack.empty()) {
+	    printf("ERROR: unexpected result %d, retry: %d \n",top->c0_drtol2d_0_dack_l2id,top->c0_drtol2d_0_dack_retry); // I am just choosing paddr because it should be pretty unique
+	    error_found(top);
+	    return;
+	}
+
+	if (top->c0_drtol2dt_0_dack_retry && out_list_c0_drtol2dt_dack.empty()) {
+	    printf("ERROR: unexpected result %d, retry: %d \n",top->c0_drtol2dt_0_dack_l2id,top->c0_drtol2dt_0_dack_retry); // I am just choosing paddr because it should be pretty unique
+	    error_found(top);
+	    return;
+	}
+
+	if (top->c1_drtol2i_dack_retry && out_list_c1_drtol2i_dack.empty()) {
+	    printf("ERROR: unexpected result %d, retry: %d \n",top->c1_drtol2i_dack_l2id,top->c1_drtol2i_dack_retry); // I am just choosing paddr because it should be pretty unique
+	    error_found(top);
+	    return;
+	}
+
+	if (top->c1_drtol2it_dack_retry && out_list_c1_drtol2it_dack.empty()) {
+	    printf("ERROR: unexpected result %d, retry: %d \n",top->c1_drtol2it_dack_l2id,top->c1_drtol2it_dack_retry); // I am just choosing paddr because it should be pretty unique
+	    error_found(top);
+	    return;
+	}
+
+	if (top->c1_drtol2d_0_dack_retry && out_list_c1_drtol2d_dack.empty()) {
+	    printf("ERROR: unexpected result %d, retry: %d \n",top->c1_drtol2d_0_dack_l2id,top->c1_drtol2d_0_dack_retry); // I am just choosing paddr because it should be pretty unique
+	    error_found(top);
+	    return;
+	}
+
+	if (top->c1_drtol2dt_0_dack_retry && out_list_c1_drtol2dt_dack.empty()) {
+	    printf("ERROR: unexpected result %d, retry: %d \n",top->c1_drtol2dt_0_dack_l2id,top->c1_drtol2dt_0_dack_retry); // I am just choosing paddr because it should be pretty unique
+	    error_found(top);
+	    return;
+	}
+
+	//l2i dacks
+  if (top->c0_drtol2i_dack_retry)
+    return;
+
+  if (!top->c0_drtol2i_dack_valid)
+    return;
+
+  if (out_list_c0_drtol2i_dack.empty())
+    return;
+
+#ifdef DEBUG_TRACE
+    printf("@%lld sum=%d\n",global_time, top->c0_drtol2i_dack_l2id);
+#endif
+  OutputPacket_c0_drtol2i_dack o1 = out_list_c0_drtol2i_dack.back();
+  if (top->c0_drtol2i_dack_l2id != o1.l2id) {
+    printf("ERROR: expected %d but l2id is %d\n",o1.l2id,top->c0_drtol2i_dack_l2id);
+    error_found(top);
+  }
+
+	//l2it dacks
+  if (top->c0_drtol2it_dack_retry)
+    return;
+
+  if (!top->c0_drtol2it_dack_valid)
+    return;
+
+  if (out_list_c0_drtol2it_dack.empty())
+    return;
+
+#ifdef DEBUG_TRACE
+    printf("@%lld sum=%d\n",global_time, top->c0_drtol2it_dack_l2id);
+#endif
+  OutputPacket_c0_drtol2it_dack o2 = out_list_c0_drtol2it_dack.back();
+  if (top->c0_drtol2it_dack_l2id != o2.l2id) {
+    printf("ERROR: expected %d but l2id is %d\n",o2.l2id,top->c0_drtol2it_dack_l2id);
+    error_found(top);
+  }
+
+  //l2d dacks
+  if (top->c0_drtol2d_0_dack_retry)
+    return;
+
+  if (!top->c0_drtol2d_0_dack_valid)
+    return;
+
+  if (out_list_c0_drtol2d_dack.empty())
+    return;
+
+#ifdef DEBUG_TRACE
+    printf("@%lld sum=%d\n",global_time, top->c0_drtol2d_0_dack_l2id);
+#endif
+  OutputPacket_c0_drtol2d_0_dack o3 = out_list_c0_drtol2d_dack.back();
+  if (top->c0_drtol2d_0_dack_l2id != o3.l2id) {
+    printf("ERROR: expected %d but l2id is %d\n",o3.l2id,top->c0_drtol2d_0_dack_l2id);
+    error_found(top);
+  }
+
+  //l2d dacks
+  if (top->c0_drtol2dt_0_dack_retry)
+    return;
+
+  if (!top->c0_drtol2dt_0_dack_valid)
+    return;
+
+  if (out_list_c0_drtol2dt_dack.empty())
+    return;
+
+#ifdef DEBUG_TRACE
+    printf("@%lld sum=%d\n",global_time, top->c0_drtol2dt_0_dack_l2id);
+#endif
+  OutputPacket_c0_drtol2dt_0_dack o4 = out_list_c0_drtol2dt_dack.back();
+  if (top->c0_drtol2dt_0_dack_l2id != o4.l2id) {
+    printf("ERROR: expected %d but l2id is %d\n",o4.l2id,top->c0_drtol2dt_0_dack_l2id);
+    error_found(top);
+  }
+
+  	//l2i dacks
+  if (top->c1_drtol2i_dack_retry)
+    return;
+
+  if (!top->c1_drtol2i_dack_valid)
+    return;
+
+  if (out_list_c1_drtol2i_dack.empty())
+    return;
+
+#ifdef DEBUG_TRACE
+    printf("@%lld sum=%d\n",global_time, top->c1_drtol2i_dack_l2id);
+#endif
+  OutputPacket_c1_drtol2i_dack o5 = out_list_c1_drtol2i_dack.back();
+  if (top->c1_drtol2i_dack_l2id != o5.l2id) {
+    printf("ERROR: expected %d but l2id is %d\n",o5.l2id,top->c1_drtol2i_dack_l2id);
+    error_found(top);
+  }
+
+	//l2it dacks
+  if (top->c1_drtol2it_dack_retry)
+    return;
+
+  if (!top->c1_drtol2it_dack_valid)
+    return;
+
+  if (out_list_c1_drtol2it_dack.empty())
+    return;
+
+#ifdef DEBUG_TRACE
+    printf("@%lld sum=%d\n",global_time, top->c1_drtol2it_dack_l2id);
+#endif
+  OutputPacket_c1_drtol2it_dack o6 = out_list_c1_drtol2it_dack.back();
+  if (top->c1_drtol2it_dack_l2id != o6.l2id) {
+    printf("ERROR: expected %d but l2id is %d\n",o6.l2id,top->c1_drtol2it_dack_l2id);
+    error_found(top);
+  }
+
+  //l2d dacks
+  if (top->c1_drtol2d_0_dack_retry)
+    return;
+
+  if (!top->c1_drtol2d_0_dack_valid)
+    return;
+
+  if (out_list_c1_drtol2d_dack.empty())
+    return;
+
+#ifdef DEBUG_TRACE
+    printf("@%lld sum=%d\n",global_time, top->c1_drtol2d_0_dack_l2id);
+#endif
+  OutputPacket_c1_drtol2d_0_dack o7 = out_list_c1_drtol2d_dack.back();
+  if (top->c1_drtol2d_0_dack_l2id != o7.l2id) {
+    printf("ERROR: expected %d but l2id is %d\n",o7.l2id,top->c1_drtol2d_0_dack_l2id);
+    error_found(top);
+  }
+
+  //l2d dacks
+  if (top->c1_drtol2dt_0_dack_retry)
+    return;
+
+  if (!top->c1_drtol2dt_0_dack_valid)
+    return;
+
+  if (out_list_c1_drtol2dt_dack.empty())
+    return;
+
+#ifdef DEBUG_TRACE
+    printf("@%lld sum=%d\n",global_time, top->c1_drtol2dt_0_dack_l2id);
+#endif
+  OutputPacket_c1_drtol2dt_0_dack o8 = out_list_c1_drtol2dt_dack.back();
+  if (top->c1_drtol2dt_0_dack_l2id != o8.l2id) {
+    printf("ERROR: expected %d but l2id is %d\n",o8.l2id,top->c1_drtol2dt_0_dack_l2id);
+    error_found(top);
+  }
+  ntests++;
+}
+
 int main(int argc, char **argv, char **env) {
   int i;
   int clk;
@@ -1555,6 +2194,20 @@ int main(int argc, char **argv, char **env) {
 	    out_list_d1_pfreq[i].clear();
     }
 
+    inp_list_dr0tol2_dack.clear();
+    inp_list_dr1tol2_dack.clear();
+    out_list_c0_drtol2i_dack.clear();
+    out_list_c0_drtol2it_dack.clear();
+    out_list_c0_drtol2d_dack.clear();
+    out_list_c0_drtol2dt_dack.clear();
+    out_list_c1_drtol2i_dack.clear();
+    out_list_c1_drtol2it_dack.clear();
+    out_list_c1_drtol2d_dack.clear();
+    out_list_c1_drtol2dt_dack.clear();
+
+    inp_list_dr0tol2_snack.clear();
+    inp_list_dr1tol2_snack.clear();
+
     top->c0_l2itodr_req_valid = 1;
     top->c0_l2ittodr_req_valid = 1;
     top->c0_l2d_0todr_req_valid = 1;
@@ -1577,6 +2230,12 @@ int main(int argc, char **argv, char **env) {
     top->c0_l2d_0todr_pfreq_valid = 1;
     top->c1_l2itodr_pfreq_valid = 1;
     top->c1_l2d_0todr_pfreq_valid = 1;
+
+    top->dr0tol2_dack_valid = 1;
+    top->dr1tol2_dack_valid = 1;
+
+    top->dr0tol2_snack_valid = 1;
+    top->dr1tol2_snack_valid = 1;
 
     int ncycles= rand() & 0xFF;
     ncycles++; // At least one cycle reset
@@ -1758,10 +2417,12 @@ int main(int argc, char **argv, char **env) {
       try_send_packet_req(top);
       try_send_packet_disp(top);
       try_send_packet_pfreq(top);
+      try_send_packet_dack(top);
     	advance_half_clock(top);
     	try_recv_packet_req(top);
     	try_recv_packet_disp(top);
     	try_recv_packet_pfreq(top);
+    	try_recv_packet_dack(top);
       advance_half_clock(top);
 
       if (((rand() & 0x3)==0) && inp_list_c0_l2i_req.size() < 3) {
@@ -1913,6 +2574,19 @@ int main(int argc, char **argv, char **env) {
         inp_list_c0_l2d_pfreq.push_front(c0l2d2dr_pfreq);
         inp_list_c1_l2i_pfreq.push_front(c1l2i2dr_pfreq);
         inp_list_c1_l2d_pfreq.push_front(c1l2d2dr_pfreq);
+      }
+      
+      if (((rand() & 0x3)==0) && inp_list_dr0tol2_dack.size() < 3) {
+      	InputPacket_dr0tol2_dack dr0tol2_dack;
+        InputPacket_dr1tol2_dack dr1tol2_dack;
+
+        dr0tol2_dack.nid = rand() & 0x1f;
+        dr0tol2_dack.l2id = rand() & 0x1f;
+        dr0tol2_dack.nid = rand() & 0x1f;
+        dr0tol2_dack.l2id = rand() & 0x1f;
+
+        inp_list_dr0tol2_dack.push_front(dr0tol2_dack);
+        inp_list_dr1tol2_dack.push_front(dr1tol2_dack);
       }
       advance_clock(top,1);
     }
