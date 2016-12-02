@@ -252,6 +252,9 @@ module net_2core2dr(
   /* verilator lint_on UNDRIVEN */
   );
 
+  /* verilator lint_off UNUSED */
+  /* verilator lint_off UNDRIVEN */
+  /* verilator lint_off IMPLICIT */
  // Input reqs to directory
   I_l2todr_req_type   l2todr0_req_next;
   I_l2todr_req_type   l2todr1_req_next;
@@ -1454,4 +1457,7 @@ module net_2core2dr(
     .qRetry   (c1_drtol2dt_0_dack_retry)
   );
 
+  /* verilator lint_on UNUSED */
+  /* verilator lint_on UNDRIVEN */
+  /* verilator lint_on IMPLICIT */
 endmodule
