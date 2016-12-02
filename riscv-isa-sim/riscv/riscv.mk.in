@@ -7,9 +7,9 @@ riscv_subproject_deps = \
 riscv_install_prog_srcs = \
 
 riscv_hdrs = \
+	htif.h \
 	common.h \
 	decode.h \
-	devices.h \
 	disasm.h \
 	mmu.h \
 	processor.h \
@@ -18,22 +18,21 @@ riscv_hdrs = \
 	encoding.h \
 	cachesim.h \
 	memtracer.h \
-	tracer.h \
 	extension.h \
 	rocc.h \
 	insn_template.h \
 	mulhi.h \
-	gdbserver.h \
-	debug_module.h \
-        LiveCache.h \
-        LiveCacheCore.h \
+	LiveCache.h \
+	LiveCacheCore.h \
+	Snippets.h \
         nanassert.h \
-        Snippets.h \
+	estl.h \
 
 riscv_precompiled_hdrs = \
 	insn_template.h \
 
 riscv_srcs = \
+	htif.cc \
 	processor.cc \
 	execute.cc \
 	sim.cc \
@@ -47,14 +46,10 @@ riscv_srcs = \
 	rocc.cc \
 	regnames.cc \
 	devices.cc \
-	rom.cc \
-	rtc.cc \
-	gdbserver.cc \
-	debug_module.cc \
         LiveCache.cc \
         LiveCacheCore.cc \
-        nanassert.cc \
         Snippets.cc \
+        nanassert.cc \
 	$(riscv_gen_srcs) \
 
 riscv_test_srcs =
@@ -140,9 +135,6 @@ riscv_insn_list = \
 	divu \
 	divuw \
 	divw \
-	dret \
-	ebreak \
-	ecall \
 	fadd_d \
 	fadd_s \
 	fclass_d \
@@ -207,6 +199,7 @@ riscv_insn_list = \
 	fsub_d \
 	fsub_s \
 	fsw \
+	hrts \
 	jal \
 	jalr \
 	lb \
@@ -219,7 +212,8 @@ riscv_insn_list = \
 	lui \
 	lw \
 	lwu \
-	mret \
+	mrth \
+	mrts \
 	mul \
 	mulh \
 	mulhsu \
@@ -232,6 +226,8 @@ riscv_insn_list = \
 	remuw \
 	remw \
 	sb \
+	sbreak \
+	scall \
 	sc_d \
 	sc_w \
 	sd \

@@ -1,2 +1,4 @@
 require_extension('A');
-WRITE_RD(sext32(MMU.amo_uint32(RS1, [&](int32_t lhs) { return std::min(lhs, int32_t(RS2)); })));
+int32_t v = MMU.load_int32(RS1);
+MMU.store_uint32(RS1, std::min(int32_t(RS2),v));
+WRITE_RD(v);

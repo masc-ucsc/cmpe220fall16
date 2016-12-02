@@ -3,7 +3,7 @@
 
 
 #include "errorcode.h"
-#include "instruction.h"
+#include "operation.h"
 
 using namespace std;
 

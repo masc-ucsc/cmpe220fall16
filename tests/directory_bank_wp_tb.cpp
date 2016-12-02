@@ -723,7 +723,7 @@ void try_recv_packet_snack(Vdirectory_bank_wp *top) {
   //The ack list only maintains acks and not snoops. If the DRID is not 0 then this is a snoop and we can ignore
   //the error condition where there are no items in our list.
   if (top->drtol2_snack_valid && out_list_ack.empty() && out_list_ack_disp.empty() && out_list_pfack.empty() && top->drtol2_snack_drid == 0) {
-    printf("ERROR: unexpected drtol2 snack paddr: %lu, nid: %u, l2id: %u, drid: %u, directory_id: %u, snack_cmd: %u, data:%lu,%lu,%lu,%lu,%lu,%lu,%lu,%lu\n"
+    printf("ERROR: unexpected drtol2 snack paddr: %lu, nid: %u, l2id: %u, drid: %u, directory_id: %u, snack_cmd: %u, data:%lu,%lu,%lu,%lu,%lu,%lu,%lu,%lu, hpaddr: %u, bpaddr: %u\n"
                                                                              ,top->drtol2_snack_paddr
                                                                              ,top->drtol2_snack_nid
                                                                              ,top->drtol2_snack_l2id
@@ -737,7 +737,9 @@ void try_recv_packet_snack(Vdirectory_bank_wp *top) {
                                                                              ,top->drtol2_snack_line_3
                                                                              ,top->drtol2_snack_line_2
                                                                              ,top->drtol2_snack_line_1
-                                                                             ,top->drtol2_snack_line_0); //change
+                                                                             ,top->drtol2_snack_line_0
+                                                                             ,top->drtol2_snack_hpaddr_hash
+                                                                             ,top->drtol2_snack_hpaddr_base); 
     error_found(top);
     return;
   }
@@ -756,7 +758,7 @@ void try_recv_packet_snack(Vdirectory_bank_wp *top) {
   
 
 #ifdef DEBUG_TRACE
-  printf("@%lu drtol2 snack paddr: %lu, nid: %u, l2id: %u, drid: %u, directory_id: %u, snack_cmd: %u, data:%lu,%lu,%lu,%lu,%lu,%lu,%lu,%lu\n",global_time 
+  printf("@%lu drtol2 snack paddr: %lu, nid: %u, l2id: %u, drid: %u, directory_id: %u, snack_cmd: %u, data:%lu,%lu,%lu,%lu,%lu,%lu,%lu,%lu, hpaddr: %u, bpaddr: %u\n",global_time 
                                                                              ,top->drtol2_snack_paddr
                                                                              ,top->drtol2_snack_nid
                                                                              ,top->drtol2_snack_l2id
@@ -770,7 +772,9 @@ void try_recv_packet_snack(Vdirectory_bank_wp *top) {
                                                                              ,top->drtol2_snack_line_3
                                                                              ,top->drtol2_snack_line_2
                                                                              ,top->drtol2_snack_line_1
-                                                                             ,top->drtol2_snack_line_0); //change
+                                                                             ,top->drtol2_snack_line_0
+                                                                             ,top->drtol2_snack_hpaddr_hash
+                                                                             ,top->drtol2_snack_hpaddr_base); //change
 #endif
 
   if(top->drtol2_snack_drid != 0){

@@ -2,9 +2,14 @@
 
 #include "cachesim.h"
 #include "common.h"
+#include "LiveCache.h"
 #include <cstdlib>
 #include <iostream>
 #include <iomanip>
+
+LiveCache * live_warmup_cache;
+uint64_t trace_addr;
+uint64_t trace_bytes;
 
 cache_sim_t::cache_sim_t(size_t _sets, size_t _ways, size_t _linesz, const char* _name)
  : sets(_sets), ways(_ways), linesz(_linesz), name(_name)
@@ -39,6 +44,7 @@ cache_sim_t* cache_sim_t::construct(const char* config, const char* name)
 
 void cache_sim_t::init()
 {
+  live_warmup_cache = new LiveCache();
   if(sets == 0 || (sets & (sets-1)))
     help();
   if(linesz < 8 || (linesz & (linesz-1)))
@@ -123,6 +129,18 @@ uint64_t cache_sim_t::victimize(uint64_t addr)
 
 void cache_sim_t::access(uint64_t addr, size_t bytes, bool store)
 {
+  trace_addr = addr;
+  trace_bytes = bytes;
+
+  if(store == 1){
+     live_warmup_cache->read(addr); 
+     live_warmup_cache->tracefile_generate();
+  }else{
+     live_warmup_cache->write(addr);
+     live_warmup_cache->tracefile_generate();
+  }
+ //#endif
+  
   store ? write_accesses++ : read_accesses++;
   (store ? bytes_written : bytes_read) += bytes;
 

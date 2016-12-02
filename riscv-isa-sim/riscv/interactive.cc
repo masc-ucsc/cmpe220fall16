@@ -3,7 +3,7 @@
 #include "decode.h"
 #include "disasm.h"
 #include "sim.h"
-#include "mmu.h"
+#include "htif.h"
 #include <sys/mman.h>
 #include <termios.h>
 #include <map>
@@ -76,7 +76,7 @@ void sim_t::interactive()
   funcs["help"] = &sim_t::interactive_help;
   funcs["h"] = funcs["help"];
 
-  while (!done())
+  while (!htif->done())
   {
     std::cerr << ": " << std::flush;
     std::string s = readline(2);
@@ -99,8 +99,6 @@ void sim_t::interactive()
     {
       if(funcs.count(cmd))
         (this->*funcs[cmd])(cmd, args);
-      else
-        fprintf(stderr, "Unknown command %s\n", cmd.c_str());
     }
     catch(trap_t t) {}
   }
@@ -149,7 +147,7 @@ void sim_t::interactive_run(const std::string& cmd, const std::vector<std::strin
   size_t steps = args.size() ? atoll(args[0].c_str()) : -1;
   ctrlc_pressed = false;
   set_procs_debug(noisy);
-  for (size_t i = 0; i < steps && !ctrlc_pressed && !done(); i++)
+  for (size_t i = 0; i < steps && !ctrlc_pressed && !htif->done(); i++)
     step(1);
 }
 

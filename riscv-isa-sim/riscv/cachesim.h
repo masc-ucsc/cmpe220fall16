@@ -9,6 +9,8 @@
 #include <map>
 #include <cstdint>
 
+extern std::string trace_cpu_command;
+
 class lfsr_t
 {
  public:

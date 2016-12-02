@@ -177,17 +177,14 @@ private:
 #define set_field(reg, mask, val) (((reg) & ~(decltype(reg))(mask)) | (((decltype(reg))(val) * ((mask) & ~((mask) << 1))) & (decltype(reg))(mask)))
 
 #define require(x) if (unlikely(!(x))) throw trap_illegal_instruction()
-#define require_privilege(p) require(STATE.prv >= (p))
+#define require_privilege(p) require(get_field(STATE.mstatus, MSTATUS_PRV) >= (p))
 #define require_rv64 require(xlen == 64)
 #define require_rv32 require(xlen == 32)
 #define require_extension(s) require(p->supports_extension(s))
 #define require_fp require((STATE.mstatus & MSTATUS_FS) != 0)
 #define require_accelerator require((STATE.mstatus & MSTATUS_XS) != 0)
 
-#define set_fp_exceptions ({ if (softfloat_exceptionFlags) { \
-                               dirty_fp_state; \
-                               STATE.fflags |= softfloat_exceptionFlags; \
-                             } \
+#define set_fp_exceptions ({ STATE.fflags |= softfloat_exceptionFlags; \
                              softfloat_exceptionFlags = 0; })
 
 #define sext32(x) ((sreg_t)(int32_t)(x))
@@ -201,41 +198,20 @@ private:
        npc = sext_xlen(x); \
      } while(0)
 
-#define set_pc_and_serialize(x) \
-  do { set_pc(x); /* check alignment */ \
-       npc = PC_SERIALIZE_AFTER; \
-       STATE.pc = (x); \
-     } while(0)
-
-/* Sentinel PC values to serialize simulator pipeline */
-#define PC_SERIALIZE_BEFORE 3
-#define PC_SERIALIZE_AFTER 5
-#define invalid_pc(pc) ((pc) & 1)
+#define PC_SERIALIZE 3 /* sentinel value indicating simulator pipeline flush */
 
 /* Convenience wrappers to simplify softfloat code sequences */
 #define f32(x) ((float32_t){(uint32_t)x})
 #define f64(x) ((float64_t){(uint64_t)x})
 
 #define validate_csr(which, write) ({ \
-  if (!STATE.serialized) return PC_SERIALIZE_BEFORE; \
+  if (!STATE.serialized) return PC_SERIALIZE; \
   STATE.serialized = false; \
+  unsigned my_priv = get_field(STATE.mstatus, MSTATUS_PRV); \
   unsigned csr_priv = get_field((which), 0x300); \
   unsigned csr_read_only = get_field((which), 0xC00) == 3; \
-  if (((write) && csr_read_only) || STATE.prv < csr_priv) \
+  if (((write) && csr_read_only) || my_priv < csr_priv) \
     throw trap_illegal_instruction(); \
   (which); })
-
-#define DEBUG_START             0x100
-#define DEBUG_ROM_START         0x800
-#define DEBUG_ROM_RESUME        (DEBUG_ROM_START + 4)
-#define DEBUG_ROM_EXCEPTION     (DEBUG_ROM_START + 8)
-#define DEBUG_ROM_END           (DEBUG_ROM_START + debug_rom_raw_len)
-#define DEBUG_RAM_START         0x400
-#define DEBUG_RAM_SIZE          64
-#define DEBUG_RAM_END           (DEBUG_RAM_START + DEBUG_RAM_SIZE)
-#define DEBUG_END               0xfff
-#define DEBUG_CLEARDEBINT       0x100
-#define DEBUG_SETHALTNOT        0x10c
-#define DEBUG_SIZE              (DEBUG_END - DEBUG_START + 1)
 
 #endif

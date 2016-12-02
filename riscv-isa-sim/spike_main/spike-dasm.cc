@@ -17,17 +17,17 @@ using namespace std;
 int main(int argc, char** argv)
 {
   string s;
-  const char* isa = DEFAULT_ISA;
+  disassembler_t d;
 
   std::function<extension_t*()> extension;
   option_parser_t parser;
   parser.option(0, "extension", 1, [&](const char* s){extension = find_extension(s);});
-  parser.option(0, "isa", 1, [&](const char* s){isa = s;});
   parser.parse(argv);
 
-  processor_t p(isa, 0, 0);
-  if (extension)
-    p.register_extension(extension());
+  if (extension) {
+    for (auto disasm_insn : extension()->get_disasms())
+      d.add_insn(disasm_insn);
+  }
 
   while (getline(cin, s))
   {
@@ -44,7 +44,7 @@ int main(int argc, char** argv)
       if (nbits < 64)
         bits = bits << (64 - nbits) >> (64 - nbits);
 
-      string dis = p.get_disassembler()->disassemble(bits);
+      string dis = d.disassemble(bits);
       s = s.substr(0, start) + dis + s.substr(end+1);
       start += dis.length();
     }
