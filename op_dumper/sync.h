@@ -2,7 +2,7 @@
 #define SYNC_H_INCLUDED
 
 #include "errorcode.h"
-#include "instruction.h"
+#include "operation.h"
 
 /********************************
 *   Typedef
@@ -48,13 +48,13 @@ private:
     memsyncCnt_t        len;
 
     memsyncDataSize_t   step;
-    opType_t            opType;
+    opCode_t            opType;
 
     memsyncVal_t        data;
 
     // Functions
     memsyncDataSize_t   dataSize(void* value);
-    opType_t            opDataType(memsyncType_t syncType, memsyncDataSize_t dsize);
+    opCode_t            opDataType(memsyncType_t syncType, memsyncDataSize_t dsize);
 
 public:
     // API for getting instruction

@@ -1,6 +1,6 @@
 #include "sync.h"
-#include "instruction.h"
 #include "dumper.h"
+#include "operation.h"
 
 
 
@@ -78,7 +78,7 @@ Instruction memsync::getNext()
         // Fill info into ins
         ins.setAddr(this->destAddress);
         ins.setDelay(SYNC_DEFAULT);     // NOTE: do nothing
-        ins.setOpType(this->opType);
+        ins.setOpCode(this->opType);
         ins.setPc(this->pc);            // FIXME: where to get PC?
         ins.setPid(SYNC_DEFAULT);       // NOTE: do nothing
         ins.setVal(this->data);
@@ -93,7 +93,7 @@ Instruction memsync::getNext()
             // Even ops, LOAD
             ins.setAddr(this->srcAddress);
             ins.setDelay(SYNC_DEFAULT);     // NOTE: do nothing
-            ins.setOpType(OP_LBU);          // FIXME: fixed as LBU
+            ins.setOpCode(OP_LBU);          // FIXME: fixed as LBU
             ins.setPc(this->pc);            // FIXME: where to get PC?
             ins.setPid(SYNC_DEFAULT);       // NOTE: do nothing
             ins.setVal(SYNC_DEFAULT);       // NOTE: no data needed
@@ -104,7 +104,7 @@ Instruction memsync::getNext()
             // Odd ops, STORE ADDRESS
             ins.setAddr(this->destAddress);
             ins.setDelay(SYNC_DEFAULT);     // NOTE: do nothing
-            ins.setOpType(OP_SAB);          // FIXME: fixed as SAB
+            ins.setOpCode(OP_SAB);          // FIXME: fixed as SAB
             ins.setPc(this->pc);            // FIXME: where to get PC?
             ins.setPid(SYNC_DEFAULT);       // NOTE: do nothing
             ins.setVal(SYNC_DEFAULT);       // NOTE: no data needed
@@ -164,7 +164,7 @@ memsyncDataSize_t memsync::dataSize(void* value)
 *
 * @return   none
 */
-opType_t memsync::opDataType(memsyncType_t syncType, memsyncDataSize_t dsize)
+opCode_t memsync::opDataType(memsyncType_t syncType, memsyncDataSize_t dsize)
 {
     if(syncType == SYNC_MEMSET){
         switch(dsize){
