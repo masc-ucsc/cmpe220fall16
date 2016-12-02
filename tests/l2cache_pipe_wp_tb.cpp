@@ -9,7 +9,7 @@
 
 #define DEBUG_TRACE 1
 #define L2_128KB
-#define DEBUG_L2
+//#define DEBUG_L2
 
 //#define PASS_THROUGH
 
@@ -19,6 +19,37 @@ VerilatedVcdC* tfp = 0;
     #define MEM_SIZE_OF_SETS (2 << 7) // calculate num of total sets
 #endif
 #define NUM_WAYS 16
+
+class L1id {
+    public:
+        uint8_t l1id;
+        bool    in_use;
+};
+
+class L1id_pool {
+    public:
+        L1id * l1ids;
+        L1id_pool () {
+            l1ids = new L1id [17];
+            for (int i=1; i<=15; i++) {
+                l1ids[i].l1id = i;
+                l1ids[i].in_use = 0;
+            }
+        }
+    uint8_t get_l1id () {
+        for (int i=1; i<=15; i++) {
+                if (l1ids[i].in_use == 0) {
+                    l1ids[i].in_use = 1;
+                    return (l1ids[i].l1id);
+                }
+                return (255); // no l1id available
+            }
+    }
+
+    void put_l1id (uint8_t l1id) {
+        l1ids[l1id].in_use = 0;
+    }
+};
 
 // At each mem addr, a mem_element is stored
 class MemElement {
@@ -243,6 +274,7 @@ void sim_finish(bool pass) {
 
 // Define stimulus struct
 struct L1toL2ReqPacket { // input
+    bool valid;
     uint8_t l1id;
     uint8_t cmd;
     uint16_t pcsign;
@@ -359,7 +391,10 @@ struct L2toDrPfreqPacket {
 
 //
 
-std::list<L1toL2ReqPacket> l1tol2_req_list;
+//std::list<L1toL2ReqPacket> l1tol2_req_list;
+L1id_pool   l1id_pool;
+L1toL2ReqPacket l1tol2_req_q[16];
+L2tlbtoL2FwdPacket  l2tlbtol2_fwd_q[16];
 std::list<L2toDrReqPacket> l2todr_req_list;
 
 std::list<L2toL1SnackPacket> l2tol1_ack_only_list;
@@ -406,27 +441,38 @@ void try_send_l1tol2_req_packet (Vl2cache_pipe_wp *top) {
 #ifdef NO_RETRY
   top->l2todr_req_retry = 0;
 #endif
-    if ( !top-> l1tol2_req_retry ) {
+  L1toL2ReqPacket l1tol2_reqp;
+        bool empty = 1;
+        int index;
+        for (int i=1; i<=15; i++) {
+            if (l1tol2_req_q[i].valid > 0) {
+                l1tol2_reqp = l1tol2_req_q[i];
+                empty = 0;
+                index = i;
+                break;
+            }
+        }
+    if ( (!top-> l1tol2_req_retry) && (!top->l1tol2_req_valid) ) {
         top->l1tol2_req_l1id = rand(); //TODO: l1id should be unique at a time
         top->l1tol2_req_cmd = rand();
         top->l1tol2_req_pcsign = rand();
         top->l1tol2_req_ppaddr = rand();
         top->l1tol2_req_poffset = rand();
-        if (l1tol2_req_list.empty() || (rand() & 0x3==0)) { // Once every 4
+        printf("haha\n");
+        if (empty || (rand() & 0x3==0)) { // Once every 4
           top->l1tol2_req_valid = 0;
         }else{
           top->l1tol2_req_valid = 1;
         }
     }
-    
+   
     // Drive signals
     if (top->l1tol2_req_valid && !top->l1tol2_req_retry){
-        if (l1tol2_req_list.empty()) {
+        if (empty) {
 #ifdef DEBUG_PRINT
-            fprintf(stderr,"ERROR: Internal error, could not be empty l1tol2_req_list\n");
+            fprintf(stderr,"ERROR: Internal error, could not be empty l1tol2_req_q\n");
 #endif
         }
-        L1toL2ReqPacket l1tol2_reqp = l1tol2_req_list.back();
         count_l1tol2_req++;
         top->l1tol2_req_l1id = l1tol2_reqp.l1id;
         top->l1tol2_req_cmd = l1tol2_reqp.cmd;
@@ -477,7 +523,7 @@ void try_send_l1tol2_req_packet (Vl2cache_pipe_wp *top) {
     #endif
 #endif // of L2_COMPLETE
         }
-        l1tol2_req_list.pop_back();
+        l1tol2_req_q[index].valid = 0;
     }
 }
 
@@ -1152,32 +1198,54 @@ int main(int argc, char **argv, char **env) {
 
   advance_clock(top,1);
 
+  // ini
+  for (int i=0; i<=15 ; i++) {
+    l1tol2_req_q[i].l1id = 0;
+    }
+
 #if 1
   for(int i =0;i<6000;i++) {
     try_send_l1tol2_req_packet(top);
-    try_send_drtol2_snack_packet(top);
+    //try_send_drtol2_snack_packet(top);
     //try_send_l1tol2_snoop_ack_packet(top);
     //try_send_l2tlbtol2_fwd_packet(top);
     //try_send_l1tol2_disp_packet(top);
     //try_send_drtol2_dack_packet(top);
     advance_half_clock(top);
-    try_receive_l2todr_req_packet(top);
-    try_receive_l2tol1_snack_packet(top);
-    try_receive_l2todr_snoop_ack_packet(top);
-    try_receive_l2todr_pfreq_packet(top);
-    try_receive_l2todr_disp_packet(top);
-    try_receive_l2tol1_dack_packet(top);
+    //try_receive_l2todr_req_packet(top);
+    //try_receive_l2tol1_snack_packet(top);
+    //try_receive_l2todr_snoop_ack_packet(top);
+    //try_receive_l2todr_pfreq_packet(top);
+    //try_receive_l2todr_disp_packet(top);
+    //try_receive_l2tol1_dack_packet(top);
     advance_half_clock(top);
 
-    if (((rand() & 0x3)==0) && l1tol2_req_list.size() < 3 ) {
-      //L1toL2ReqPacket l1tol2_reqp = L1toL2ReqPacket();
-      L1toL2ReqPacket l1tol2_reqp;
-      l1tol2_reqp.l1id = rand() & 0x1F;
-      l1tol2_reqp.cmd = rand() & 0x7;
-      l1tol2_reqp.pcsign = rand() & 0x1FFF;
-      l1tol2_reqp.ppaddr = rand() & 0x7;
-      l1tol2_reqp.poffset = rand() & 0xFFF;
-      l1tol2_req_list.push_front(l1tol2_reqp);
+    if ((rand() & 0x3)==0) {
+        uint8_t common_l1id = l1id_pool.get_l1id();
+        if (common_l1id != 255) { // if 255 run out of l1id, don't generate, don't send
+            uint64_t common_paddr = rand() & 0x3FFFFFFFFFFFF;
+
+              //L1toL2ReqPacket l1tol2_reqp = L1toL2ReqPacket();
+              //L2tlbtoL2FwdPacket l2tlbtol2_fwdp = L2tlbtoL2FwdPacket();
+
+                L2tlbtoL2FwdPacket l2tlbtol2_fwdp;
+              l2tlbtol2_fwdp.l1id = common_l1id;
+              l2tlbtol2_fwdp.prefetch = rand() & 0x1;
+              l2tlbtol2_fwdp.fault = rand() & 0x7;
+              l2tlbtol2_fwdp.hpaddr = rand() & 0x7FF;
+              l2tlbtol2_fwdp.paddr = common_paddr;
+              //l1tol2_req_q[common_l1id] = l2tlbtol2_fwdp;
+
+                //L1toL2ReqPacket l1tol2_reqp = L1toL2ReqPacket();
+                L1toL2ReqPacket l1tol2_reqp;
+                l1tol2_reqp.valid = 1;
+              l1tol2_reqp.l1id = common_l1id;
+              l1tol2_reqp.cmd = rand() & 0x7;
+              l1tol2_reqp.pcsign = rand() & 0x1FFF;
+              l1tol2_reqp.ppaddr = rand() & 0x7;
+              l1tol2_reqp.poffset = common_paddr & 0xFFF;
+              l1tol2_req_q[common_l1id] = l1tol2_reqp;
+        }
     }
 
     if(((rand() & 0x3)==0) && drtol2_snoop_only_list.size() < 3 ) {
@@ -1227,16 +1295,6 @@ int main(int argc, char **argv, char **env) {
       l1tol2_disp_list.push_front(l1tol2_dispp);
     }
 
-    if (((rand() & 0x3)==0) && l2tlbtol2_fwd_list.size() < 3 ) {
-      //L2tlbtoL2FwdPacket l2tlbtol2_fwdp = L2tlbtoL2FwdPacket();
-      L2tlbtoL2FwdPacket l2tlbtol2_fwdp;
-      l2tlbtol2_fwdp.l1id = rand() & 0x1F;
-      l2tlbtol2_fwdp.prefetch = rand() & 0x1;
-      l2tlbtol2_fwdp.fault = rand() & 0x7;
-      l2tlbtol2_fwdp.hpaddr = rand() & 0x7FF;
-      l2tlbtol2_fwdp.paddr = rand() & 0x3FFFFFFFFFFFF;
-      l2tlbtol2_fwd_list.push_front(l2tlbtol2_fwdp);
-    }
   }
 #endif
 

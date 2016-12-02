@@ -203,9 +203,9 @@ module l2cache_pipe(
                     l2todr_req_next_competitor2.paddr = l2tlbtol2_fwd.paddr;
                 end
              end
-        end
-        else begin
-            l1tol2_req_retry_source1 = 1;
+             else begin
+                l1tol2_req_retry_source1 = 1;
+             end
         end
     end
 

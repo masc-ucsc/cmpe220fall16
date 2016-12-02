@@ -54,6 +54,10 @@ l2_pass_through:
 	verilator --assert --debug-check -I./rtl --Wall --cc --trace -Wno-UNDRIVEN -Wno-UNUSED -Wno-UNOPTFLAT  -Wno-CASEINCOMPLETE +define+L2_PASSTHROUGH --top-module l2cache_pipe_wp ./tests/l2cache_pipe_wp.v ./rtl/fflop.v --exe ./tests/l2cache_pipe_wp_tb.cpp -CFLAGS "-DTRACE=1 -DL2_PASSTHROUGH"
 	make -C obj_dir/ -f Vl2cache_pipe_wp.mk Vl2cache_pipe_wp
 
+l2_local_pass_through:
+	verilator --assert --debug-check -I./rtl --Wall --cc --trace -Wno-UNDRIVEN -Wno-UNUSED -Wno-UNOPTFLAT  -Wno-CASEINCOMPLETE +define+L2_PASSTHROUGH --top-module l2cache_pipe_wp ./tests/l2cache_pipe_wp.v ./rtl/fflop.v --exe ./tests/l2cache_pipe_wp_tb.cpp -CFLAGS "-DTRACE=1 -DL2_PASSTHROUGH -DDEBUG_L2 -DDEBUG_TRACE -DDEBUG_PRINT"
+	make -C obj_dir/ -f Vl2cache_pipe_wp.mk Vl2cache_pipe_wp
+
 # +define+L2_PASSTHROUGH=1 
 
 fflop_understand:
@@ -64,6 +68,9 @@ run_fflop_understand:	fflop_understand
 	./obj_dir/Vfflop_understand
 
 run_l2: l2
+	./obj_dir/Vl2cache_pipe_wp
+
+run_l2_local: l2_local_pass_through
 	./obj_dir/Vl2cache_pipe_wp
 
 l2cache_pipe_wp: l2_pass_through
