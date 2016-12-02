@@ -42,8 +42,8 @@ class L1id_pool {
                     l1ids[i].in_use = 1;
                     return (l1ids[i].l1id);
                 }
-                return (255); // no l1id available
-            }
+        }
+        return (255); // no l1id available        
     }
 
     void put_l1id (uint8_t l1id) {
@@ -377,6 +377,7 @@ struct DrtoL2DackPacket { // input
 };
 
 struct L2tlbtoL2FwdPacket {
+    bool valid;
     uint8_t l1id;
     uint8_t prefetch;
     uint8_t fault;
@@ -409,7 +410,6 @@ std::list<L1toL2DispPacket> l1tol2_disp_list;
 std::list<L2toDrDispPacket> l2todr_disp_list;
 std::list<L2toL1DackPacket> l2tol1_dack_list;
 std::list<DrtoL2DackPacket> drtol2_dack_list;
-std::list<L2tlbtoL2FwdPacket> l2tlbtol2_fwd_list;
 std::list<L2toDrPfreqPacket> l2todr_pfreq_list;
 int count_l1tol2_req = 0;
 int count_l2todr_req = 0;
@@ -436,7 +436,7 @@ void error_found(Vl2cache_pipe_wp *top) {
 void try_send_l1tol2_req_packet (Vl2cache_pipe_wp *top) {
     //Try to add some noise when there is not drive
 #ifndef NO_RETRY
-    top->l2todr_req_retry = (rand()&0xF)==0; // randomly,
+    top->l2todr_req_retry = (rand()&0xF)==1; // randomly,
 #endif
 #ifdef NO_RETRY
   top->l2todr_req_retry = 0;
@@ -452,14 +452,13 @@ void try_send_l1tol2_req_packet (Vl2cache_pipe_wp *top) {
                 break;
             }
         }
-    if ( (!top-> l1tol2_req_retry) && (!top->l1tol2_req_valid) ) {
+    if ( (!top-> l1tol2_req_retry) ) {
         top->l1tol2_req_l1id = rand(); //TODO: l1id should be unique at a time
         top->l1tol2_req_cmd = rand();
         top->l1tol2_req_pcsign = rand();
         top->l1tol2_req_ppaddr = rand();
         top->l1tol2_req_poffset = rand();
-        printf("haha\n");
-        if (empty || (rand() & 0x3==0)) { // Once every 4
+        if (empty || ((rand() & 0x3)==1)) { // Once every 4
           top->l1tol2_req_valid = 0;
         }else{
           top->l1tol2_req_valid = 1;
@@ -467,7 +466,7 @@ void try_send_l1tol2_req_packet (Vl2cache_pipe_wp *top) {
     }
    
     // Drive signals
-    if (top->l1tol2_req_valid && !top->l1tol2_req_retry){
+    if (top->l1tol2_req_valid && (!top->l1tol2_req_retry) && (!empty)){
         if (empty) {
 #ifdef DEBUG_PRINT
             fprintf(stderr,"ERROR: Internal error, could not be empty l1tol2_req_q\n");
@@ -481,7 +480,7 @@ void try_send_l1tol2_req_packet (Vl2cache_pipe_wp *top) {
         top->l1tol2_req_poffset = l1tol2_reqp.poffset;
 #ifdef DEBUG_PRINT
 #ifdef DEBUG_TRACE
-        printf("@%ld l1tol2_req l1id:%x cmd:%x pcsign:%d ppaddr:%x\n poffset:%x\n",global_time, l1tol2_reqp.l1id, 
+        printf("@%ld l1tol2_req l1id:%x cmd:%x pcsign:%x ppaddr:%x\n poffset:%x\n",global_time, l1tol2_reqp.l1id, 
             l1tol2_reqp.cmd, l1tol2_reqp.pcsign, l1tol2_reqp.ppaddr, l1tol2_reqp.poffset);
 #endif
 #endif
@@ -712,7 +711,7 @@ void try_send_l1tol2_disp_packet (Vl2cache_pipe_wp *top) {
         top->l1tol2_disp_line1 = rand();
         top->l1tol2_disp_line0 = rand();
         top->l1tol2_disp_ppaddr = rand();
-        if (l1tol2_disp_list.empty() || (rand() & 0x3==0)) { // Once every 4
+        if (l1tol2_disp_list.empty() || ((rand() & 0x3)==1)) { // Once every 4
           top->l1tol2_disp_valid = 0;
         }else{
           top->l1tol2_disp_valid = 1;
@@ -818,27 +817,39 @@ void try_send_drtol2_dack_packet (Vl2cache_pipe_wp *top) {
 
 void try_send_l2tlbtol2_fwd_packet (Vl2cache_pipe_wp *top) {
     top->l2todr_pfreq_retry = (rand()&0xF)==0; // randomly,
-    if ( !top-> l2tlbtol2_fwd_retry ) {
+    L2tlbtoL2FwdPacket l2tlbtol2_fwdp;
+    int index;
+    bool empty = 1;
+        for (int i=1; i<=15; i++) {
+            if (l2tlbtol2_fwd_q[i].valid > 0) {
+                l2tlbtol2_fwdp = l2tlbtol2_fwd_q[i];
+                empty = 0;
+                index = i;
+                break;
+            }
+        }
+    if ( !top-> l2tlbtol2_fwd_retry) {
         top->l2tlbtol2_fwd_l1id = rand();
         top->l2tlbtol2_fwd_prefetch = rand();
         top->l2tlbtol2_fwd_fault = rand();
         top->l2tlbtol2_fwd_hpaddr = rand();
         top->l2tlbtol2_fwd_paddr = rand();
-        if (l2tlbtol2_fwd_list.empty() || (rand() & 0x3==0)) { // Once every 4
+        uint8_t rand_send = 0;
+        rand_send  = rand() % 10;
+        if (empty || (rand_send > 3)) { // send 3 when try 10
           top->l2tlbtol2_fwd_valid = 0;
         }else{
           top->l2tlbtol2_fwd_valid = 1;
         }
     }
     
-    if (top->l2tlbtol2_fwd_valid && !top->l2tlbtol2_fwd_retry){
-        if (l2tlbtol2_fwd_list.empty()) {
+    if (top->l2tlbtol2_fwd_valid && !top->l2tlbtol2_fwd_retry && (!empty)){
+        if (empty) {
 #ifdef DEBUG_PRINT
             fprintf(stderr,"ERROR: Internal error, could not be empty l2tlbtol2_fwd_list\n");
 #endif
         }
-        L2tlbtoL2FwdPacket l2tlbtol2_fwdp = l2tlbtol2_fwd_list.back();
-        count_l2tlbtol2_fwd++;
+                count_l2tlbtol2_fwd++;
         top->l2tlbtol2_fwd_l1id = l2tlbtol2_fwdp.l1id;
         top->l2tlbtol2_fwd_prefetch = l2tlbtol2_fwdp.prefetch;
         top->l2tlbtol2_fwd_fault = l2tlbtol2_fwdp.fault;
@@ -854,14 +865,16 @@ void try_send_l2tlbtol2_fwd_packet (Vl2cache_pipe_wp *top) {
                     // TODO
         }
         else{
+            /*
             if (l2tlbtol2_fwdp.prefetch == 1) {
                 L2toDrPfreqPacket l2todr_pfreqp;
                 l2todr_pfreqp.nid = rand();
                 l2todr_pfreqp.paddr = l2tlbtol2_fwdp.paddr;
                 l2todr_pfreq_list.push_front(l2todr_pfreqp);
             }
+            */
         }
-        l2tlbtol2_fwd_list.pop_back();
+        l2tlbtol2_fwd_q[index].valid = 0;
     }
 }
 
@@ -1200,7 +1213,8 @@ int main(int argc, char **argv, char **env) {
 
   // ini
   for (int i=0; i<=15 ; i++) {
-    l1tol2_req_q[i].l1id = 0;
+    l1tol2_req_q[i].valid = 0;
+    l2tlbtol2_fwd_q[i].valid = 0;
     }
 
 #if 1
@@ -1208,7 +1222,7 @@ int main(int argc, char **argv, char **env) {
     try_send_l1tol2_req_packet(top);
     //try_send_drtol2_snack_packet(top);
     //try_send_l1tol2_snoop_ack_packet(top);
-    //try_send_l2tlbtol2_fwd_packet(top);
+    try_send_l2tlbtol2_fwd_packet(top);
     //try_send_l1tol2_disp_packet(top);
     //try_send_drtol2_dack_packet(top);
     advance_half_clock(top);
@@ -1229,12 +1243,13 @@ int main(int argc, char **argv, char **env) {
               //L2tlbtoL2FwdPacket l2tlbtol2_fwdp = L2tlbtoL2FwdPacket();
 
                 L2tlbtoL2FwdPacket l2tlbtol2_fwdp;
+                l2tlbtol2_fwdp.valid = 1;
               l2tlbtol2_fwdp.l1id = common_l1id;
               l2tlbtol2_fwdp.prefetch = rand() & 0x1;
               l2tlbtol2_fwdp.fault = rand() & 0x7;
               l2tlbtol2_fwdp.hpaddr = rand() & 0x7FF;
               l2tlbtol2_fwdp.paddr = common_paddr;
-              //l1tol2_req_q[common_l1id] = l2tlbtol2_fwdp;
+              l2tlbtol2_fwd_q[common_l1id] = l2tlbtol2_fwdp;
 
                 //L1toL2ReqPacket l1tol2_reqp = L1toL2ReqPacket();
                 L1toL2ReqPacket l1tol2_reqp;

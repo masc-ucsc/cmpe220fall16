@@ -167,19 +167,22 @@ module l2cache_pipe(
     //retry sources
     logic l2tlbtol2_fwd_retry_source2;
     logic l2tlbtol2_fwd_retry_source1;
-    assign  l2tlbtol2_fwd_retry = l2tlbtol2_fwd_retry_source1 || l2tlbtol2_fwd_retry_source2 || l2todr_req_next_competitor2_retry;
+    logic   l2tlbtol2_fwd_retry_source3;
+    assign  l2tlbtol2_fwd_retry = l2tlbtol2_fwd_retry_source1 || l2tlbtol2_fwd_retry_source2 || l2tlbtol2_fwd_retry_source3 || l2todr_req_next_competitor2_retry;
     logic drtol2_snack_retry_source1;
     logic   drtol2_snack_retry_source2;
     assign  drtol2_snack_retry = drtol2_snack_retry_source1 || drtol2_snack_retry_source2;
         `endif
     `endif
 
+ 
     `ifdef L2_PASSTHROUGH
         `ifndef L2_COMPLETE
         //assign l2todr_req_next_valid = l1tol2_req_valid;
         logic   l1tol2_req_retry_source1;
         assign  l1tol2_req_retry = l1tol2_req_retry_source1 || l2todr_req_next_competitor2_retry;
-
+        logic   l2tlb_match_l1req_l1id;
+        assign  l2tlb_match_l1req_l1id = l2tlbtol2_fwd.l1id==l1tol2_req.l1id;
         // Temp drive Begin
         //assign l1tol2_pfreq_retry = 0;
         //assign pftol2_pfreq_retry = 0;
@@ -194,14 +197,14 @@ module l2cache_pipe(
         // wait for l2tlbtol2_fwd, meanwhile keep sending retry l1tol2_req_retry
         // l2todr_req ->
         l1tol2_req_retry_source1 = 0;
+        l2todr_req_next_competitor2_valid = 0;
         if (l1tol2_req_valid) begin
-             if (l2tlbtol2_fwd_valid && (l2tlbtol2_fwd.l1id==l1tol2_req.l1id)) begin
-                if (l2todr_req_next_competitor2_valid) begin
-                    l2todr_req_next_competitor2.nid = 5'b00000; // Could be wrong
-                    l2todr_req_next_competitor2.l2id = {1'b0, l1tol2_req.l1id};
-                    l2todr_req_next_competitor2.cmd = l1tol2_req.cmd;
-                    l2todr_req_next_competitor2.paddr = l2tlbtol2_fwd.paddr;
-                end
+             if (l2tlbtol2_fwd_valid && l2tlb_match_l1req_l1id) begin
+                l2todr_req_next_competitor2_valid = 1;
+                l2todr_req_next_competitor2.nid = 5'b00000; // Could be wrong
+                l2todr_req_next_competitor2.l2id = {1'b0, l1tol2_req.l1id};
+                l2todr_req_next_competitor2.cmd = l1tol2_req.cmd;
+                l2todr_req_next_competitor2.paddr = l2tlbtol2_fwd.paddr;
              end
              else begin
                 l1tol2_req_retry_source1 = 1;
@@ -933,6 +936,17 @@ module l2cache_pipe(
     );
     `endif
 `endif
+
+   `ifdef L2_PASSTHROUGH
+        `ifndef L2_COMPLETE
+    // handle when l2tlb arrives early
+    logic l2tlbtol2_fwd_not_early, l2tlbtol2_fwd_early;
+    assign  l2tlbtol2_fwd_not_early = (l2tlbtol2_fwd_valid && l2tlb_match_l1req_l1id && l1tol2_req_valid) ||
+                                        (l2tlbtol2_fwd_valid && l2tlb_match_l1disp && l1tol2_disp_valid);
+    assign  l2tlbtol2_fwd_early = l2tlbtol2_fwd_valid && (~l2tlbtol2_fwd_not_early);
+    assign  l2tlbtol2_fwd_retry_source3 = l2tlbtol2_fwd_early;
+        `endif
+    `endif
 
 
 
