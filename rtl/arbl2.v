@@ -158,6 +158,8 @@ module arbl2(
     always_comb begin
         if(l2d_0todr_req_valid) begin
             l2todr_req_next = l2d_0todr_req;
+            l2todr_req_next.nid[4:3] == 2'b00;
+
             l2todr_req_valid_next = l2d_0todr_req_valid;
             l2d_0todr_req_retry = l2todr_req_retry_next;
 
@@ -168,6 +170,8 @@ module arbl2(
 `endif
         end else if (l2d_1todr_req_valid) begin
             l2todr_req_next = l2d_1todr_req;
+            l2todr_req_next.nid[4:3] == 2'b01;
+
             l2todr_req_valid_next = l2d_1todr_req_valid;
             l2d_0todr_req_retry = 1'b0;
             l2d_1todr_req_retry = l2todr_req_retry_next;
@@ -176,6 +180,8 @@ module arbl2(
             l2d_3todr_req_retry = l2d_3todr_req_valid;
         end else if (l2d_2todr_req_valid) begin
             l2todr_req_next = l2d_2todr_req;
+            l2todr_req_next.nid[4:3] == 2'b10;
+
             l2todr_req_valid_next = l2d_2todr_req_valid;
             l2d_0todr_req_retry = 1'b0;
             l2d_1todr_req_retry = 1'b0;
@@ -183,6 +189,8 @@ module arbl2(
             l2d_3todr_req_retry = l2d_3todr_req_valid;
         end else if (l2d_3todr_req_valid) begin
             l2todr_req_next = l2d_3todr_req;
+            l2todr_req_next.nid[4:3] == 2'b11;
+
             l2todr_req_valid_next = l2d_3todr_req_valid;
             l2d_0todr_req_retry = 1'b0;
             l2d_1todr_req_retry = 1'b0;
@@ -224,8 +232,7 @@ module arbl2(
 
     always_comb begin
       if (drtol2_snack_valid) begin
-        //FIXME: this routing is not supposed to be based on l2id.
-        if(drtol2_snack.l2id == 6'b000000) begin
+        if(drtol2_snack.nid[4:3] == 2'b00) begin
           drtol2d_0_snack_valid_next = drtol2_snack_valid;
           drtol2_snack_retry = drtol2d_0_snack_retry_next;
           drtol2d_0_snack_next = drtol2_snack;
@@ -237,7 +244,7 @@ module arbl2(
             drtol2d_3_snack_valid_next = 1'b0;
           `endif
 
-        end else if (drtol2_snack.l2id == 6'b000001) begin
+        end else if (drtol2_snack.nid == 2'b01) begin
           drtol2d_1_snack_valid_next = drtol2_snack_valid;
           drtol2_snack_retry = drtol2d_1_snack_retry_next;
           drtol2d_1_snack_next = drtol2_snack;
@@ -247,7 +254,7 @@ module arbl2(
             drtol2d_2_snack_valid_next = 1'b0;
             drtol2d_3_snack_valid_next = 1'b0;
 
-          end else if (drtol2_snack.l2id == 6'b000010) begin
+          end else if (drtol2_snack.nid == 2'b10) begin
             drtol2d_2_snack_valid_next = drtol2_snack_valid;
             drtol2_snack_retry = drtol2d_2_snack_retry_next;
             drtol2d_2_snack_next = drtol2_snack;
@@ -255,7 +262,7 @@ module arbl2(
             drtol2d_0_snack_valid_next = 1'b0;
             drtol2d_1_snack_valid_next = 1'b0;
             drtol2d_3_snack_valid_next = 1'b0;
-          end else if (drtol2_snack.l2id == 6'b000011) begin
+          end else if (drtol2_snack.nid == 6'b11) begin
             drtol2d_3_snack_valid_next = drtol2_snack_valid;
             drtol2_snack_retry = drtol2d_3_snack_retry_next;
             drtol2d_3_snack_next = drtol2_snack;
