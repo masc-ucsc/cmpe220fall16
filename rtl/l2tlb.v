@@ -169,4 +169,160 @@ module l2tlb(
 
 `endif
 
+`ifdef L2TLB_ENTRIES
+  
+  logic				TLBT_valid;
+  logic				TLBT_retry;
+  logic				TLB_write[3:0];
+
+  logic				TLBT_valid_next[3:0]
+  logic             TLBT_valid_retry
+  logic 			TLBE_valid_next[3:0];
+  SC_dctlbe_type 	TLBE_dctlbe_next[3:0];
+  logic[18:0] 		TLBE_tag_next[3:0];
+
+  TLB_hpaddr_type 	TLBE_hpaddr;
+  
+
+  // 1024 entries, 4 way
+  // 33 bits for each TLB entry:
+  // 1  bit  for valid
+  // 13 bits for dctlbe
+  // 19 bits for tag
+  ram_1port_dense #(33, 256) TLBE0(
+     .clk(clk)
+    ,.reset(reset)
+
+    ,.req_valid(l1tlbtol2tlb_req_valid)
+    ,.req_retry(l1tlbtol2tlb_req_retry)
+    ,.req_we(TLBE_write[0])
+	,.req_pos(l1tlbtol2tlb_req.laddr[19:12])
+	,.req_data({1, 13'b0_0000_0000_0000, l1tlbtol2tlb_req.laddr[38:20]})
+
+    ,.ack_valid(TLBT_valid_next[0])
+    ,.ack_retry(TLBT_valid_retry)
+    ,.ack_data({TLBE_valid_next[0], TLBE_dctlbe_next[0], TLBE_tag_next[0]})
+  );
+
+  ram_1port_dense #(33, 256) TLBE1(
+     .clk(clk)
+    ,.reset(reset)
+
+    ,.req_valid(l1tlbtol2tlb_req_valid)
+    ,.req_retry(l1tlbtol2tlb_req_retry)
+    ,.req_we(TLBE_write[1])
+	,.req_pos(l1tlbtol2tlb_req.laddr[19:12])
+	,.req_data({1, 13'b0_0000_0000_0000, l1tlbtol2tlb_req.laddr[38:20]})
+
+    ,.ack_valid(TLBT_valid_next[1])
+    ,.ack_retry(TLBT_valid_retry)
+    ,.ack_data({TLBE_valid_next[1], TLBE_dctlbe_next[1], TLBE_tag_next[1]})
+  );
+
+  ram_1port_dense #(33, 256) TLBE2(
+     .clk(clk)
+    ,.reset(reset)
+
+    ,.req_valid(l1tlbtol2tlb_req_valid)
+    ,.req_retry(l1tlbtol2tlb_req_retry)
+    ,.req_we(TLBE_write[2])
+	,.req_pos(l1tlbtol2tlb_req.laddr[19:12])
+	,.req_data({1, 13'b0_0000_0000_0000, l1tlbtol2tlb_req.laddr[38:20]})
+
+    ,.ack_valid(TLBT_valid_next[2])
+    ,.ack_retry(TLBT_valid_retry)
+    ,.ack_data({TLBE_valid_next[2], TLBE_dctlbe_next[2], TLBE_tag_next[2]})
+  );
+
+  ram_1port_dense #(33, 256) TLBE3(
+     .clk(clk)
+    ,.reset(reset)
+
+    ,.req_valid(l1tlbtol2tlb_req_valid)
+    ,.req_retry(l1tlbtol2tlb_req_retry)
+    ,.req_we(TLBE_write[3])
+	,.req_pos(l1tlbtol2tlb_req.laddr[19:12])
+	,.req_data({1, 13'b0_0000_0000_0000, l1tlbtol2tlb_req.laddr[38:20]})
+
+    ,.ack_valid(TLBT_valid_next[3])
+    ,.ack_retry(TLBT_valid_retry)
+    ,.ack_data({TLBE_valid_next[3], TLBE_dctlbe_next[3], TLBE_tag_next[3]})
+  );
+
+  always_comb begin
+    if(l1tlbtol2tlb_req_valid = 1'b1) begin
+	  l2tlbtol1tlb_ack.rid = l1tlbtol2tlb_req.rid;
+      TLBT_valid = 1'b1;
+      TLBT_retry = 1'b0;
+      TLBE_write = {1'b0, 1'b0, 1'b0, 1'b0};
+    
+      if((TLBT_valid_next[0]) && (TLBE_valid_next[0] == 1) && (l1tlbtol2tlb_req.laddr[38:20] == TLBE_tag_next[0])) begin
+        l2tlbtol1tlb_ack_valid = 1'b1;    
+        l2tlbtol1tlb_ack.hpaddr = {3'b000, l1tlbtol2tlb_req.laddr[19:12]};
+        l2tlbtol1tlb_ack.dctlbe = TLBE_dctlbe_next[0];
+      end else if((TLBT_valid_next[1]) && (TLBE_valid_next[1] == 1) && (l1tlbtol2tlb_req.laddr[38:20] == TLBE_tag_next[1])) begin
+        l2tlbtol1tlb_ack_valid = 1'b1;    
+        l2tlbtol1tlb_ack.hpaddr = {3'b001, l1tlbtol2tlb_req.laddr[19:12]};
+        l2tlbtol1tlb_ack.dctlbe = TLBE_dctlbe_next[1];
+      end else if((TLBT_valid_next[2]) && (TLBE_valid_next[2] == 1) && (l1tlbtol2tlb_req.laddr[38:20] == TLBE_tag_next[2])) begin
+        l2tlbtol1tlb_ack_valid = 1'b1;    
+        l2tlbtol1tlb_ack.hpaddr = {3'b010, l1tlbtol2tlb_req.laddr[19:12]};
+        l2tlbtol1tlb_ack.dctlbe = TLBE_dctlbe_next[2];
+      end else if((TLBT_valid_next[3]) && (TLBE_valid_next[3] == 1) && (l1tlbtol2tlb_req.laddr[38:20] == TLBE_tag_next[3])) begin
+        l2tlbtol1tlb_ack_valid = 1'b1;    
+        l2tlbtol1tlb_ack.hpaddr = {3'b011, l1tlbtol2tlb_req.laddr[19:12]};
+        l2tlbtol1tlb_ack.dctlbe = TLBE_dctlbe_next[3];
+      end else begin
+        l2tlbtol1tlb_ack_valid = 1'b0;
+      end
+    end     
+  end
+
+  logic HT_valid;
+  logic HT_retry;
+  logic HE_write;
+  TLB_hpaddr_type HE_hpaddr;
+  logic HE_valid;
+  SC_paddr_type HE_paddr;
+
+  logic HT_valid_next;
+  logic HT_retry_next;
+  logic HE_valid_next;
+  SC_paddr_type HE_paddr_next;
+  
+
+  ram_1port_dense #(51, 2048) H0(
+     .clk(clk)
+    ,.reset(reset)
+
+    ,.req_valid(HT_valid)
+    ,.req_retry(HT_retry)
+    ,.req_we(HE_write)
+	,.req_pos(HE_hpaddr)
+	,.req_data({HE_valid, HE_paddr})
+
+    ,.ack_valid(HT_valid_next)
+    ,.ack_retry(HT_retry_next)
+    ,.ack_data({HE_valid_next, HE_paddr_next})
+  );
+
+  always_comb begin
+    if(l1tol2tlb_req_valid) begin
+      l2tlbtol2_fwd.lid = l1tol2tlb_req.lid;
+      HT_valid = 1'b1;
+      HT_retry = 1'b0;
+      HE_write = 1'b0;
+      HE_hpaddr = l1tol2tlb_req.hpaddr;
+      if((HT_valid_next == 1'b1) && (HE_valid_next == 1'b1)) begin
+        l2tlbtol2_fwd_valid = 1'b1;
+        l2tlbtol2_fwd.paddr = l1tol2tlb_req.hpaddr;
+        l2tlbtol2_fwd.paddr = HE_paddr_next;
+      end else begin
+        l2tlbtol2_fwd_valid = 1'b0;
+      end
+    end
+  end
+
+`endif 
+
 endmodule
