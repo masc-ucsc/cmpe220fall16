@@ -10,10 +10,13 @@
 #define DEBUG_TRACE 1
 
 //Set which sets you want to run
-//#define TEST_PFREQ 1
+#define TEST_PFREQ 1
 #define TEST_REQ 1
 #define TEST_ACK 1
-//#define TEST_DISP 1
+#define TEST_DISP 1
+
+#define DR_PASSTHROUGH 1
+#define TEST_NO_OUTSTD_REQ 1
 
 vluint64_t global_time = 0;
 VerilatedVcdC* tfp = 0;
@@ -160,6 +163,13 @@ struct OutputPacket_drtol2_snack {
   
 };
 
+struct InputPacket_l2todr_snoop_ack {
+  uint8_t drid;
+  uint8_t directory_id;
+};
+
+
+
 double sc_time_stamp() {
   return 0;
 }
@@ -174,11 +184,14 @@ std::list<OutputPacket_drtomem_req> out_list_req;
 
 std::list<InputPacket_memtodr_ack>  inp_list_ack;
 std::list<OutputPacket_drtol2_snack> out_list_ack;
+std::list<OutputPacket_drtol2_snack> out_list_pfack;
 std::list<OutputPacket_drtol2_ack_ids> out_list_ack_ids;
 
 std::list<InputPacket_l2todr_disp>  inp_list_disp;
 std::list<OutputPacket_drtol2_dack> out_list_dack;
 std::list<OutputPacket_drtomem_wb> out_list_wb;
+
+std::list<InputPacket_l2todr_snoop_ack>  inp_list_snoop_ack;
 
 void error_found(Vdirectory_bank_wp *top) {
   advance_half_clock(top);
@@ -224,6 +237,17 @@ void try_send_packet(Vdirectory_bank_wp *top) {
       top->l2todr_disp_valid = 1;
     }
   }
+  
+  //l2todr snoop ack
+  if (!top->l2todr_snoop_ack_retry) {
+    top->l2todr_req_paddr = rand();
+    if (inp_list_snoop_ack.empty() || (rand() & 0x3)) { // Once every 4
+      top->l2todr_snoop_ack_valid = 0;
+    }else{
+      top->l2todr_snoop_ack_valid = 1;
+    }
+  }
+  
 
   
   //ack
@@ -259,7 +283,7 @@ void try_send_packet(Vdirectory_bank_wp *top) {
     top->l2todr_pfreq_paddr = inp1.paddr;
     top->l2todr_pfreq_nid = inp1.nid;
 #ifdef DEBUG_TRACE
-    printf("@%lu pfreq paddr:%lu, nid: %u \n",global_time, inp1.paddr, inp1.nid);
+    printf("@%lu l2todr pfreq paddr:%lu, nid: %u \n",global_time, inp1.paddr, inp1.nid);
 #endif
    
     inp_list_pfreq.pop_back();
@@ -275,16 +299,20 @@ void try_send_packet(Vdirectory_bank_wp *top) {
 
     InputPacket_l2todr_req inp2 = inp_list_req.back();
     top->l2todr_req_paddr = inp2.paddr;
+    top->l2todr_req_cmd = inp2.cmd;
     top->l2todr_req_nid = inp2.nid;
     top->l2todr_req_l2id = inp2.l2id;
 #ifdef DEBUG_TRACE
-    printf("@%lu l2todr req paddr:%lu, nid: %u, l2id: %u\n",global_time, inp2.paddr, inp2.nid, inp2.l2id);
+    printf("@%lu l2todr req paddr:%lu, nid: %u, l2id: %u, cmd: %u\n",global_time, inp2.paddr, inp2.nid, inp2.l2id, inp2.cmd);
 #endif
    
     OutputPacket_drtomem_req out2;
     out2.paddr = inp2.paddr;
+    out2.cmd = inp2.cmd;
+    //Not pusing output packets currently because the directory will not always send a request to memory.
+#ifdef DR_PASSTHROUGH
     out_list_req.push_front(out2);
-    
+#endif
 
     inp_list_req.pop_back();
   }
@@ -389,7 +417,23 @@ void try_send_packet(Vdirectory_bank_wp *top) {
     inp_list_ack.pop_back();
   }
   
- 
+  //l2todr snoop ack
+  if (top->l2todr_snoop_ack_valid && !top->l2todr_snoop_ack_retry) {
+    if (inp_list_snoop_ack.empty()) {
+      fprintf(stderr,"ERROR: Internal error, could not be empty inpa\n");
+      error_found(top);
+    }
+
+
+    InputPacket_l2todr_snoop_ack inp = inp_list_snoop_ack.back();
+    top->l2todr_snoop_ack_drid = inp.drid;
+    top->l2todr_snoop_ack_directory_id = inp.directory_id;
+#ifdef DEBUG_TRACE
+    printf("@%lu l2todr snoop ack drid: %u, Directory ID: %u\n",global_time, inp.drid, inp.directory_id);
+#endif
+
+    inp_list_snoop_ack.pop_back();
+  }
 
 }
 
@@ -456,7 +500,7 @@ void try_recv_packet_pfreq(Vdirectory_bank_wp *top) {
         o_ack.line_2 = i_ack.line_2;
         o_ack.line_1 = i_ack.line_1;
         o_ack.line_0 = i_ack.line_0;
-        out_list_ack.push_front(o_ack);
+        out_list_pfack.push_front(o_ack);
   }
 
   out_list_pfreq.pop_back();
@@ -578,11 +622,13 @@ void try_recv_packet_dack(Vdirectory_bank_wp *top) {
 void try_recv_packet_req(Vdirectory_bank_wp *top) {
 
   //req
+#ifdef DR_PASSTHROUGH
   if (top->drtomem_req_valid && out_list_req.empty()) {
     printf("ERROR: unexpected drtomem req paddr:%lu\n",top->drtomem_req_paddr);
     error_found(top);
     return;
   }
+#endif
 
   if (top->drtomem_req_retry)
     return;
@@ -590,17 +636,26 @@ void try_recv_packet_req(Vdirectory_bank_wp *top) {
   if (!top->drtomem_req_valid)
     return;
 
-  if (out_list_req.empty())
-    return;
 
 #ifdef DEBUG_TRACE
     printf("@%lu drtomem req paddr:%lu, drid: %u, cmd: %u\n",global_time, top->drtomem_req_paddr, top->drtomem_req_drid, top->drtomem_req_cmd);
 #endif
+
+#ifdef DR_PASSTHROUGH
+  if (out_list_req.empty())
+    return;
+
   OutputPacket_drtomem_req o2 = out_list_req.back();
   if (top->drtomem_req_paddr != o2.paddr) {
     printf("ERROR: expected drtomem paddr:%lu but actual is %lu\n",o2.paddr,top->drtomem_req_paddr);
     error_found(top);
+  } else if (top->drtomem_req_cmd != o2.cmd) {
+    printf("ERROR: expected drtomem cmd:%u but actual is %u\n",o2.cmd,top->drtomem_req_cmd);
+    error_found(top);
   }
+  
+  out_list_req.pop_back();
+#endif
   
 #ifdef TEST_ACK
   //When we receive a request, push an ack
@@ -634,27 +689,35 @@ void try_recv_packet_req(Vdirectory_bank_wp *top) {
   out3.ack_cmd = inAck.ack_cmd;
   out3.paddr = 0;
   
-  //This pop should never fail because we only get to this stage is a request has occurred which would mean
-  //an ID has been pushed to the list.
+#ifdef DR_PASSTHROUGH
   OutputPacket_drtol2_ack_ids o_id = out_list_ack_ids.back();
   out3.nid = o_id.nid;
   out3.l2id = o_id.l2id;
-  
-  out_list_ack.push_front(out3);
   out_list_ack_ids.pop_back();
+#else
+  out3.nid = 0;
+  out3.l2id = 0;
+#endif 
+  out_list_ack.push_front(out3);
+  
 #endif
   
-  out_list_req.pop_back();
+  
 }
 
 //ack
 void try_recv_packet_ack(Vdirectory_bank_wp *top) {
-  //this error check may be a little off. The OR is checking for non-prefetch acks where the values are stored in two different
-  //lists.
-  if (top->drtol2_snack_valid && out_list_ack.empty()) {
-    printf("ERROR: unexpected drtol2 ack nid: %u, l2id: %u, data:%lu,%lu,%lu,%lu,%lu,%lu,%lu,%lu\n"
+
+  //The ack list only maintains acks and not snoops. If the DRID is not 0 then this is a snoop and we can ignore
+  //the error condition where there are no items in our list.
+  if (top->drtol2_snack_valid && out_list_ack.empty() && out_list_pfack.empty() && top->drtol2_snack_drid == 0) {
+    printf("ERROR: unexpected drtol2 ack paddr: %lu, nid: %u, l2id: %u, drid: %u, directory_id: %u, snack_cmd: %u, data:%lu,%lu,%lu,%lu,%lu,%lu,%lu,%lu\n"
+                                                                             ,top->drtol2_snack_paddr
                                                                              ,top->drtol2_snack_nid
                                                                              ,top->drtol2_snack_l2id
+                                                                             ,top->drtol2_snack_drid
+                                                                             ,top->drtol2_snack_directory_id
+                                                                             ,top->drtol2_snack_snack
                                                                              ,top->drtol2_snack_line_7
                                                                              ,top->drtol2_snack_line_6
                                                                              ,top->drtol2_snack_line_5
@@ -673,10 +736,12 @@ void try_recv_packet_ack(Vdirectory_bank_wp *top) {
   if (!top->drtol2_snack_valid)
     return;
 
-  if (out_list_ack.empty())
+  if (out_list_ack.empty() && out_list_pfack.empty() && top->drtol2_snack_drid == 0)
     return;
   
-
+  //This is the case of the snack being a snoop rather than an ack. In this case, we want to send a snoop ack which implies
+  //that the Testbench is not sending data as a response to this ack and just acking instead.
+  
 
 #ifdef DEBUG_TRACE
   printf("@%lu drtol2 ack paddr: %lu, nid: %u, l2id: %u, drid: %u, directory_id: %u, snack_cmd: %u, data:%lu,%lu,%lu,%lu,%lu,%lu,%lu,%lu\n",global_time 
@@ -696,8 +761,21 @@ void try_recv_packet_ack(Vdirectory_bank_wp *top) {
                                                                              ,top->drtol2_snack_line_0); //change
 #endif
 
+  if(top->drtol2_snack_drid != 0){
+    InputPacket_l2todr_snoop_ack i;
+    i.drid = top->drtol2_snack_drid;
+    i.directory_id = top->drtol2_snack_directory_id;
+    inp_list_snoop_ack.push_front(i);
+    return;
+  }
 
-  OutputPacket_drtol2_snack o = out_list_ack.back();
+  
+  OutputPacket_drtol2_snack o;
+  if(top->drtol2_snack_l2id != 0)
+    o = out_list_ack.back();
+  else
+    o = out_list_pfack.back();
+  
   if (top->drtol2_snack_line_7 != o.line_7) {
     printf("ERROR: expected drtol2 ack data:%lu but ack is %lu\n",o.line_7,top->drtol2_snack_line_7);
     error_found(top);
@@ -724,13 +802,17 @@ void try_recv_packet_ack(Vdirectory_bank_wp *top) {
     error_found(top);
   }
   
+#ifdef DR_PASSTHROUGH
   if (top->drtol2_snack_nid != o.nid) {
     printf("ERROR: expected drtol2 ack nid:%u but actual is %u\n",o.nid,top->drtol2_snack_nid);
     error_found(top);
   } else if (top->drtol2_snack_l2id != o.l2id) {
     printf("ERROR: expected drtol2 ack l2id:%u but actual is %u\n",o.l2id,top->drtol2_snack_l2id);
     error_found(top);
-  } else if (top->drtol2_snack_drid != o.drid) {
+  } 
+#endif
+
+  if (top->drtol2_snack_drid != o.drid) {
     printf("ERROR: expected drtol2 ack drid:%u but actual is %u\n",o.drid,top->drtol2_snack_drid);
     error_found(top);
   } else if (top->drtol2_snack_directory_id != o.directory_id) {
@@ -744,8 +826,10 @@ void try_recv_packet_ack(Vdirectory_bank_wp *top) {
     error_found(top);
   }
   
-
-  out_list_ack.pop_back();
+  if(top->drtol2_snack_l2id != 0)
+    out_list_ack.pop_back();
+  else
+    out_list_pfack.pop_back();
 }
 
 
@@ -848,25 +932,62 @@ int main(int argc, char **argv, char **env) {
 #ifdef TEST_REQ  
     if (((rand() & 0x3)==0) && inp_list_req.size() < 3 ) {
       InputPacket_l2todr_req i;
+      int pick_cmd = rand()%4;
 
-      i.nid = rand() & 0x1F;
+      i.nid = (rand()%31) + 1; //in the range 1-31
       i.l2id = (rand()%63) + 1; //in the range 1-63
+      
+      if(pick_cmd == 0)
+        i.cmd = 0x0; //get shared
+      else if(pick_cmd == 1)
+        i.cmd = 0x1; //get exclusive
+      else
+        i.cmd = 0x2; //get NC
+      
       if (rand() % 3)
         i.paddr = rand() & 0x0001FFFFFFFFFFFF;
       else if (!inp_list_req.empty())
         i.paddr = inp_list_req.front().paddr;
+        //duplicate addresses disabled temporarily
+        //i.paddr = rand() & 0x00000000FFFFFFFF;
       else
         i.paddr = rand() & 0x00000000FFFFFFFF;
+      
+      i.paddr = 0x0000001234567890;
 
       inp_list_req.push_front(i);
       
       OutputPacket_drtol2_ack_ids o;
       o.nid = i.nid;
       o.l2id = i.l2id;
-      out_list_ack_ids.push_front(o);
-    }
+#ifdef DR_PASSTHROUGH
+      out_list_ack_ids.push_front(o);      
 #endif
 
+#ifdef TEST_NO_OUTSTD_REQ
+      OutputPacket_drtol2_snack out3;    
+      out3.line_7 = 0;
+      out3.line_6 = 0;
+      out3.line_5 = 0;
+      out3.line_4 = 0;
+      out3.line_3 = 0;
+      out3.line_2 = 0;
+      out3.line_1 = 0;
+      out3.line_0 = 0;
+      out3.drid = 0;
+      out3.directory_id = 0;
+      out3.ack_cmd = 8; //defined as the "Other" ack command
+      out3.paddr = i.paddr;
+      
+      OutputPacket_drtol2_ack_ids o_id = out_list_ack_ids.back();
+      out3.nid = o_id.nid;
+      out3.l2id = o_id.l2id;
+      out_list_ack_ids.pop_back();
+      
+      out_list_ack.push_front(out3);
+#endif
+    }
+#endif
 
 #ifdef TEST_DISP  
     if (((rand() & 0x3)==0) && inp_list_req.size() < 3 ) {
@@ -933,5 +1054,5 @@ int main(int argc, char **argv, char **env) {
 
   sim_finish(true);
 
-}
 
+}

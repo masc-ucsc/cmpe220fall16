@@ -83,7 +83,7 @@ void try_send_packet(Vjoin_fadd *top) {
   if (set_retry_for) {
     set_retry_for--;
     top->sumRetry = 1;
-  }else{
+  }else {
     top->sumRetry = (rand()&0xF)==0; // randomly, one every 8 packets
   }
 
@@ -91,7 +91,7 @@ void try_send_packet(Vjoin_fadd *top) {
     top->inp_a = rand();
     if (inpa_list.empty() || (rand() & 0x3)) { // Once every 4
       top->inp_aValid = 0;
-    }else{
+    } else{
       top->inp_aValid = 1;
     }
   }
@@ -101,7 +101,7 @@ void try_send_packet(Vjoin_fadd *top) {
 
     if (inpb_list.empty() || (rand() & 0x7)) { // Once every 8 cycles
       top->inp_bValid = 0;
-    }else{
+    } else {
       top->inp_bValid = 1;
     }
   }

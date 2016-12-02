@@ -1029,6 +1029,9 @@ module net_2core2dr(
   I_drtol2_snack_type c1_drtol2d_0_snack_next;
   I_drtol2_snack_type c1_drtol2dt_0_snack_next;
 
+  wire c0_drtol2i_snack_valid_next;
+  wire c0_drtol2it_snack_valid_next;
+
   always_comb begin
     // start retry signals high so they must be set low to pass through
     dr0tol2_snack_retry = 1;
@@ -1037,6 +1040,9 @@ module net_2core2dr(
     if (dr0tol2_snack_valid & (dr0tol2_snack.nid[2:0] == 3'b000)) begin
       c0_drtol2i_snack_next = dr0tol2_snack;
       dr0tol2_snack_retry = c0_drtol2i_snack_retry;
+      c0_drtol2i_snack_valid_next = 1'b1;
+      c0_drtol2it_snack_valid_next = 1'b0;
+
     end else if (dr1tol2_snack_valid & (dr1tol2_snack.nid[2:0] == 3'b000)) begin
       c0_drtol2i_snack_next = dr1tol2_snack;
       dr0tol2_snack_retry = c0_drtol2i_snack_retry;
@@ -1105,7 +1111,7 @@ module net_2core2dr(
     .reset    (reset),
 
     .din      (c0_drtol2i_snack_next),
-    .dinValid (dr0tol2_snack_valid),
+    .dinValid (c0_drtol2i_snack_valid_next),
     .dinRetry (dr0tol2_snack_retry),
 
     .q        (c0_drtol2i_snack),
@@ -1118,7 +1124,7 @@ module net_2core2dr(
     .reset    (reset),
 
     .din      (c0_drtol2it_snack_next),
-    .dinValid (dr0tol2_snack_valid),
+    .dinValid (c0_drtol2it_snack_valid_next),
     .dinRetry (dr0tol2_snack_retry),
 
     .q        (c0_drtol2it_snack),

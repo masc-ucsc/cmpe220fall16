@@ -26,9 +26,17 @@ dcache_pipe_wp:
 run_dcache_pipe_wp: dcache_pipe_wp
 	./obj_dir/Vdcache_pipe_wp
 
+
 #REGLIST+=dcache_pipe_wp
 ###########################
+DC_top_bank_tag:
+	verilator --assert --debug-check -I./rtl --Wall --cc --trace  ./rtl/DC_top_bank_tag ./rtl/DC_1_tagcheck.v ./rtl/DC_8_databanks.v ./rtl/DC_1_databank.v ./rtl/DC_1_tagbank.v ./rtl/fflop.v  --exe ./tests/DC_top_bank_tag.cpp -CFLAGS -DTRACE=1 
+	make -C obj_dir/ -f VDC_top_bank_tag.mk VDC_top_bank_tag
 
+run_DC_top_bank_tag: DC_top_bank_tag
+	./obj_dir/VDC_top_bank_tag
+
+#####################################
 fork_fflop:
 	verilator --assert --debug-check -I./rtl --Wall --cc --trace ./rtl/fork_fflop.v ./rtl/fflop.v --exe tests/fork_fflop_tb.cpp -CFLAGS "-DTRACE=1 -DVL_DEBUG"
 	make -C obj_dir/ -f Vfork_fflop.mk Vfork_fflop
@@ -39,7 +47,7 @@ run_fork_fflop: fork_fflop
 #REGLIST+=fork_fflop
 ###########################
 l2:
-	verilator --assert --debug-check -I./rtl --Wall --cc --trace -Wno-UNDRIVEN -Wno-UNUSED -Wno-UNOPTFLAT  -Wno-CASEINCOMPLETE -Wno-IMPLICIT +define+L2_COMPLETE --top-module l2cache_pipe_wp ./tests/l2cache_pipe_wp.v ./rtl/fflop.v --exe ./tests/l2cache_pipe_wp_tb.cpp -CFLAGS "-DTRACE=1 -DNO_RETRY"
+	verilator --assert --debug-check -I./rtl --Wall --cc --trace -Wno-UNDRIVEN -Wno-UNUSED -Wno-UNOPTFLAT  -Wno-CASEINCOMPLETE -Wno-IMPLICIT +define+L2_COMPLETE --top-module l2cache_pipe_wp ./tests/l2cache_pipe_wp.v ./rtl/fflop.v --exe ./tests/l2cache_pipe_wp_tb.cpp -CFLAGS "-DTRACE=1 -DNO_RETRY -DDEBUG_PRINT -DL2_COMPLETE"
 	make -C obj_dir/ -f Vl2cache_pipe_wp.mk Vl2cache_pipe_wp
 
 l2_pass_through:
@@ -108,6 +116,15 @@ run_pfengine_wp: pfengine_wp
 
 REGLIST+=pfengine_wp
 ###########################
+pfmonitor_wp:
+	  verilator --assert --debug-check -I./rtl --Wall --cc --trace --top-module pfmonitor_wp ./rtl/pfmonitor.v ./tests/pfmonitor_wp.v ./rtl/fflop.v ./rtl/flop.v --exe tests/pfmonitor_wp_tb.cpp -CFLAGS -DTRACE=1
+		  make -C obj_dir/ -f Vpfmonitor_wp.mk Vpfmonitor_wp
+
+run_pfmonitor_wp: pfmonitor_wp
+	  ./obj_dir/Vpfmonitor_wp
+
+REGLIST+=pfmonitor_wp
+###########################
 directory_bank_wp:
 	verilator --assert --debug-check -I./rtl --Wall --cc --trace --top-module directory_bank_wp ./tests/directory_bank_wp.v ./rtl/directory_bank.v ./rtl/fflop.v ./rtl/flop_r.v --exe tests/directory_bank_wp_tb.cpp -CFLAGS -DTRACE=1
 	make -C obj_dir/ -f Vdirectory_bank_wp.mk Vdirectory_bank_wp
@@ -124,7 +141,7 @@ ictlb_wp:
 run_ictlb_wp: ictlb_wp
 	./obj_dir/Victlb_wp
 
-REGLIST+=ictlb_wp
+#REGLIST+=ictlb_wp
 ###########################
 dctlb_wp:
 	verilator --assert --debug-check -I./rtl --Wall --cc --trace --top-module dctlb_wp ./tests/dctlb_wp.v ./rtl/dctlb.v ./rtl/fflop.v --exe tests/dctlb_wp_tb.cpp -CFLAGS -DTRACE=1
@@ -133,7 +150,7 @@ dctlb_wp:
 run_dctlb_wp: dctlb_wp
 	./obj_dir/Vdctlb_wp
 
-REGLIST+=dctlb_wp
+#REGLIST+=dctlb_wp
 ###########################
 integration_2core2dr:
 	verilator --assert --debug-check -I./rtl --Wall --cc --trace --top-module integration_2core2dr ./tests/integration_2core2dr.v ./rtl/top_2core2dr.v ./rtl/fflop.v --exe tests/integration_2core2dr_tests.cpp -CFLAGS -DTRACE=1
@@ -142,7 +159,7 @@ integration_2core2dr:
 run_integration_2core2dr: integration_2core2dr
 	./obj_dir/Vintegration_2core2dr
 
-REGLIST+=integration_2core2dr
+#REGLIST+=integration_2core2dr
 ###########################
 regression: $(REGLIST)
 	ruby scripts/regcheck.rb $(REGLIST)

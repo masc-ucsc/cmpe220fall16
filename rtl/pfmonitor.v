@@ -9,6 +9,7 @@
 
 module pfmonitor(
   /* verilator lint_off UNUSED */
+ /* verilator lint_off UNDRIVEN */
    input                           clk
   ,input                           reset
 
@@ -23,7 +24,7 @@ module pfmonitor(
   ,input  I_coretopfm_retire_type  coretopfm_retire
   ,input                           coretopfm_retire_valid
   ,output                          coretopfm_retire_retry
-  /* verilator lint_on UNUSED */
+  // /* verilator lint_on UNUSED */
 );
 
   logic                 coretopfm_dec_next_valid;
@@ -43,39 +44,6 @@ module pfmonitor(
     .qValid   (coretopfm_dec_next_valid),
     .qRetry   (coretopfm_dec_next_retry)
   );
-
-  //write dec stats to circular buffer
-  logic                                   circularbuffer_wr_req_we;
-  logic                                   circularbuffer_wr_req_valid;
-  logic                                   circularbuffer_wr_req_retry;
-  logic [$bits(I_coretopfm_dec_type)-1:0] circularbuffer_wr_req_data;
-  //req_data is coretopfm_dec_next
-  logic [`log2(512)-1:0]                  circularbuffer_wr_req_head; //512 entries in cir buffer
- 
-  logic                                   circularbuffer_wr_ack_data;
-  logic                                   circularbuffer_wr_ack_valid;
-  logic                                   circularbuffer_wr_ack_retry;
-
-  //circularbuffer_wr_req_we   = 1'b0;
-  //circularbuffer_wr_req_head = 9'b0;      //cir buffer pointer initialized to location 0 
-  ram_1port_fast #(.Width($bits(I_coretopfm_dec_type)), .Size(512), .Forward(0))
-  circularbuffer_write_bank (
-    .clk         (clk)
-   ,.reset       (reset)
-
-   ,.req_valid   (arb_drid_sram_valid)
-   ,.req_retry   (arb_drid_sram_retry)
-   ,.req_we      (arb_drid_sram_we)
-   ,.req_pos     (drid_ram_pos_next)
-   ,.req_data    ({dr_req_temp.nid,dr_req_temp.l2id})
-
-   ,.ack_valid   (drid_storage_ack_valid)
-   ,.ack_retry   (drid_storage_ack_retry)
-   ,.ack_data    (drid_storage)
-);
-
-
-
 
 
   logic                   coretopfm_retire_next_valid;

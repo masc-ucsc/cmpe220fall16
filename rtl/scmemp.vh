@@ -99,6 +99,7 @@
 `define PF_REQIDBITS       5
 
 // VALID CONFIGURATION OPTIONS (2 or 4 pipes)
+`define SCMEM_PFRETIRE_4 1
 `define SC_4PIPE 1 // 1..4 pipes
 `ifdef SC_4PIPE
 `define SC_NPIPESBITS 2
