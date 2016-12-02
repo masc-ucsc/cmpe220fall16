@@ -14,6 +14,12 @@
 #define TEST_REQ 1
 #define TEST_ACK 1
 //#define TEST_DISP 1
+
+//#define TEST_ONE_REQ_PADDR 1
+
+#define TEST_ONLY_GETS 1
+//#define TEST_ONLY_GETM 1
+
 #define TEST_DISP_ACK 1
 
 
@@ -1041,19 +1047,25 @@ int main(int argc, char **argv, char **env) {
         i.cmd = 0x1; //get exclusive
       else
         i.cmd = 0x0; //get NC
-      
+#ifdef TEST_ONLY_GETM
+      i.cmd = 1;
+#endif
+
+#ifdef TEST_ONLY_GETS
       i.cmd = 0;
-      
+#endif
+
       if (rand() % 3)
         i.paddr = rand() & 0x0001FFFFFFFFFFFF;
       else if (!inp_list_req.empty())
         i.paddr = inp_list_req.front().paddr;
-        //duplicate addresses disabled temporarily
-        //i.paddr = rand() & 0x00000000FFFFFFFF;
+
       else
         i.paddr = rand() & 0x00000000FFFFFFFF;
       
-      //i.paddr = 0x0000001234567890;
+#ifdef TEST_ONE_REQ_PADDR
+      i.paddr = 0x0000001234567890;
+#endif
 
       inp_list_req.push_front(i);
       
