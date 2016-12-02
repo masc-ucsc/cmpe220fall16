@@ -252,9 +252,6 @@ module net_2core2dr(
   /* verilator lint_on UNDRIVEN */
   );
 
-  /* verilator lint_off UNUSED */
-  /* verilator lint_off UNDRIVEN */
-  /* verilator lint_off IMPLICIT */
  // Input reqs to directory
   I_l2todr_req_type   l2todr0_req_next;
   I_l2todr_req_type   l2todr1_req_next;
@@ -1036,7 +1033,7 @@ module net_2core2dr(
   logic c0_drtol2d_0_snack_valid_next;
   logic c0_drtol2dt_0_snack_valid_next;
   logic c1_drtol2i_snack_valid_next;
-  logic c1drtol2it_snack_valid_next;
+  logic c1_drtol2it_snack_valid_next;
   logic c1_drtol2d_0_snack_valid_next;
   logic c1_drtol2dt_0_snack_valid_next;
 
@@ -1358,7 +1355,7 @@ module net_2core2dr(
     .reset    (reset),
 
     .din      (c0_drtol2i_dack_next),
-    .dinValid (c0_drtol2i_snack_valid_next),
+    .dinValid (c0_drtol2i_dack_valid_next),
     .dinRetry (dr0tol2_dack_retry),
 
     .q        (c0_drtol2i_dack),
@@ -1371,7 +1368,7 @@ module net_2core2dr(
     .reset    (reset),
 
     .din      (c0_drtol2it_dack_next),
-    .dinValid (c0_drtol2it_snack_valid_next),
+    .dinValid (c0_drtol2it_dack_valid_next),
     .dinRetry (dr0tol2_dack_retry),
 
     .q        (c0_drtol2it_dack),
@@ -1384,7 +1381,7 @@ module net_2core2dr(
     .reset    (reset),
 
     .din      (c0_drtol2d_0_dack_next),
-    .dinValid (c0_drtol2d_0_snack_valid_next),
+    .dinValid (c0_drtol2d_0_dack_valid_next),
     .dinRetry (dr0tol2_dack_retry),
 
     .q        (c0_drtol2d_0_dack),
@@ -1397,7 +1394,7 @@ module net_2core2dr(
     .reset    (reset),
 
     .din      (c0_drtol2dt_0_dack_next),
-    .dinValid (c0_drtol2dt_0_snack_valid_next),
+    .dinValid (c0_drtol2dt_0_dack_valid_next),
     .dinRetry (dr0tol2_dack_retry),
 
     .q        (c0_drtol2dt_0_dack),
@@ -1410,7 +1407,7 @@ module net_2core2dr(
     .reset    (reset),
 
     .din      (c1_drtol2i_dack_next),
-    .dinValid (c1_drtol2i_snack_valid_next),
+    .dinValid (c1_drtol2i_dack_valid_next),
     .dinRetry (dr0tol2_dack_retry),
 
     .q        (c1_drtol2i_dack),
@@ -1423,7 +1420,7 @@ module net_2core2dr(
     .reset    (reset),
 
     .din      (c1_drtol2it_dack_next),
-    .dinValid (c1_drtol2it_snack_valid_next),
+    .dinValid (c1_drtol2it_dack_valid_next),
     .dinRetry (dr0tol2_dack_retry),
 
     .q        (c1_drtol2it_dack),
@@ -1436,7 +1433,7 @@ module net_2core2dr(
     .reset    (reset),
 
     .din      (c1_drtol2d_0_dack_next),
-    .dinValid (c1_drtol2d_0_snack_valid_next),
+    .dinValid (c1_drtol2d_0_dack_valid_next),
     .dinRetry (dr0tol2_dack_retry),
 
     .q        (c1_drtol2d_0_dack),
@@ -1449,7 +1446,7 @@ module net_2core2dr(
     .reset    (reset),
 
     .din      (c1_drtol2dt_0_dack_next),
-    .dinValid (c1_drtol2dt_0_snack_valid_next),
+    .dinValid (c1_drtol2dt_0_dack_valid_next),
     .dinRetry (dr0tol2_dack_retry),
 
     .q        (c1_drtol2dt_0_dack),
@@ -1457,7 +1454,4 @@ module net_2core2dr(
     .qRetry   (c1_drtol2dt_0_dack_retry)
   );
 
-  /* verilator lint_on UNUSED */
-  /* verilator lint_on UNDRIVEN */
-  /* verilator lint_on IMPLICIT */
 endmodule
