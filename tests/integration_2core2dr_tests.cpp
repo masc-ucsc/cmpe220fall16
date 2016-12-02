@@ -10,8 +10,8 @@
 
 #define DEBUG_TRACE 1
 
-//#define TEST_TOP_LD
-//#define TEST_TOP_ST
+#define TEST_TOP_LD
+#define TEST_TOP_ST
 #define TEST_MEM_LD
 
 vluint64_t global_time = 0;
@@ -647,7 +647,7 @@ void try_send_packet(Vintegration_2core2dr *top) {
 
         c0s0_ld_req_queue.pop_back();
 #ifdef DEBUG_TRACE
-        printf("@%lld c0s0 ld coreid=%X, ckpid=%X, offset=%X, imm=%X, lop=%X, pnr=%X, pcsign=%X\n",42,c0s0_req.coreid, c0s0_req.ckpid, c0s0_req.poffset, c0s0_req.imm, c0s0_req.lop, c0s0_req.pnr, c0s0_req.pcsign);
+        printf("@%lld c0s0 ld  : coreid=%X, ckpid=%X, offset=%X, imm=%X, lop=%X, pnr=%X, pcsign=%X\n",global_time,c0s0_req.coreid, c0s0_req.ckpid, c0s0_req.poffset, c0s0_req.imm, c0s0_req.lop, c0s0_req.pnr, c0s0_req.pcsign);
 #endif
       }
     } else {
@@ -659,43 +659,41 @@ void try_send_packet(Vintegration_2core2dr *top) {
   // SEND DCACHE DISP
   // will also send to tlb
   if(!top->core0_slice0_coretodc_std_retry && !top->c0_s0_coretodctlb_st_retry){
-      if (!c0s0_st_req_queue.empty()) {
+    if (!c0s0_st_req_queue.empty()) {
 
-          DCacheSTReq c0s0_req = c0s0_st_req_queue.back();
-          if(c0s0_req.coreid = 0 && !top->core0_slice0_coretodc_std_retry) {
-              //dcache req
-              top->core0_slice0_coretodc_std_ckpid    = c0s0_req.ckpid;
-              top->core0_slice0_coretodc_std_coreid   = c0s0_req.coreid;
-              std::memcpy(top->core0_slice0_coretodc_std_data, c0s0_req.data, 16);
-              top->core0_slice0_coretodc_std_imm      = c0s0_req.imm;
-              top->core0_slice0_coretodc_std_mop      = c0s0_req.mop;
-              top->core0_slice0_coretodc_std_pcsign   = c0s0_req.pcsign;
-              top->core0_slice0_coretodc_std_pnr      = c0s0_req.pnr;
-              top->core0_slice0_coretodc_std_poffset  = c0s0_req.poffset;
+      DCacheSTReq c0s0_req = c0s0_st_req_queue.back();
+      //dcache req
+      top->core0_slice0_coretodc_std_ckpid    = c0s0_req.ckpid;
+      top->core0_slice0_coretodc_std_coreid   = c0s0_req.coreid;
+      std::memcpy(top->core0_slice0_coretodc_std_data, c0s0_req.data, 16);
+      top->core0_slice0_coretodc_std_imm      = c0s0_req.imm;
+      top->core0_slice0_coretodc_std_mop      = c0s0_req.mop;
+      top->core0_slice0_coretodc_std_pcsign   = c0s0_req.pcsign;
+      top->core0_slice0_coretodc_std_pnr      = c0s0_req.pnr;
+      top->core0_slice0_coretodc_std_poffset  = c0s0_req.poffset;
 
-              top->core0_slice0_coretodc_std_valid    = 1;
+      top->core0_slice0_coretodc_std_valid    = 1;
 
-              //dctlb req
-              top->c0_s0_coretodctlb_st_ckpid    = c0s0_req.ckpid;
-              top->c0_s0_coretodctlb_st_coreid   = c0s0_req.coreid;
-              top->c0_s0_coretodctlb_st_imm      = c0s0_req.imm;
-              top->c0_s0_coretodctlb_st_mop      = c0s0_req.mop;
-              top->c0_s0_coretodctlb_st_pnr      = c0s0_req.pnr;
+      //dctlb req
+      top->c0_s0_coretodctlb_st_ckpid    = c0s0_req.ckpid;
+      top->c0_s0_coretodctlb_st_coreid   = c0s0_req.coreid;
+      top->c0_s0_coretodctlb_st_imm      = c0s0_req.imm;
+      top->c0_s0_coretodctlb_st_mop      = c0s0_req.mop;
+      top->c0_s0_coretodctlb_st_pnr      = c0s0_req.pnr;
 
-              top->c0_s0_coretodctlb_st_sptbr    = 0;
-              top->c0_s0_coretodctlb_st_user     = 1;
+      top->c0_s0_coretodctlb_st_sptbr    = 0;
+      top->c0_s0_coretodctlb_st_user     = 1;
 
-              top->c0_s0_coretodctlb_st_valid    = 1;
+      top->c0_s0_coretodctlb_st_valid    = 1;
 
-              c0s0_st_req_queue.pop_back();
+      c0s0_st_req_queue.pop_back();
 #ifdef DEBUG_TRACE
-              printf("st c0s0 ckpid=%X, coreid=%X, data=%X, imm=%X, mop=%X, pcsign=%X, pnr=%X, poffset=%X\n", c0s0_req.ckpid, c0s0_req.coreid, c0s0_req.data, c0s0_req.imm, c0s0_req.mop, c0s0_req.pcsign, c0s0_req.pnr, c0s0_req.poffset);
+      printf("@%lld c0s0 std : ckpid=%X, coreid=%X, data=%X, imm=%X, mop=%X, pcsign=%X, pnr=%X, poffset=%X\n", global_time, c0s0_req.ckpid, c0s0_req.coreid, c0s0_req.data, c0s0_req.imm, c0s0_req.mop, c0s0_req.pcsign, c0s0_req.pnr, c0s0_req.poffset);
 #endif
-          }
-      } else {
-          top->core0_slice0_coretodc_std_valid = 0;
-          top->c0_s0_coretodctlb_st_valid      = 0;
-      }
+    } else {
+      top->core0_slice0_coretodc_std_valid = 0;
+      top->c0_s0_coretodctlb_st_valid      = 0;
+    }
   }
 
   // SEND MEMORY RESP
@@ -713,7 +711,7 @@ void try_send_packet(Vintegration_2core2dr *top) {
       dr0_resps.pop_back();
 
 #ifdef DEBUG_TRACE
-        printf("@%lld dr0 ack drid=%X, nid=%X, paddr=%X\n",46,resp.drid,resp.nid,resp.paddr);
+        printf("@%lld dr0  ack : drid=%X, nid=%X, paddr=%X\n",global_time, resp.drid,resp.nid,resp.paddr);
 #endif
     } else {
       top->dr0_memtodr_ack_valid = 0;
