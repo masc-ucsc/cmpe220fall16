@@ -10,3 +10,8 @@ const char* trap_t::name()
   sprintf(_name, fmt, uint8_t(which));
   return _name;
 }
+
+void mem_trap_t::side_effects(state_t* state)
+{
+  state->mbadaddr = badvaddr;
+}

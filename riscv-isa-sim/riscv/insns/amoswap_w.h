@@ -1,2 +1,4 @@
 require_extension('A');
-WRITE_RD(sext32(MMU.amo_uint32(RS1, [&](uint32_t lhs) { return RS2; })));
+reg_t v = MMU.load_int32(RS1);
+MMU.store_uint32(RS1, RS2);
+WRITE_RD(v);

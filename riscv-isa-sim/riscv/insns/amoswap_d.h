@@ -1,3 +1,5 @@
 require_extension('A');
 require_rv64;
-WRITE_RD(MMU.amo_uint64(RS1, [&](uint64_t lhs) { return RS2; }));
+reg_t v = MMU.load_uint64(RS1);
+MMU.store_uint64(RS1, RS2);
+WRITE_RD(v);
