@@ -1,12 +1,10 @@
-/*******************************************************************************
-  Filename:       main.cpp
-  Revised:        $Date: 2016-10-21 $
-  Revision:       $Revision: $
-  author:         Zhehao Ding
-
-  Description:    This file is 
-*******************************************************************************/
-
+/*
+ * main.cpp
+ *
+ *  Created on: Oct 21, 2016
+ *      Author: Zhehao Ding
+ *
+ */
 
 #include <iostream>
 #include <cstdlib>
@@ -14,7 +12,7 @@
 
 #include "dumper.hpp"
 #include "operation.hpp"
-#include "sync.hpp"
+//#include "sync.hpp"
 
 using namespace std;
 
@@ -73,32 +71,57 @@ map<opNum_t , opCode_t> opcodeMap = {
 
 int main ()
 {
-    Operation op;
+    Operation op = Operation();
     Dumper dumper = Dumper();
-    memsync syncer = memsync();
 
-    dumper.openToWrite("syncer.dat");
+    dumper.openToWrite("test.dat");
 
-    syncer.setMemcpy(0xabcdef1234567000, 0x1234566666666000, 10);
 
-    while(syncer.hasNext()) {
-        op = syncer.getNext();
-        //cout << op.getOpType() << endl;
-        //op.print();
+
+    uint32_t counter = 0;
+    binary_t binary;
+    for(auto const& entry: opcodeMap) {
+        if(entry.first < 40) {
+            // is Load
+            op.setLoadOpCode(entry.second);
+        }else{
+            op.setStoreOpCode(entry.second);
+        }
+        op.setPid(110);
+        op.setDelay(233);
+        op.setAddr(0x1234567890123456);
+        op.setVal(data);
+        op.setPC(counter);
+        op.setLoadNoData();    // no load for all, test load below
+
+        cout << endl;
+        op.print();
+        op.printParams();
+//        op.printBIN();
+
         dumper.add(op);
+        counter++;
+
+        if(op.getOpType() == OPTYPE_LOAD) {
+            op.setPC(counter);
+            op.setLoadNeedData();
+
+            cout << endl;
+            op.print();
+            op.printParams();
+//            op.printBIN();
+            dumper.add(op);
+            counter++;
+        }
     }
 
     dumper.close();
 
-    cout << endl;
-    cout << endl;
     cout << "****************************************************************" << endl;
     cout << "****************************************************************" << endl;
     cout << "****************************************************************" << endl;
-    cout << endl;
-    cout << endl;
 
-    dumper.openToRead("syncer.dat");
+    dumper.openToRead("test.dat");
 
     while(dumper.hasNext())
     {

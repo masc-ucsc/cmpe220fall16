@@ -1,9 +1,19 @@
+/*******************************************************************************
+  Filename:       dumper.hpp
+  Revised:        $Date: 2016-10-21 $
+  Revision:       $Revision: $
+  author:         Zhehao Ding
+
+  Description:    This file is 
+*******************************************************************************/
+
+
 #ifndef DUMPER_H_INCLUDED
 #define DUMPER_H_INCLUDED
 
 
-#include "errorcode.h"
-#include "operation.h"
+#include "errorcode.hpp"
+#include "operation.hpp"
 
 using namespace std;
 
@@ -25,15 +35,15 @@ typedef uint8_t    dumperMode_t;
 *
 */
 static const dumperMode_t   mode_uninit = 0;
-static const dumperMode_t   mode_read = 1;
-static const dumperMode_t   mode_write = 2;
+static const dumperMode_t   mode_read   = 1;
+static const dumperMode_t   mode_write  = 2;
 
 
 /********************************
 *   Classes
 *
 */
-class dumper{
+class Dumper{
 private:
     fstream        file;
     dumperMode_t    mode;
@@ -48,8 +58,8 @@ private:
 
 public:
     // constructor
-    dumper();
-    dumper(string filename, dumperMode_t mode);
+    Dumper();
+    Dumper(string filename, dumperMode_t mode);
 
     // file operations
     // open file
@@ -58,8 +68,8 @@ public:
     bool close();
 
     // file R/W
-    bool add(binary_t binary);
-    binary_t get();
+    bool add(Operation op);
+    Operation get();
 
     // Tool
     bool hasNext();

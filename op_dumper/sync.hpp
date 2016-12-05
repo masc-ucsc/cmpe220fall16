@@ -1,8 +1,18 @@
+/*******************************************************************************
+  Filename:       sync.hpp
+  Revised:        $Date: 2016-10-21 $
+  Revision:       $Revision: $
+  author:         Zhehao Ding
+
+  Description:    This file is 
+*******************************************************************************/
+
+
 #ifndef SYNC_H_INCLUDED
 #define SYNC_H_INCLUDED
 
-#include "errorcode.h"
-#include "operation.h"
+#include "errorcode.hpp"
+#include "operation.hpp"
 
 /********************************
 *   Typedef
@@ -48,7 +58,7 @@ private:
     memsyncCnt_t        len;
 
     memsyncDataSize_t   step;
-    opCode_t            opType;
+    opCode_t            opCode;
 
     memsyncVal_t        data;
 
@@ -58,7 +68,7 @@ private:
 
 public:
     // API for getting instruction
-    Instruction getNext();
+    Operation getNext();
     bool hasNext();
 
     // Build a set of instructions
