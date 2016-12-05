@@ -1,12 +1,10 @@
-/*******************************************************************************
-  Filename:       main.cpp
-  Revised:        $Date: 2016-10-21 $
-  Revision:       $Revision: $
-  author:         Zhehao Ding
-
-  Description:    This file is 
-*******************************************************************************/
-
+/*
+ * main.cpp
+ *
+ *  Created on: Oct 21, 2016
+ *      Author: Zhehao Ding
+ *
+ */
 
 #include <iostream>
 #include <cstdlib>
