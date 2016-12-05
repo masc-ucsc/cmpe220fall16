@@ -15,7 +15,7 @@ passes basic testing (once you have coded the tests).
  
 When pushing remember to:
 * Before pushing, do ```make lint``` to check if the code passes lint
-* After puching click on the status button (on top of this page) to check the
+* After pushing, click on the status button (on top of this page) to check the
   status of your build
 
 If you have a piece of code that needs to be committed, or you do want to
