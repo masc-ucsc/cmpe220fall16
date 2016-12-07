@@ -132,6 +132,7 @@ void cache_sim_t::access(uint64_t addr, size_t bytes, bool store)
   trace_addr = addr;
   trace_bytes = bytes;
 
+#ifdef TRACE
   if(store == 1){
      live_warmup_cache->read(addr); 
      live_warmup_cache->tracefile_generate();
@@ -139,7 +140,7 @@ void cache_sim_t::access(uint64_t addr, size_t bytes, bool store)
      live_warmup_cache->write(addr);
      live_warmup_cache->tracefile_generate();
   }
- //#endif
+#endif
   
   store ? write_accesses++ : read_accesses++;
   (store ? bytes_written : bytes_read) += bytes;

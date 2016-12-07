@@ -30,7 +30,7 @@
 /* Define to the version of this package. */
 #undef PACKAGE_VERSION
 
-/* Define if subproject MCPPBS_SPROJ_NORM is enabled */
+/* Define to enable Trace File Generation */
 #undef RISCV_ENABLED
 
 /* Enable commit log generation */
