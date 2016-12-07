@@ -189,7 +189,7 @@ void LiveCache::tracefile_generate(){
         abort();
       }
       //open trace_file 
-      sprintf(file_name,"/home/parallels/Desktop/tracefile_%d.txt",trace_file_counter++);
+      sprintf(file_name,"/home/parallels/Desktop/tracefile_%d.txt \n\n",trace_file_counter++);
       fp = fopen(file_name,  "w+"); 
 
       //print livecache to the trace_file
