@@ -55,7 +55,8 @@ private:
     void checkMode(dumperMode_t mode);
     void checkFileState();
     bool binIsStoreOp(binaryUnit_t binary_0);
-
+    uint8_t getFilePeek();
+    
 public:
     // constructor
     Dumper();
@@ -73,7 +74,7 @@ public:
 
     // Tool
     bool hasNext();
-    uint8_t getFilePeek();
+    
 };
 
 
