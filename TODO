@@ -1,0 +1,70 @@
+
+Problems with L2TLB:
+
+ FIXME: we need snoop_table
+
+  The snoop comes from the directory. The L2TLB has to invalidate any "set" of
+entries that used these loads.
+
+  The page walk has 3 loads. Any change in any of the tables (1,2,3rd level)
+should trigger invalidates on the TLB. The 3rd level can invalidate 8 entries
+(64bytes cache line /8 bytes per entry = 8 entries).  The 2nd level can
+invalidate LOTS of entries.
+
+ To keep track. I would have a hash table that for a given address it tracks
+which entries to clear. To keep less state, each snoop I would check if any of
+the 8 entries are in the TLB (state machine).
+
+ If there is a snoop and there is a tag hit but has no bits set, the directory
+should invalidate the WOLE TLB. Maybe, we can have an extra bit (multi-entry)
+and the 8 bits indicate the chunks of L2 TLB that must be invalidated. Ideally,
+1/8 TLB NUKE in snoop_table miss vs whole TLB NUKE.
+
+ The table translates from (DR_hpaddr) to L2TLB_HPADDR. (DR_hpaddr has around
+24 bits. This is a direct mapped table keeping track of hits with a tag check
+
+ snoop_table(DR_hpaddr) -> tag + 8 bits. 1 bit indicating if the entry in that
+cache line was kept in the directory
+
+-L2 SNOOP to L2 cache and L1 cache notification
+
+ When a L2TLB entry is snooped. It must notify the L1 cache to uncache the TLB
+entry.
+
+ The L2 cache does not need to "uncache" the entry. It is only needed if the
+memory attributes change. In this case, all the caches are WB invalidated.
+
+ The L1 cache must invalidate all the entries associated with the L2 TLB snoop.
+The L2 TLB provides the hpaddr (l1 tag), but does not provide the list of laddr/entries
+that can have this hpaddr cached.
+
+ FIXME: traverse the L1 TLB tags, and invalidate any entry that has TLB match
+(slow).  There are 32 sets and 2 sets of tags. In 16 cycles, we can traverse
+the whole cache tags.
+
+ FIXME: abort current transaction if TLB walk hits any cache entry with versioning.
+If abort, notify that it was due to TLB, no error in transaction, just TLB
+management.  (Possible to delay until transaction finishes but some corner
+issues).
+
+  Remember 2 last snoops. If a request hits any of the last snoops (or 3 snoops
+wants to be remembered) the current transaction aborts. Every time that a
+transaction finishes, the "last snoops" are cleared.
+
+ FIXME: we need l1tlbtol1_cmd ack to indicate when the L1 has finished
+invalidating the L1 entries as a result of the L2 TLB snoop.
+ 
+ FIXME: Do not start the L2 TLB invalidate until the L1 TLB invalida sends an
+ack. The reason is that the L1 TLB can send a disp to update A/D bits.
+
+-----------------
+
+ Pass PC signature with prefetch request to that replacement algorithms can use it.
+
+ If no PC is possible, send a fixed hash based on memory level triggering prefetch and algorithm.
+At most, add 2 lower bits for confidence level if prefetch can generate this.
+
+-----------------
+
+ FIXME: coreid is confusing. Better to call it reqid
+

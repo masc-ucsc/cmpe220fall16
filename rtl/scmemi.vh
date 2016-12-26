@@ -61,8 +61,9 @@ typedef struct packed {
 typedef struct packed {
   TLB_reqid_type    rid;
 
+  // FIXME: Simplify, just create a separate DISP and a disp_ack
   logic             disp_req; // True of disp from dcTLB (A/D bits)
-  logic             disp_A;
+  logic             disp_A; // set L2TLB[hpaddr].a |= disp_A;
   logic             disp_D;
   TLB_hpaddr_type   disp_hpaddr; // hash paddr
 
