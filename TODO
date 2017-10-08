@@ -1,4 +1,42 @@
 
+-If the sbptr is zero, there is no translation (during boot, there is no translation set).
+Caches would/should be invalidated once the SBPTR changes from zero to X.
+
+-Add separate path for the prefetch drop.
+
+--------------
+Simplify LD/LD and memory fence speculation.
+
+ -When a LD speculates across an unknown LD or a memory fence. A "spec bit id
+is selected", the unknown LD (there may be many) or fence is marked with the
+spec bit id, and the touched cache lines is marked too.
+
+ -When the marked instruction solves the guarantee of miss speculation (older
+memory op in fence, or ld address resolved in unknown LD), the speculated
+bit in the instruction is cleared.
+
+ -When there are no speculated bits in-flight in the processor, that given speculated
+bit is cleared.
+
+ -If a line is displaced, and the speculated bit is set, the core gets notified
+and a NUKE starting from that instruction is triggered.
+
+ -This allows to speculate across transactions. Not committed transaction
+boundaries are are "speculative boundaries". When the older transaction is
+guaranteed to commit, the speculative bit is cleared.
+
+ -Ideally, we want a bit per "speculative bit even" but it is not needed. If
+the restarts are zero, all can share the bit and does not matter. This means that
+2 bits may be enough. 2 bits allow to keep clearing the "spec bit id" as instructions
+finish/retire. If no bit is set, pick one. If a bit is set, older instructions use
+the same bit. Newer instructions use a newer bit. If there are no bits left, use the
+newer one (do not interleave in program order if possible)
+
+--------------
+try to avoid starting the SRAM read half cycle (do we???). It requires a very square
+clock.
+
+--------------
 Problems with L2TLB:
 
  FIXME: we need snoop_table
@@ -59,12 +97,10 @@ ack. The reason is that the L1 TLB can send a disp to update A/D bits.
 
 -----------------
 
- Pass PC signature with prefetch request to that replacement algorithms can use it.
-
- If no PC is possible, send a fixed hash based on memory level triggering prefetch and algorithm.
-At most, add 2 lower bits for confidence level if prefetch can generate this.
+ FIXME: coreid is confusing. Better to call it reqid
 
 -----------------
 
- FIXME: coreid is confusing. Better to call it reqid
+Try to do a bridge between our interface and tile-link?
+
 
